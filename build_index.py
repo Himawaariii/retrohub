@@ -3506,7 +3506,9 @@ html_code = """<!DOCTYPE html>
 </html>
 """
 
-with open('index.html', 'w', encoding='utf-8') as f:
+# ARCHIVED SAFEGUARD: Prevents overwriting the active 7,600+ line index.html with outdated legacy template
+output_target = 'legacy_index_generated.html'
+with open(output_target, 'w', encoding='utf-8') as f:
     f.write(html_code)
 
-print("Generated index.html successfully! Size:", len(html_code))
+print(f"Archived legacy build written to: {output_target} (active index.html protected).")

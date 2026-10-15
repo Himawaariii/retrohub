@@ -36,61 +36,34 @@
       gold: { id: 'gold', name: 'Retro Gold', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)' }
     };
 
-    // CATÁLOGO OFICIAL DE ACTIVIDAD DE JUEGO (Libretro Official Box Arts)
+    // CATÁLOGO REAL DE ACTIVIDAD DE JUEGO (Cargado dinámicamente)
     const DEFAULT_PLAY_ACTIVITY = [
-      { id: 'sm64', title: 'Super Mario 64', system: 'n64', systemName: 'Nintendo 64', cover: 'ROMS/covers/box_sm64.png', minutesPlayed: 1440, lastPlayed: 'Jugado hoy', firstPlayed: 'Hace 2 semanas' },
-      { id: 'oot', title: 'The Legend of Zelda: Ocarina of Time', system: 'n64', systemName: 'Nintendo 64', cover: 'ROMS/covers/box_oot.png', minutesPlayed: 2700, lastPlayed: 'Jugado ayer', firstPlayed: 'Hace 1 mes' },
-      { id: 'poke_emerald', title: 'Pokémon Esmeralda', system: 'gba', systemName: 'Game Boy Advance', cover: 'ROMS/covers/box_emerald.png', minutesPlayed: 1080, lastPlayed: 'Jugado hace 3 días', firstPlayed: 'Hace 3 semanas' },
-      { id: 'papermario', title: 'Paper Mario', system: 'n64', systemName: 'Nintendo 64', cover: 'ROMS/covers/papermario.png', minutesPlayed: 720, lastPlayed: 'Jugado hace 5 días', firstPlayed: 'Hace 1 mes' },
-      { id: 'chrono', title: 'Chrono Trigger', system: 'snes', systemName: 'Super Nintendo', cover: 'ROMS/covers/box_chrono.png', minutesPlayed: 480, lastPlayed: 'Jugado hace 1 semana', firstPlayed: 'Hace 2 meses' },
-      { id: 'sonic2', title: 'Sonic The Hedgehog 2', system: 'genesis', systemName: 'Sega Mega Drive', cover: 'ROMS/covers/box_sonic2.png', minutesPlayed: 320, lastPlayed: 'Jugado hace 2 semanas', firstPlayed: 'Hace 2 meses' },
-      { id: 'sotn', title: 'Castlevania: Symphony of the Night', system: 'ps1', systemName: 'PlayStation 1', cover: 'ROMS/covers/box_sotn.png', minutesPlayed: 900, lastPlayed: 'Jugado hace 3 semanas', firstPlayed: 'Hace 3 meses' }
+      { id: 'papermario', title: 'Paper Mario', system: 'n64', systemName: 'Nintendo 64', cover: 'ROMS/covers/papermario.png', minutesPlayed: 140, lastPlayed: 'Partida guardada reciente', firstPlayed: 'Sincronizado' }
     ];
 
-    // AMIGOS POR DEFECTO
-    const DEFAULT_FRIENDS = [
-      { id: 'f_lucas', name: 'Lucas Speedrun', username: 'lucas_retro', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas', online: true, statusText: '🎮 Super Mario 64 (Estrella 112)', statusClass: 'status-online' },
-      { id: 'f_peach', name: 'Princess Peach', username: 'peach_kingdom', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Queen', online: true, statusText: '🎮 The Legend of Zelda: OOT', statusClass: 'status-peach' },
-      { id: 'f_cyber', name: 'RetroCyber', username: 'cyber_speed', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cyber', online: true, statusText: '🎮 Sonic The Hedgehog 2', statusClass: 'status-online' },
-      { id: 'f_alex', name: 'Alex Fox', username: 'alex_fox', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex', online: false, statusText: 'Desconectado • Hace 2 horas', statusClass: 'status-offline' }
-    ];
+    // AMIGOS REALES (Sin datos ficticios)
+    const DEFAULT_FRIENDS = [];
 
-    // LOGROS E INSIGNIAS RETRO
-    const RETRO_ACHIEVEMENTS = [
-      { id: 'ach_64', icon: '👑', title: 'Maestra de los 64-Bits', desc: 'Acumular más de 40 horas jugando en el emulador de Nintendo 64.', progress: '100%', unlocked: true },
-      { id: 'ach_save', icon: '💾', title: 'Guardián de la Batería', desc: 'Realizar más de 10 partidas guardadas en la nube SRAM sin corromper datos.', progress: '100%', unlocked: true },
-      { id: 'ach_speed', icon: '⏱️', title: 'Speedrunner en Cierres', desc: 'Superar un nivel en menos de 5 minutos en Super Mario 64.', progress: '100%', unlocked: true },
-      { id: 'ach_boxes', icon: '📦', title: 'Coleccionista de Cartuchos', desc: 'Inspeccionar y rotar más de 20 cajas físicas 3D en la biblioteca.', progress: '100%', unlocked: true },
-      { id: 'ach_net', icon: '🤝', title: 'Amistad Nintendo', desc: 'Vincular tu Clave de Amigo SW y conectar con amigos de la red.', progress: '100%', unlocked: true },
-      { id: 'ach_hyrule', icon: '🛡️', title: 'Héroe de Hyrule', desc: 'Obtener la Espada Maestra en Ocarina of Time sin usar trucos.', progress: '75%', unlocked: false }
-    ];
+    // LOGROS E INSIGNIAS (Sin datos ficticios)
+    const RETRO_ACHIEVEMENTS = [];
 
-    // STOCK AVATARES (OFICIALES Y PORTADAS)
+    // STOCK AVATARES (OFICIALES Y PORTADAS REALES)
     const STOCK_AVATARS = [
-      { id: 'av_sm64', name: 'Super Mario 64', url: 'ROMS/covers/box_sm64.png', type: 'covers' },
-      { id: 'av_oot', name: 'Zelda OOT', url: 'ROMS/covers/box_oot.png', type: 'covers' },
-      { id: 'av_emerald', name: 'Pokémon Esmeralda', url: 'ROMS/covers/box_emerald.png', type: 'covers' },
-      { id: 'av_chrono', name: 'Chrono Trigger', url: 'ROMS/covers/box_chrono.png', type: 'covers' },
       { id: 'av_paper', name: 'Paper Mario', url: 'ROMS/covers/papermario.png', type: 'covers' },
-      { id: 'av_metroid', name: 'Super Metroid', url: 'ROMS/covers/box_super_metroid.png', type: 'covers' },
-      { id: 'av_sonic', name: 'Sonic 2', url: 'ROMS/covers/box_sonic2.png', type: 'covers' },
-      { id: 'av_sotn', name: 'Castlevania SOTN', url: 'ROMS/covers/box_sotn.png', type: 'covers' },
+      { id: 'av_3weeks', name: '3 Weeks in Paradise', url: 'ROMS/covers/3weeksinparadise.jpg', type: 'covers' },
+      { id: 'av_anguna', name: 'Anguna', url: 'ROMS/covers/anguna_box.png', type: 'covers' },
+      { id: 'av_31in1', name: '31-in-1 Real Game', url: 'ROMS/covers/31in1.png', type: 'covers' },
+      { id: 'av_3in1', name: '3-in-1 2-P-Pak', url: 'ROMS/covers/3in1.png', type: 'covers' },
       { id: 'av_n64', name: 'Nintendo 64', url: 'assets/consoles_hires/n64.png', type: 'consoles' },
-      { id: 'av_snes', name: 'Super Nintendo', url: 'assets/consoles_hires/snes.png', type: 'consoles' },
       { id: 'av_gba', name: 'Game Boy Advance', url: 'assets/consoles_hires/gba.png', type: 'consoles' },
-      { id: 'av_ps1', name: 'PlayStation 1', url: 'assets/consoles_hires/ps1.png', type: 'consoles' },
-      { id: 'av_sara', name: 'Sara Retro', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro', type: 'characters' },
-      { id: 'av_lucas', name: 'Lucas Fox', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas', type: 'characters' },
-      { id: 'av_queen', name: 'Pixel Queen', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Queen', type: 'characters' },
-      { id: 'av_cyber', name: 'Cyber Kidd', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cyber', type: 'characters' }
+      { id: 'av_nes', name: 'NES', url: 'assets/consoles/nes.png', type: 'consoles' },
+      { id: 'av_sara', name: 'Sariwiiwi', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro', type: 'characters' }
     ];
 
     const STOCK_BANNERS = [
-      { id: 'bn_sm64', name: 'Castillo de Peach (N64)', url: 'assets/game_wallpapers/n64/sm64.png' },
-      { id: 'bn_oot', name: 'Valle de Hyrule (N64)', url: 'assets/game_wallpapers/n64/oot.png' },
       { id: 'bn_paper', name: 'Paper Mario Kingdom (N64)', url: 'assets/game_wallpapers/n64/papermario.png' },
-      { id: 'bn_chrono', name: 'Época Dorada (SNES)', url: 'assets/game_wallpapers/snes/chrono.png' },
-      { id: 'bn_ff7', name: 'Midgar Mako (PS1)', url: 'assets/game_wallpapers/ps1/ff7.png' }
+      { id: 'bn_n64', name: 'Nintendo 64 Matrix', url: 'assets/wallpapers/n64.svg' },
+      { id: 'bn_gba', name: 'Game Boy Advance Indigo', url: 'assets/wallpapers/gba.svg' }
     ];
 
     function ProfileApp() {
@@ -582,7 +555,7 @@
                     </span>
                     <span>Logros e insignias</span>
                   </div>
-                  <span className="rail-tab-badge">5/6</span>
+                  <span className="rail-tab-badge">{RETRO_ACHIEVEMENTS.filter(a => a.unlocked).length}/{RETRO_ACHIEVEMENTS.length}</span>
                 </button>
               </nav>
 
@@ -714,28 +687,37 @@
                       </a>
                     </div>
 
-                    <div className="play-activity-track">
-                      {playActivity.map(game => (
-                        <div
-                          key={game.id}
-                          className="activity-game-card"
-                          onClick={() => window.location.href = `index.html?launch=${game.id}`}
-                          title={`Jugar a ${game.title} en RetroHub`}
-                        >
-                          <div className="activity-cover-box">
-                            <div className="activity-cover-ambient" style={{ backgroundImage: `url(${game.cover})` }} />
-                            <img src={game.cover} className="activity-cover-art" alt={game.title} onError={(e) => { e.target.src = 'ROMS/covers/box_sm64.png'; }} />
-                            <span className="activity-system-badge">{game.system.toUpperCase()}</span>
-                          </div>
+                    {playActivity && playActivity.length > 0 ? (
+                      <div className="play-activity-track">
+                        {playActivity.map(game => (
+                          <div
+                            key={game.id}
+                            className="activity-game-card"
+                            onClick={() => window.location.href = `index.html?launch=${game.id}`}
+                            title={`Jugar a ${game.title} en RetroHub`}
+                          >
+                            <div className="activity-cover-box">
+                              <div className="activity-cover-ambient" style={{ backgroundImage: `url(${game.cover})` }} />
+                              <img src={game.cover} className="activity-cover-art" alt={game.title} onError={(e) => { e.target.src = 'ROMS/covers/papermario.png'; }} />
+                              <span className="activity-system-badge">{game.system.toUpperCase()}</span>
+                            </div>
 
-                          <div className="activity-info-box">
-                            <div className="activity-game-title">{game.title}</div>
-                            <div className="activity-play-time">{formatSwitchPlayTime(game.minutesPlayed)}</div>
-                            <div className="activity-last-played">{game.lastPlayed}</div>
+                            <div className="activity-info-box">
+                              <div className="activity-game-title">{game.title}</div>
+                              <div className="activity-play-time">{formatSwitchPlayTime(game.minutesPlayed)}</div>
+                              <div className="activity-last-played">{game.lastPlayed}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="profile-empty-state">
+                        <div className="profile-empty-icon">🎮</div>
+                        <div className="profile-empty-title">Sin actividad de juego registrada</div>
+                        <div className="profile-empty-subtitle">Inicia cualquier ROM desde el lanzador principal para registrar tus horas y sesiones de juego aquí.</div>
+                        <a href="index.html" className="btn-empty-action">Ir al lanzador de juegos</a>
+                      </div>
+                    )}
                   </div>
 
                   {/* Descripción Personal y Enlaces */}
@@ -837,42 +819,50 @@
                   </form>
 
                   {/* Cuadrícula de Amigos */}
-                  <div className="friends-grid">
-                    {friends.map(f => (
-                      <div key={f.id} className={`friend-card ${f.statusClass}`}>
-                        <div className="friend-top-row">
-                          <div className="friend-avatar-wrap">
-                            <img src={f.avatar} className="friend-avatar-img" alt={f.name} />
-                            <div className="friend-dot-status" />
+                  {friends && friends.length > 0 ? (
+                    <div className="friends-grid">
+                      {friends.map(f => (
+                        <div key={f.id} className={`friend-card ${f.statusClass}`}>
+                          <div className="friend-top-row">
+                            <div className="friend-avatar-wrap">
+                              <img src={f.avatar} className="friend-avatar-img" alt={f.name} />
+                              <div className="friend-dot-status" />
+                            </div>
+                            <div className="friend-identity">
+                              <div className="friend-name">{f.name}</div>
+                              <div className="friend-tag">@{f.username}</div>
+                            </div>
                           </div>
-                          <div className="friend-identity">
-                            <div className="friend-name">{f.name}</div>
-                            <div className="friend-tag">@{f.username}</div>
+
+                          <div className="friend-activity-pill">
+                            <span style={{ fontSize: '13px' }}>🎮</span>
+                            <span>{f.statusText}</span>
+                          </div>
+
+                          <div className="friend-actions-row">
+                            <button
+                              className="btn-friend-action"
+                              onClick={() => showToast('info', `Invitación de partida enviada a ${f.name}.`)}
+                            >
+                              <span>Desafiar P2P</span>
+                            </button>
+                            <button
+                              className="btn-friend-action"
+                              onClick={() => showToast('info', `Abriendo canal de chat directo con ${f.name}...`)}
+                            >
+                              <span>Mensaje</span>
+                            </button>
                           </div>
                         </div>
-
-                        <div className="friend-activity-pill">
-                          <span style={{ fontSize: '13px' }}>🎮</span>
-                          <span>{f.statusText}</span>
-                        </div>
-
-                        <div className="friend-actions-row">
-                          <button
-                            className="btn-friend-action"
-                            onClick={() => showToast('info', `Invitación de partida enviada a ${f.name}.`)}
-                          >
-                            <span>Desafiar P2P</span>
-                          </button>
-                          <button
-                            className="btn-friend-action"
-                            onClick={() => showToast('info', `Abriendo canal de chat directo con ${f.name}...`)}
-                          >
-                            <span>Mensaje</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="profile-empty-state">
+                      <div className="profile-empty-icon">👥</div>
+                      <div className="profile-empty-title">Aún no tienes amigos agregados</div>
+                      <div className="profile-empty-subtitle">Comparte tu clave de amigo ({profile.friendCode}) o ingresa una clave arriba para conectar con otros jugadores.</div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1100,24 +1090,32 @@
                       </div>
                     </div>
                     <span className="hero-honor-pill" style={{ color: 'var(--gold-accent)', borderColor: 'var(--gold-accent)' }}>
-                      ⭐ 5 Desbloqueados
+                      ⭐ {RETRO_ACHIEVEMENTS.filter(a => a.unlocked).length} Desbloqueados
                     </span>
                   </div>
 
-                  <div className="achievements-grid">
-                    {RETRO_ACHIEVEMENTS.map(ach => (
-                      <div key={ach.id} className={`achievement-card ${!ach.unlocked ? 'locked' : ''}`}>
-                        <div className="achievement-icon-box">{ach.icon}</div>
-                        <div className="achievement-info">
-                          <div className="achievement-title">{ach.title}</div>
-                          <div className="achievement-desc">{ach.desc}</div>
-                          <span className="achievement-status-badge">
-                            {ach.unlocked ? `✓ Desbloqueado (${ach.progress})` : `En progreso: ${ach.progress}`}
-                          </span>
+                  {RETRO_ACHIEVEMENTS && RETRO_ACHIEVEMENTS.length > 0 ? (
+                    <div className="achievements-grid">
+                      {RETRO_ACHIEVEMENTS.map(ach => (
+                        <div key={ach.id} className={`achievement-card ${!ach.unlocked ? 'locked' : ''}`}>
+                          <div className="achievement-icon-box">{ach.icon}</div>
+                          <div className="achievement-info">
+                            <div className="achievement-title">{ach.title}</div>
+                            <div className="achievement-desc">{ach.desc}</div>
+                            <span className="achievement-status-badge">
+                              {ach.unlocked ? `✓ Desbloqueado (${ach.progress})` : `En progreso: ${ach.progress}`}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="profile-empty-state">
+                      <div className="profile-empty-icon">🏆</div>
+                      <div className="profile-empty-title">Sin medallas ni trofeos desbloqueados</div>
+                      <div className="profile-empty-subtitle">Conecta con RetroAchievements o completa objetivos en juegos compatibles para desbloquear insignias reales en tu perfil.</div>
+                    </div>
+                  )}
                 </div>
               )}
 

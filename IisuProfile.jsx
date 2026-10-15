@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './IisuProfile.css';
 
-// 1. CATÁLOGO INICIAL Y DATOS RETRO POR DEFECTO
+// 1. CATÁLOGO INICIAL Y DATOS RETRO REALES
 const DEFAULT_RETRO_GAMES_CATALOG = [
-  { id: 'sm64', title: 'Super Mario 64', platform: 'Nintendo 64', platformCode: 'n64', platformColor: '#ff4757', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1vce.png', year: '1996' },
-  { id: 'oot', title: 'The Legend of Zelda: Ocarina of Time', platform: 'Nintendo 64', platformCode: 'n64', platformColor: '#ff4757', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2579.png', year: '1998' },
-  { id: 'poke_emerald', title: 'Pokémon Esmeralda', platform: 'Game Boy Advance', platformCode: 'gba', platformColor: '#5352ed', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co20vo.png', year: '2004' },
-  { id: 'smw', title: 'Super Mario World', platform: 'Super Nintendo', platformCode: 'snes', platformColor: '#6c5ce7', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1vce.png', year: '1990' },
-  { id: 'chrono', title: 'Chrono Trigger', platform: 'Super Nintendo', platformCode: 'snes', platformColor: '#6c5ce7', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1v2n.png', year: '1995' },
-  { id: 'sonic2', title: 'Sonic The Hedgehog 2', platform: 'Sega Genesis', platformCode: 'genesis', platformColor: '#3742fa', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2044.png', year: '1992' },
-  { id: 'crash1', title: 'Crash Bandicoot', platform: 'PlayStation 1', platformCode: 'ps1', platformColor: '#0984e3', cover: 'ROMS/covers/box_crash1.png', year: '1996' },
-  { id: 'sotn', title: 'Castlevania: Symphony of the Night', platform: 'PlayStation 1', platformCode: 'ps1', platformColor: '#0984e3', cover: 'ROMS/covers/box_sotn.png', year: '1997' }
+  { id: 'papermario', title: 'Paper Mario (Europe)', platform: 'Nintendo 64', platformCode: 'n64', platformColor: '#ff4757', cover: 'ROMS/covers/papermario.png', year: '2001' },
+  { id: '3weeksinparadise', title: '3 Weeks in Paradise', platform: 'Game Boy Advance', platformCode: 'gba', platformColor: '#5352ed', cover: 'ROMS/covers/3weeksinparadise.jpg', year: '2001' },
+  { id: 'anguna', title: 'Anguna - Warriors of the Demise', platform: 'Game Boy Advance', platformCode: 'gba', platformColor: '#5352ed', cover: 'ROMS/covers/anguna_box.png', year: '2008' },
+  { id: '31in1realgame', title: '31-in-1 Real Game Multicart', platform: 'NES', platformCode: 'nes', platformColor: '#e74c3c', cover: 'ROMS/covers/31in1.png', year: '1983' },
+  { id: '3in12ppak', title: '3-in-1 2-P-Pak', platform: 'NES', platformCode: 'nes', platformColor: '#e74c3c', cover: 'ROMS/covers/3in1.png', year: '1983' }
 ];
 
 const DEFAULT_PROFILE = {
@@ -19,14 +16,12 @@ const DEFAULT_PROFILE = {
   displayName: 'Sara Gamer',
   bio: 'Coleccionista de joyas en caja original, perseguidora de los 60 FPS y fanática de la era dorada de los 64-bits.',
   avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro',
-  bannerUrl: 'assets/game_wallpapers/n64/sm64.png',
+  bannerUrl: 'assets/game_wallpapers/n64/papermario.png',
   titleHonor: '🎮 Maestra de los 64-Bits',
   systemAura: 'mint',
   favoriteSystem: 'n64',
   favoriteGames: [
-    { id: 'sm64', title: 'Super Mario 64', platform: 'Nintendo 64', platformColor: '#ff4757', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1vce.png', year: '1996' },
-    { id: 'oot', title: 'The Legend of Zelda: Ocarina of Time', platform: 'Nintendo 64', platformColor: '#ff4757', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2579.png', year: '1998' },
-    { id: 'poke_emerald', title: 'Pokémon Esmeralda', platform: 'Game Boy Advance', platformColor: '#5352ed', cover: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co20vo.png', year: '2004' }
+    { id: 'papermario', title: 'Paper Mario (Europe)', platform: 'Nintendo 64', platformColor: '#ff4757', cover: 'ROMS/covers/papermario.png', year: '2001' }
   ],
   socialLinks: [
     { id: 'l1', platform: 'discord', title: 'Discord', url: 'https://discord.gg/retrohub', icon: '💬' },
@@ -804,58 +799,66 @@ export const IisuProfile = () => {
                 )}
               </div>
 
-              <div className="games-favorite-grid">
-                {profile.favoriteGames.map(game => (
-                  <div key={game.id} className="game-fav-card">
-                    {/* Listón de plataforma */}
-                    <div
-                      className="game-platform-ribbon"
-                      style={{ background: game.platformColor || '#ff4757' }}
-                    >
-                      {game.platform || 'RETRO'}
-                    </div>
-
-                    {/* Botón de eliminar en edición */}
-                    {isEditing && (
-                      <button
-                        className="btn-game-remove"
-                        title="Quitar de favoritos"
-                        onClick={() => handleRemoveGame(game.id)}
+              {profile.favoriteGames && profile.favoriteGames.length > 0 ? (
+                <div className="games-favorite-grid">
+                  {profile.favoriteGames.map(game => (
+                    <div key={game.id} className="game-fav-card">
+                      {/* Listón de plataforma */}
+                      <div
+                        className="game-platform-ribbon"
+                        style={{ background: game.platformColor || '#ff4757' }}
                       >
-                        ✕
-                      </button>
-                    )}
+                        {game.platform || 'RETRO'}
+                      </div>
 
-                    <div className="game-fav-cover-wrap">
-                      <img
-                        src={game.cover}
-                        className="game-fav-cover"
-                        alt={game.title}
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80';
-                        }}
-                      />
+                      {/* Botón de eliminar en edición */}
+                      {isEditing && (
+                        <button
+                          className="btn-game-remove"
+                          title="Quitar de favoritos"
+                          onClick={() => handleRemoveGame(game.id)}
+                        >
+                          ✕
+                        </button>
+                      )}
+
+                      <div className="game-fav-cover-wrap">
+                        <img
+                          src={game.cover}
+                          className="game-fav-cover"
+                          alt={game.title}
+                          onError={(e) => {
+                            e.target.src = 'ROMS/covers/papermario.png';
+                          }}
+                        />
+                      </div>
+
+                      <div className="game-fav-info">
+                        <div className="game-fav-title" title={game.title}>{game.title}</div>
+                        <div className="game-fav-meta">{game.year || 'Clásico'}</div>
+                      </div>
                     </div>
+                  ))}
 
-                    <div className="game-fav-info">
-                      <div className="game-fav-title" title={game.title}>{game.title}</div>
-                      <div className="game-fav-meta">{game.year || 'Clásico'}</div>
+                  {/* Tarjeta rápida para añadir más juegos en modo edición */}
+                  {isEditing && (
+                    <div
+                      className="game-add-card"
+                      onClick={() => setStockModalTarget('game')}
+                      title="Añadir un juego favorito"
+                    >
+                      <div className="game-add-plus">+</div>
+                      <span style={{ fontSize: '13px', fontWeight: 600 }}>Añadir Juego</span>
                     </div>
-                  </div>
-                ))}
-
-                {/* Tarjeta rápida para añadir más juegos en modo edición */}
-                {isEditing && (
-                  <div
-                    className="game-add-card"
-                    onClick={() => setStockModalTarget('game')}
-                    title="Añadir un juego favorito"
-                  >
-                    <div className="game-add-plus">+</div>
-                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Añadir Juego</span>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              ) : (
+                <div className="profile-empty-state" style={{ padding: '32px 16px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎮</div>
+                  <div style={{ fontWeight: 700, fontSize: '15px', color: '#e2e8f0', marginBottom: '4px' }}>Sin juegos destacados todavía</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>Personaliza tu vitrina añadiendo tus títulos retro preferidos desde el catálogo.</div>
+                </div>
+              )}
             </div>
           </div>
 

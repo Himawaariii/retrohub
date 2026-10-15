@@ -12,6 +12,8 @@
     <script src="iisu_cursor.js"></script>
     <script src="assets/retro_music.js"></script>
     <script src="assets/retrohub_client.js"></script>
+    <script type="module" src="assets/modules/server_bridge.js"></script>
+    <script type="module" src="assets/modules/session_store.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -1787,6 +1789,187 @@
             background: #ffffff;
             border-radius: 9999px;
             box-shadow: 0 0 6px #ffffff;
+        }
+
+        /* Tarjeta de Estado Vacío en Repisa Switch */
+        .switch-empty-shelf-card {
+            flex: 0 0 540px;
+            max-width: 90vw;
+            min-height: 280px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.85));
+            border: 2px dashed rgba(0, 210, 190, 0.55);
+            border-radius: 24px;
+            padding: 32px 36px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            margin: 0 auto;
+            color: #ffffff;
+            animation: emptyShelfFadeIn 0.4s ease-out both;
+        }
+        @keyframes emptyShelfFadeIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .empty-shelf-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 210, 190, 0.16);
+            border: 1px solid rgba(0, 210, 190, 0.45);
+            color: #00d2be;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            margin-bottom: 14px;
+        }
+        .empty-shelf-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00d2be;
+            margin-bottom: 14px;
+        }
+        .empty-shelf-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 19px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.3px;
+        }
+        .empty-shelf-desc {
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #94a3b8;
+            max-width: 440px;
+            margin: 0 0 20px 0;
+        }
+        .empty-shelf-desc code {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 6px;
+            color: #38efdb;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .empty-shelf-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn-empty-shelf-sync {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #00d2be, #00a2ed);
+            color: #0a0f1d;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 210, 190, 0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-empty-shelf-sync:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(0, 210, 190, 0.55);
+        }
+        .btn-empty-shelf-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-empty-shelf-add:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Pill de Estado del Servidor SSH */
+        .switch-server-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1.5px solid rgba(0, 0, 0, 0.12);
+            padding: 4px 11px;
+            border-radius: 9999px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .switch-server-pill:hover {
+            background: rgba(0, 210, 190, 0.1);
+            border-color: #00d2be;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+        .server-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+            box-shadow: 0 0 6px rgba(148, 163, 184, 0.5);
+            transition: all 0.3s ease;
+        }
+        .server-status-dot.online {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+        }
+        .server-status-dot.scanning {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+            animation: pulseDot 1s infinite alternate;
+        }
+        @keyframes pulseDot {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+
+        .top-friends-empty {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 8px;
+            border: 1px dashed rgba(0, 0, 0, 0.1);
         }
 
         /* 5. BARRA INFERIOR DE PROMPTS SWITCH OS */
@@ -4508,8 +4691,12 @@
                 </button>
             </div>
 
-            <!-- Estado a la Derecha: Reloj y Wi-Fi en Vector SVG (Sin Batería) -->
+            <!-- Estado a la Derecha: Reloj, Wi-Fi y Servidor SSH -->
             <div class="switch-top-status-right">
+                <button class="switch-server-pill" id="switchServerPill" onclick="triggerServerSync()" data-tooltip="Servidor Himawari (192.168.0.131): En línea. Clic para escanear ROMs" aria-label="Estado Servidor">
+                    <span class="server-status-dot online" id="serverStatusDot"></span>
+                    <span class="server-status-label" id="serverStatusLabel">SSH 131</span>
+                </button>
                 <span class="switch-clock-text" id="headerClock">16:33</span>
                 <div class="switch-wifi-wrap" data-tooltip="Wi-Fi: Conexión Óptima (100%)" aria-label="Wi-Fi">
                     <svg class="switch-wifi-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -4780,7 +4967,7 @@
                         <span style="font-size: 11px; background: rgba(0, 210, 211, 0.2); color: var(--secondary); border: 1px solid var(--secondary); padding: 3px 10px; border-radius: 12px; font-weight: 800;">VERIFICADA</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
-                        <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;" id="profileHandle">@saragamer</span>
+                        <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;" id="profileHandle">@Sariwiiwi</span>
                         <span style="color: var(--system-accent); font-weight: 800; font-size: 13px;" id="profileActiveHonorTitle">🎮 Maestro de los 64-Bits</span>
                     </div>
                 </div>
@@ -5636,12 +5823,13 @@
             setupInteractive3DTilt();
             requestAnimationFrame(pollGamepadInput);
             loadUserProfileFromApi();
+            checkServerStatusPill();
             await syncRomsFromApi();
         });
 
         async function syncRomsFromApi() {
             try {
-                const resp = await fetch('http://localhost:8080/api/roms');
+                const resp = await fetch('/api/roms');
                 const data = await resp.json();
                 if (data.success && data.roms) {
                     allRomBoxes = data.roms;
@@ -5848,136 +6036,32 @@
         // ========================================================
         // 1. CATÁLOGO CURADO DE CARÁTULAS OFICIALES POR CONSOLA
         // ========================================================
+        // 1. CATÁLOGO REAL DE JUEGOS POR CONSOLA (SIN DATOS FALSOS)
+        // ========================================================
         let activeGameIndex = 0;
-
-        const CONSOLE_CURATED_GAMES = {
-            'n64': [
-                { title: 'Paper Mario (Europe)', file: 'ROMS/n64/Paper Mario (Europe) (En,Fr,De,Es).z64', cover: 'ROMS/covers/papermario.png', cartridge: 'ROMS/cartridges/cart_papermario.png', genre: 'RPG / Mario Aventura', year: '2001', core: 'n64', n64core: 'parallel', isPlayable: true },
-                { title: 'Super Mario 64', file: '', cover: 'ROMS/covers/box_sm64.png', cartridge: 'ROMS/cartridges/n64_clean.png', genre: 'Plataformas 3D', year: '1996', core: 'n64', isPlayable: false },
-                { title: 'The Legend of Zelda: Ocarina of Time', file: '', cover: 'ROMS/covers/box_oot.png', cartridge: 'ROMS/cartridges/n64_clean.png', genre: 'Aventura Legendaria', year: '1998', core: 'n64', isPlayable: false },
-                { title: 'Mario Kart 64', file: '', cover: 'ROMS/covers/box_mk64.png', cartridge: 'ROMS/cartridges/n64_clean.png', genre: 'Carreras Multijugador', year: '1997', core: 'n64', isPlayable: false }
-            ],
-            'snes': [
-                { title: 'Super Mario World', file: '', cover: 'ROMS/covers/box_smw.png', cartridge: 'ROMS/cartridges/cart_snes.svg', genre: 'Plataformas 16-Bit', year: '1990', core: 'snes', isPlayable: false },
-                { title: 'Chrono Trigger', file: '', cover: 'ROMS/covers/box_chrono.png', cartridge: 'ROMS/cartridges/cart_snes.svg', genre: 'JRPG Clásico', year: '1995', core: 'snes', isPlayable: false },
-                { title: 'Super Metroid', file: '', cover: 'ROMS/covers/box_super_metroid.png', cartridge: 'ROMS/cartridges/cart_snes.svg', genre: 'Metroidvania', year: '1994', core: 'snes', isPlayable: false },
-                { title: 'Donkey Kong Country', file: '', cover: 'ROMS/covers/box_dkc.png', cartridge: 'ROMS/cartridges/cart_snes.svg', genre: 'Aventura 16-Bit', year: '1994', core: 'snes', isPlayable: false }
-            ],
-            'gba': [
-                { title: 'Anguna: Warriors of Demrav', file: 'ROMS/gba/Anguna.gba', cover: 'ROMS/covers/anguna_box.png', cartridge: 'ROMS/cartridges/cart_anguna.png', genre: 'Acción / RPG Aventura', year: '2008', core: 'gba', isPlayable: true },
-                { title: '3 Weeks in Paradise', file: 'ROMS/gba/3Weeksinparadise.gba', cover: 'ROMS/covers/3weeksinparadise.jpg', cartridge: 'ROMS/cartridges/cart_3weeksinparadise.png', genre: 'Aventura Clásica', year: '1986', core: 'gba', isPlayable: true },
-                { title: 'Pokémon Esmeralda', file: '', cover: 'ROMS/covers/box_emerald.png', cartridge: 'ROMS/cartridges/gba_clean.png', genre: 'RPG / Monstruos', year: '2004', core: 'gba', isPlayable: false },
-                { title: 'The Legend of Zelda: The Minish Cap', file: '', cover: 'ROMS/covers/box_minish_cap.png', cartridge: 'ROMS/cartridges/gba_clean.png', genre: 'Aventura Zelda', year: '2004', core: 'gba', isPlayable: false },
-                { title: 'Golden Sun', file: '', cover: 'ROMS/covers/box_goldensun.png', cartridge: 'ROMS/cartridges/gba_clean.png', genre: 'JRPG Fantasía', year: '2001', core: 'gba', isPlayable: false },
-                { title: 'Castlevania: Aria of Sorrow', file: '', cover: 'ROMS/covers/box_aria.png', cartridge: 'ROMS/cartridges/gba_clean.png', genre: 'Acción Gótica', year: '2003', core: 'gba', isPlayable: false }
-            ],
-            'nes': [
-                { title: '31 In 1 Realgame Multicart', file: 'ROMS/nes/31In1Realgame-Multicart.nes', cover: 'ROMS/covers/31in1.png', cartridge: 'ROMS/cartridges/cart_31in1.png', genre: 'Compilatorio Arcade 8-Bit', year: '1992', core: 'nes', isPlayable: true },
-                { title: '3 In 1 2P Pak', file: 'ROMS/nes/3In12Ppak.nes', cover: 'ROMS/covers/3in1.png', cartridge: 'ROMS/cartridges/cart_3in1.png', genre: 'Multijuego Cooperativo', year: '1990', core: 'nes', isPlayable: true },
-                { title: 'Super Mario Bros. 3', file: '', cover: 'ROMS/covers/box_smb3.png', cartridge: 'ROMS/cartridges/nes_clean.png', genre: 'Plataformas 8-Bit', year: '1988', core: 'nes', isPlayable: false },
-                { title: 'The Legend of Zelda', file: '', cover: 'ROMS/covers/box_zelda1.png', cartridge: 'ROMS/cartridges/nes_clean.png', genre: 'Aventura Dorada', year: '1986', core: 'nes', isPlayable: false },
-                { title: 'Mega Man 2', file: '', cover: 'ROMS/covers/box_megaman2.png', cartridge: 'ROMS/cartridges/nes_clean.png', genre: 'Acción / Plataformas', year: '1988', core: 'nes', isPlayable: false },
-                { title: 'Castlevania', file: '', cover: 'ROMS/covers/box_castlevania1.png', cartridge: 'ROMS/cartridges/nes_clean.png', genre: 'Acción Clásica', year: '1986', core: 'nes', isPlayable: false }
-            ],
-            'genesis': [
-                { title: 'Sonic The Hedgehog 2', file: '', cover: 'ROMS/covers/box_sonic2.png', cartridge: 'ROMS/cartridges/cart_genesis.svg', genre: 'Velocidad 16-Bit', year: '1992', core: 'segaMD', isPlayable: false },
-                { title: 'Streets of Rage 2', file: '', cover: 'ROMS/covers/box_sor2.png', cartridge: 'ROMS/cartridges/cart_genesis.svg', genre: 'Beat em up Clásico', year: '1992', core: 'segaMD', isPlayable: false },
-                { title: 'Gunstar Heroes', file: '', cover: 'ROMS/covers/box_gunstar.png', cartridge: 'ROMS/cartridges/cart_genesis.svg', genre: 'Run and Gun Frenético', year: '1993', core: 'segaMD', isPlayable: false },
-                { title: 'Shinobi III: Return of the Ninja Master', file: '', cover: 'ROMS/covers/box_shinobi3.png', cartridge: 'ROMS/cartridges/cart_genesis.svg', genre: 'Acción Ninja', year: '1993', core: 'segaMD', isPlayable: false }
-            ],
-            'ps1': [
-                { title: 'Crash Bandicoot', file: '', cover: 'ROMS/covers/box_crash1.png', cartridge: 'ROMS/cartridges/cd_disc.svg', genre: 'Plataformas 3D', year: '1996', core: 'psx', isPlayable: false },
-                { title: 'Final Fantasy VII', file: '', cover: 'ROMS/covers/box_ff7.png', cartridge: 'ROMS/cartridges/cd_disc.svg', genre: 'JRPG Cinematográfico', year: '1997', core: 'psx', isPlayable: false },
-                { title: 'Castlevania: Symphony of the Night', file: '', cover: 'ROMS/covers/box_sotn.png', cartridge: 'ROMS/cartridges/cd_disc.svg', genre: 'Metroidvania Maestro', year: '1997', core: 'psx', isPlayable: false },
-                { title: 'Tekken 3', file: '', cover: 'ROMS/covers/box_tekken3.png', cartridge: 'ROMS/cartridges/cd_disc.svg', genre: 'Lucha 3D Arcade', year: '1998', core: 'psx', isPlayable: false }
-            ],
-            'gbc': [
-                { title: 'Pokémon Cristal', file: '', cover: 'ROMS/covers/box_pokemon_crystal.png', genre: 'RPG Portátil', year: '2000', core: 'gbc', isPlayable: false },
-                { title: 'The Legend of Zelda: Oracle of Ages', file: '', cover: 'ROMS/covers/box_oracle_ages.png', genre: 'Aventura Puzles', year: '2001', core: 'gbc', isPlayable: false },
-                { title: 'Wario Land 3', file: '', cover: 'ROMS/covers/box_wario3.png', genre: 'Plataformas', year: '2000', core: 'gbc', isPlayable: false }
-            ],
-            'nds': [
-                { title: 'New Super Mario Bros.', file: '', cover: 'ROMS/covers/box_nsmb.png', genre: 'Plataformas Táctil', year: '2006', core: 'nds', isPlayable: false },
-                { title: 'Pokémon HeartGold', file: '', cover: 'ROMS/covers/box_pokemon_hg.png', genre: 'RPG Doble Pantalla', year: '2009', core: 'nds', isPlayable: false }
-            ],
-            'sms': [
-                { title: 'Alex Kidd in Miracle World', file: '', cover: 'ROMS/covers/box_alexkidd.png', cartridge: 'ROMS/cartridges/cart_sms.svg', genre: 'Aventura Clásica', year: '1986', core: 'segaMS', isPlayable: false },
-                { title: 'Sonic The Hedgehog (8-Bit)', file: '', cover: 'assets/game_wallpapers/sms/sonic_sms.png', cartridge: 'ROMS/cartridges/cart_sms.svg', genre: 'Velocidad 8-Bit', year: '1991', core: 'segaMS', isPlayable: false }
-            ],
-            'arcade': [
-                { title: 'Metal Slug (Arcade Classic)', file: '', cover: 'assets/game_wallpapers/arcade/metalslug.png', genre: 'Arcade Coin-Op', year: '1996', core: 'arcade', isPlayable: false },
-                { title: 'Street Fighter II', file: '', cover: 'assets/game_wallpapers/arcade/street_fighter_2.png', genre: 'Lucha Legendaria', year: '1991', core: 'arcade', isPlayable: false }
-            ],
-            'psp': [
-                { title: 'God of War: Chains of Olympus', file: '', cover: 'assets/game_wallpapers/psp/gow.png', genre: 'Acción Hack and Slash', year: '2008', core: 'psp', isPlayable: false },
-                { title: 'Crisis Core: Final Fantasy VII', file: '', cover: 'assets/game_wallpapers/psp/crisis_core.png', genre: 'Acción RPG', year: '2007', core: 'psp', isPlayable: false }
-            ],
-            'atari': [
-                { title: 'Space Invaders', file: '', cover: 'assets/game_wallpapers/atari/spaceinvaders.png', genre: 'Arcade Retro', year: '1978', core: 'atari', isPlayable: false },
-                { title: 'Pac-Man Atari 2600', file: '', cover: 'assets/game_wallpapers/atari/pacman.png', genre: 'Laberinto Arcade', year: '1982', core: 'atari', isPlayable: false }
-            ],
-            'pce': [
-                { title: "Bonk's Adventure (PC Genjin)", file: '', cover: 'assets/game_wallpapers/pce/bonk.png', genre: 'Plataformas HuCard', year: '1989', core: 'pce', isPlayable: false },
-                { title: 'Castlevania: Rondo of Blood', file: '', cover: 'assets/game_wallpapers/pce/castlevania_rondo.png', genre: 'Acción Gótica CD', year: '1993', core: 'pce', isPlayable: false }
-            ],
-            'virtualboy': [
-                { title: 'Galactic Pinball 3D', file: '', cover: 'assets/game_wallpapers/virtualboy/galactic_pinball__japan__usa__png.png', genre: 'Pinball 3D Rojo', year: '1995', core: 'virtualboy', isPlayable: false },
-                { title: '3-D Tetris', file: '', cover: 'assets/game_wallpapers/virtualboy/3_d_tetris__usa__png.png', genre: 'Puzle Estereoscópico', year: '1996', core: 'virtualboy', isPlayable: false }
-            ]
-        };
 
         function getGamesForConsole(consoleId) {
             const list = [];
-            
-            // 1. Añadir catálogo curado con carátulas oficiales verificadas
-            if (CONSOLE_CURATED_GAMES[consoleId]) {
-                CONSOLE_CURATED_GAMES[consoleId].forEach(g => {
-                    list.push({ ...g });
-                });
-            }
-
-            // 2. Fusionar ROMs instaladas desde LOCAL_GAMES si no están ya en la lista
             const local = LOCAL_GAMES[consoleId] || [];
+
+            // Retorna exclusivamente juegos con archivo real presente en el sistema o servidor
             local.forEach(g => {
-                const existing = list.find(item => 
-                    item.title.toLowerCase().includes(g.title.toLowerCase()) || 
-                    g.title.toLowerCase().includes(item.title.toLowerCase())
-                );
-                if (existing) {
-                    existing.file = g.file;
-                    existing.isPlayable = true;
-                    if (g.core) existing.core = g.core;
-                    if (g.n64core) existing.n64core = g.n64core;
-                    if (g.cover && !existing.cover.startsWith('ROMS/covers/box_')) existing.cover = g.cover;
-                } else {
-                    list.unshift({
-                        title: g.title,
-                        file: g.file,
-                        cover: g.cover,
-                        cartridge: g.cartridge || '',
-                        genre: g.genre || 'Aventura Clásica',
+                const filePath = g.archivo || g.file;
+                if (filePath) {
+                    list.push({
+                        id: g.id || g.title,
+                        title: g.titulo || g.title,
+                        file: filePath,
+                        cover: g.caratula || g.cover || `ROMS/covers/box_${consoleId}.png`,
+                        cartridge: g.cartucho || g.cartridge || '',
+                        genre: g.genero || g.genre || 'Clásico Retro',
                         year: g.year || 'Retro',
-                        core: g.core,
-                        n64core: g.n64core,
+                        core: g.core || (consoleId === 'genesis' ? 'segaMD' : (consoleId === 'ps1' ? 'psx' : consoleId)),
+                        n64core: g.n64core || 'parallel',
                         isPlayable: true
                     });
                 }
             });
-
-            // 3. Fallback garantizado por si no hay nada
-            if (list.length === 0) {
-                const c = CONSOLES.find(x => x.id === consoleId) || CONSOLES[0];
-                list.push({
-                    title: c.famousGame || c.name,
-                    file: '',
-                    cover: `assets/consoles_hires/${c.img}`,
-                    cartridge: `assets/consoles/${c.img}`,
-                    genre: 'Clásico ' + c.name,
-                    year: c.era ? (c.era.match(/\d{4}/)?.[0] || 'Retro') : 'Retro',
-                    core: c.id === 'genesis' ? 'segaMD' : (c.id === 'ps1' ? 'psx' : c.id),
-                    isPlayable: false
-                });
-            }
 
             return list;
         }
@@ -6028,6 +6112,46 @@
 
             const c = CONSOLES[activeConsoleIndex];
             const games = getGamesForConsole(c.id);
+
+            if (games.length === 0) {
+                currentShelfConsoleId = c.id;
+                track.innerHTML = `
+                    <div class="switch-empty-shelf-card">
+                        <div class="empty-shelf-badge"><i class="fas fa-server"></i> Servidor Himawari</div>
+                        <div class="empty-shelf-icon">
+                            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                                <path d="M7 8h10M7 12h6"></path>
+                            </svg>
+                        </div>
+                        <h3 class="empty-shelf-title">No hay ROMs instaladas para ${c.name}</h3>
+                        <p class="empty-shelf-desc">
+                            Copia tus archivos compatibles en <code>/home/himawari/retrohub-data/roms/${c.id}</code> en el servidor <code>192.168.0.131</code> o sincroniza el catálogo.
+                        </p>
+                        <div class="empty-shelf-actions">
+                            <button class="btn-empty-shelf-sync" onclick="triggerServerSync()">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                <span>Escanear Servidor SSH</span>
+                            </button>
+                            <button class="btn-empty-shelf-add" onclick="openCurrentConsoleGames()">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>Añadir Localmente</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                animateSwitchTitle('Sin juegos instalados', `${c.name} • 0 ROMs detectadas en /roms/${c.id}`, direction);
+                return;
+            }
 
             if (activeGameIndex >= games.length) {
                 activeGameIndex = 0;
@@ -6333,19 +6457,18 @@
             if (!wrap) return;
             wrap.innerHTML = '';
 
-            const defaultFriends = [
-                { id: 'luigi', name: 'Luigi', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=LuigiBro', online: true, playing: 'Super Mario 64' },
-                { id: 'peach', name: 'Peach', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=PeachPrincess', online: true, playing: 'Mario Kart' },
-                { id: 'yoshi', name: 'Yoshi', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=YoshiIsland', online: true, playing: 'Super Metroid' }
-            ];
-
-            const currentFriends = (window.SOCIAL && window.SOCIAL.friends && window.SOCIAL.friends.length > 0)
+            const currentFriends = (window.SOCIAL && Array.isArray(window.SOCIAL.friends))
                 ? window.SOCIAL.friends
-                : defaultFriends;
+                : [];
+
+            if (currentFriends.length === 0) {
+                wrap.innerHTML = `<span class="top-friends-empty" title="Sin amigos conectados"><i class="fas fa-user-friends"></i> 0 en línea</span>`;
+                return;
+            }
 
             currentFriends.slice(0, 4).forEach(f => {
                 const chip = document.createElement('div');
-                chip.className = `top-friend-chip ${f.id === 'peach' ? 'friend-peach' : ''} ${f.online ? '' : 'friend-offline'}`;
+                chip.className = `top-friend-chip ${f.online ? '' : 'friend-offline'}`;
                 const statusDesc = f.playing ? `Jugando a ${f.playing}` : (f.online ? 'En línea' : 'Desconectado');
                 chip.setAttribute('data-tooltip', `${f.name} • ${statusDesc}`);
                 chip.setAttribute('aria-label', f.name);
@@ -6360,7 +6483,7 @@
                     } else if (typeof toggleFriendsDrawer === 'function') {
                         toggleFriendsDrawer();
                     } else {
-                        window.location.href = 'iisu_network.html';
+                        window.location.href = 'profile.html?tab=amigos';
                     }
                 };
                 wrap.appendChild(chip);
@@ -6850,7 +6973,7 @@
 
             // Cargar cajas desde la API
             try {
-                const resp = await fetch('http://localhost:8080/api/roms');
+                const resp = await fetch('/api/roms');
                 const data = await resp.json();
                 if (data.success) {
                     allRomBoxes = data.roms;
@@ -7038,7 +7161,7 @@
             };
 
             try {
-                await fetch('http://localhost:8080/api/roms', {
+                await fetch('/api/roms', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -7183,7 +7306,7 @@
         async function loadUserProfileFromApi() {
             if (window.RetroHub) return; // Gestionado por RetroHub.init()
             try {
-                const resp = await fetch('http://localhost:8080/api/user/profile');
+                const resp = await fetch('/api/user/profile');
                 const data = await resp.json();
                 if (data.success && data.profile) {
                     const p = data.profile;
@@ -7195,6 +7318,8 @@
                     if (document.getElementById('inputProfName')) {
                         document.getElementById('inputProfName').value = savedName;
                     }
+                    const pHandleEl = document.getElementById('profileHandle');
+                    if (pHandleEl && p.username) pHandleEl.textContent = `@${p.username}`;
 
                     const savedAvatar = localStorage.getItem('retrohub_user_avatar') || p.avatar_url;
                     const hAvEl = document.getElementById('headerAvatarImg');
@@ -7650,6 +7775,57 @@
           document.body.appendChild(el);
           setTimeout(() => el.style.opacity = '0', 3000);
           setTimeout(() => { if (el.parentNode) el.remove(); }, 3500);
+        }
+
+        async function triggerServerSync() {
+            const dot = document.getElementById('serverStatusDot');
+            const label = document.getElementById('serverStatusLabel');
+            if (dot) dot.className = 'server-status-dot scanning';
+            if (label) label.textContent = 'Escaneando...';
+            if (window.n3dsAudio) window.n3dsAudio.play('select');
+            showSocialNotif('⟳ Conectando con 192.168.0.131 vía SSH para escanear ROMs...', 'info');
+
+            try {
+                const res = await fetch('/api/server/scan', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    if (dot) dot.className = 'server-status-dot online';
+                    if (label) label.textContent = 'SSH 131';
+                    await syncRomsFromApi();
+                    renderSwitchShelf(null, true);
+                    const totalScanned = (data.scan && data.scan.catalog && data.scan.catalog.total_roms) !== undefined
+                        ? data.scan.catalog.total_roms
+                        : allRomBoxes.length;
+                    showSocialNotif(`✓ Servidor SSH 192.168.0.131 sincronizado. ${totalScanned} ROMs en catálogo.`, 'success');
+                } else {
+                    throw new Error(data.error || 'Error escaneando el servidor');
+                }
+            } catch (err) {
+                console.warn('Error al sincronizar con el servidor:', err);
+                if (dot) dot.className = 'server-status-dot';
+                if (label) label.textContent = 'Offline';
+                showSocialNotif(`⚠ Error conectando a 192.168.0.131: ${err.message}`, 'error');
+            }
+        }
+
+        async function checkServerStatusPill() {
+            try {
+                const res = await fetch('/api/server/status');
+                const data = await res.json();
+                const dot = document.getElementById('serverStatusDot');
+                const pill = document.getElementById('switchServerPill');
+                if (data.success && data.server && data.server.online) {
+                    if (dot) dot.className = 'server-status-dot online';
+                    if (pill) {
+                        pill.setAttribute('data-tooltip', `Servidor Himawari (192.168.0.131): En línea (${data.server.disk_free} libres). Clic para escanear ROMs.`);
+                    }
+                } else {
+                    if (dot) dot.className = 'server-status-dot';
+                    if (pill) {
+                        pill.setAttribute('data-tooltip', `Servidor Himawari (192.168.0.131): Fuera de línea.`);
+                    }
+                }
+            } catch (e) {}
         }
     </script>
 

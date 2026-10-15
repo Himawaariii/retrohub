@@ -19,6 +19,40 @@ PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 JWT_SECRET = b'retrohub-nintendo-clean-secret-key-2025'
 
+# Bridge al Servidor Remoto de Datos (himawari@192.168.0.131)
+try:
+    from core.server_sync import check_server_status, trigger_remote_scan, sync_catalog_from_server, push_rom_to_server, SERVER_HOST
+except Exception as e:
+    check_server_status = lambda: {"online": False, "error": str(e), "host": "192.168.0.131"}
+    trigger_remote_scan = lambda: {"success": False, "error": str(e)}
+    sync_catalog_from_server = lambda: {"success": False, "error": str(e)}
+    push_rom_to_server = lambda a, b: {"success": False, "error": str(e)}
+    SERVER_HOST = "192.168.0.131"
+
+def init_tickets_db():
+    try:
+        master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+        conn = sqlite3.connect(master_db)
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS tickets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                contact_name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                status TEXT DEFAULT 'open',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+init_tickets_db()
+
 def generate_token(user_id, username, email, onboarding_completed=1):
     header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip('=')
     payload = base64.urlsafe_b64encode(json.dumps({
@@ -508,6 +542,28 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'users': []}).encode('utf-8'))
             return
 
+        if self.path == '/api/server/status':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            status = check_server_status()
+            self.wfile.write(json.dumps({'success': True, 'server': status}, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/tickets':
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM tickets ORDER BY created_at DESC")
+            rows = [dict(r) for r in cur.fetchall()]
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'tickets': rows}, ensure_ascii=False).encode('utf-8'))
+            return
+
         super().do_GET()
 
     def do_OPTIONS(self):
@@ -905,6 +961,48 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps({'success': True, 'message': 'Operación completada.'}).encode('utf-8'))
+            return
+
+        if self.path == '/api/server/scan':
+            scan_res = trigger_remote_scan()
+            sync_res = sync_catalog_from_server()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'message': 'Escaneo remoto en 192.168.0.131 completado.',
+                'scan': scan_res,
+                'sync': sync_res
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/tickets':
+            c_name = body.get('contact_name') or body.get('nombre') or 'Usuario'
+            cat = body.get('category') or body.get('categoria') or 'sugerencia'
+            title = body.get('title') or body.get('titulo') or 'Sin título'
+            desc = body.get('description') or body.get('mensaje') or ''
+            u_id = body.get('user_id', 1)
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute('''
+                INSERT INTO tickets (user_id, contact_name, category, title, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (u_id, c_name, cat, title, desc))
+            new_ticket_id = cur.lastrowid
+            conn.commit()
+            conn.close()
+
+            self.send_response(201)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'ticket_id': new_ticket_id,
+                'message': 'Incidencia registrada con éxito en el sistema.'
+            }, ensure_ascii=False).encode('utf-8'))
             return
 
         self.send_response(404)

@@ -1,62 +1,86 @@
 {
-  "arcade": [],
-  "atari2600": [],
-  "gb": [],
   "gba": [
     {
-      "titulo": "3 Weeks in Paradise",
+      "id": "rom_gba_3weeksinparadise",
+      "titulo": "3Weeksinparadise",
       "archivo": "ROMS/gba/3Weeksinparadise.gba",
       "nombreArchivo": "3Weeksinparadise.gba",
       "caratula": "ROMS/covers/3weeksinparadise.jpg",
       "cartucho": "ROMS/cartridges/cart_3weeksinparadise.png",
-      "genero": "Aventura / Clásico",
-      "year": "1986 / GBA"
+      "genero": "Retro Clásico",
+      "year": "2001",
+      "core": "mgba",
+      "fileSize": 3818646,
+      "sha1": "b6aef62bae17494b8090c76d94f57648a29257c8",
+      "isPlayable": true
     },
     {
-      "titulo": "Anguna: Warriors of Demrav",
+      "id": "rom_gba_anguna",
+      "titulo": "Anguna",
       "archivo": "ROMS/gba/Anguna.gba",
       "nombreArchivo": "Anguna.gba",
       "caratula": "ROMS/covers/anguna_box.png",
       "cartucho": "ROMS/cartridges/cart_anguna.png",
-      "genero": "Acción / RPG Aventura",
-      "year": "2008 GBA"
+      "genero": "RPG / Aventura",
+      "year": "2008",
+      "core": "mgba",
+      "fileSize": 1710888,
+      "sha1": "270c426705df767a4ad2dc69d039842442f779b2",
+      "isPlayable": true
     }
   ],
   "n64": [
     {
-      "titulo": "Paper Mario (Europe) (En,Fr,De,Es)",
+      "id": "rom_n64_papermarioeuropeen",
+      "titulo": "Paper Mario",
       "archivo": "ROMS/n64/Paper Mario (Europe) (En,Fr,De,Es).z64",
       "nombreArchivo": "Paper Mario (Europe) (En,Fr,De,Es).z64",
       "caratula": "ROMS/covers/papermario.png",
       "cartucho": "ROMS/cartridges/cart_papermario.png",
-      "genero": "RPG / Mario Aventura",
-      "year": "2001 N64",
-      "fix": true
+      "genero": "RPG / Aventura",
+      "year": "2001",
+      "core": "parallel_n64",
+      "fileSize": 67108864,
+      "sha1": "2111d39265a317414d359e35a7d971c4dfa5f9e1",
+      "isPlayable": true
     }
   ],
-  "nds": [],
   "nes": [
     {
-      "titulo": "31 In 1 Realgame Multicart",
+      "id": "rom_nes_31in1realgamemulticart",
+      "titulo": "31In1Realgame Multicart",
       "archivo": "ROMS/nes/31In1Realgame-Multicart.nes",
       "nombreArchivo": "31In1Realgame-Multicart.nes",
       "caratula": "ROMS/covers/31in1.png",
       "cartucho": "ROMS/cartridges/cart_31in1.png",
-      "genero": "Compilatorio Arcade 8-Bit",
-      "year": "NES Classic"
+      "genero": "Retro Clásico",
+      "year": "1983",
+      "core": "fceumm",
+      "fileSize": 393232,
+      "sha1": "d64d1fe6143d3fc7faeb6b001287e736a4198254",
+      "isPlayable": true
     },
     {
-      "titulo": "3 In 1 2P Pak",
+      "id": "rom_nes_3in12ppak",
+      "titulo": "3In12Ppak",
       "archivo": "ROMS/nes/3In12Ppak.nes",
       "nombreArchivo": "3In12Ppak.nes",
       "caratula": "ROMS/covers/3in1.png",
       "cartucho": "ROMS/cartridges/cart_3in1.png",
-      "genero": "Multijuego 2 Jugadores",
-      "year": "NES Classic"
+      "genero": "Retro Clásico",
+      "year": "1983",
+      "core": "fceumm",
+      "fileSize": 40976,
+      "sha1": "7060a3aacce34f1b360a7aa1b0a23a5e2041d8ab",
+      "isPlayable": true
     }
   ],
-  "psp": [],
-  "psx": [],
+  "snes": [],
   "segaMD": [],
-  "snes": []
+  "psx": [],
+  "gb": [],
+  "nds": [],
+  "psp": [],
+  "arcade": [],
+  "atari2600": []
 }
