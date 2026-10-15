@@ -1032,6 +1032,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return 'application/octet-stream'
         return mime
 
+def registrar_mdns(ip, port):
+    try:
+        from zeroconf import Zeroconf, ServiceInfo
+        zc = Zeroconf()
+        info = ServiceInfo(
+            "_http._tcp.local.",
+            "RetroHub._http._tcp.local.",
+            addresses=[socket.inet_aton(ip)],
+            port=port,
+            properties={"path": "/"},
+            server="retrohub.local."
+        )
+        zc.register_service(info)
+        return zc, info
+    except Exception:
+        return None, None
+
 def abrir_navegador():
     import time
     time.sleep(1)
@@ -1041,13 +1058,16 @@ if __name__ == '__main__':
     os.chdir(DIRECTORY)
     socketserver.ThreadingTCPServer.allow_reuse_address = True
     ips = obtener_ips_locales()
+    primary_ip = ips[0] if ips else "127.0.0.1"
+    zc, zc_info = registrar_mdns(primary_ip, PORT)
     
     with socketserver.ThreadingTCPServer(("", PORT), Handler) as httpd:
         print(f"==================================================")
-        print(f"  RETROHUB - Servidor de Emuladores Activo")
-        print(f"  URL Local:      http://localhost:{PORT}/")
+        print(f"  RETROHUB - Plataforma de Emulacion Activa")
+        print(f"  Red Local (mDNS): http://retrohub.local:{PORT}/")
+        print(f"  URL Local:        http://localhost:{PORT}/")
         for ip in ips:
-            print(f"  URL Red Local:  http://{ip}:{PORT}/ (Compartir con amigos)")
+            print(f"  URL IP Red:       http://{ip}:{PORT}/ (Compartir con amigos)")
         print(f"  Pulsa Ctrl + C en esta ventana para detenerlo")
         print(f"==================================================")
         threading.Thread(target=abrir_navegador, daemon=True).start()
@@ -1055,4 +1075,10 @@ if __name__ == '__main__':
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("\nServidor detenido.")
+            if zc and zc_info:
+                try:
+                    zc.unregister_service(zc_info)
+                    zc.close()
+                except Exception:
+                    pass
             sys.exit(0)

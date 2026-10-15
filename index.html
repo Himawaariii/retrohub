@@ -4693,7 +4693,7 @@
 
             <!-- Estado a la Derecha: Reloj, Wi-Fi y Servidor SSH -->
             <div class="switch-top-status-right">
-                <button class="switch-server-pill" id="switchServerPill" onclick="triggerServerSync()" data-tooltip="Servidor Himawari (192.168.0.131): En línea. Clic para escanear ROMs" aria-label="Estado Servidor">
+                <button class="switch-server-pill" id="switchServerPill" onclick="triggerServerSync()" data-tooltip="Servidor RetroHub (192.168.0.131): En línea. Clic para escanear ROMs" aria-label="Estado Servidor">
                     <span class="server-status-dot online" id="serverStatusDot"></span>
                     <span class="server-status-label" id="serverStatusLabel">SSH 131</span>
                 </button>
@@ -6117,7 +6117,7 @@
                 currentShelfConsoleId = c.id;
                 track.innerHTML = `
                     <div class="switch-empty-shelf-card">
-                        <div class="empty-shelf-badge"><i class="fas fa-server"></i> Servidor Himawari</div>
+                        <div class="empty-shelf-badge"><i class="fas fa-server"></i> Servidor RetroHub</div>
                         <div class="empty-shelf-icon">
                             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
@@ -7817,12 +7817,12 @@
                 if (data.success && data.server && data.server.online) {
                     if (dot) dot.className = 'server-status-dot online';
                     if (pill) {
-                        pill.setAttribute('data-tooltip', `Servidor Himawari (192.168.0.131): En línea (${data.server.disk_free} libres). Clic para escanear ROMs.`);
+                        pill.setAttribute('data-tooltip', `Servidor RetroHub (192.168.0.131): En línea (${data.server.disk_free} libres). Clic para escanear ROMs.`);
                     }
                 } else {
                     if (dot) dot.className = 'server-status-dot';
                     if (pill) {
-                        pill.setAttribute('data-tooltip', `Servidor Himawari (192.168.0.131): Fuera de línea.`);
+                        pill.setAttribute('data-tooltip', `Servidor RetroHub (192.168.0.131): Fuera de línea.`);
                     }
                 }
             } catch (e) {}
