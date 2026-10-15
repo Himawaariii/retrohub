@@ -1,0 +1,361 @@
+/* ========================================================
+   RetroHub • Barra de Herramientas Común (Common Web Toolbar)
+   Estética: Nintendo Wii Porcelain + Modern Frutiger Aero Glass
+   - Logo oficial de RetroHub a la izquierda
+   - Navegación central en cápsulas de cristal líquido (Gel Pills)
+   - Reloj en tiempo real y Perfil de Usuario autenticado a la derecha
+   ======================================================== */
+
+.rh-common-toolbar-wrap {
+  width: 100%;
+  padding: 14px 28px 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.rh-common-toolbar {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 1320px;
+  height: 68px;
+  margin: 0 auto;
+  padding: 0 22px;
+  box-sizing: border-box;
+  border-radius: 9999px;
+  /* Frutiger Aero Multi-Layer Acrylic Glass + Wii Porcelain */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(246, 252, 255, 0.84) 50%,
+    rgba(235, 248, 255, 0.88) 100%
+  );
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1.5px solid rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 12px 34px rgba(0, 140, 215, 0.11),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 162, 237, 0.16),
+    inset 0 2px 2px rgba(255, 255, 255, 1),
+    inset 0 -2px 5px rgba(0, 162, 237, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Reflejo especular superior Frutiger Aero (mitad superior brillante) */
+.rh-common-toolbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2%;
+  right: 2%;
+  height: 46%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
+  border-radius: 9999px 9999px 40% 40%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ========================================================
+   1. IZQUIERDA: LOGO DEL SITIO (RETROHUB)
+   ======================================================== */
+.rh-toolbar-left {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.rh-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.rh-brand-link:hover {
+  transform: scale(1.03);
+}
+
+.rh-brand-orb {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #6ae2ff 0%, #00a2ed 52%, #0077b6 100%);
+  box-shadow:
+    0 5px 16px rgba(0, 162, 237, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.9),
+    inset 0 -3px 6px rgba(0, 60, 110, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* Gota de brillo cristalino sobre el orbe del logo */
+.rh-brand-orb::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 16%;
+  width: 68%;
+  height: 44%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+}
+.rh-brand-link:hover .rh-brand-orb {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.rh-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.rh-brand-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1.05;
+}
+.rh-brand-sub {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #0088cc;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  margin-top: 2px;
+}
+
+/* ========================================================
+   2. CENTRO: PÍLDORAS DE NAVEGACIÓN WII / FRUTIGER AERO
+   ======================================================== */
+.rh-toolbar-nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(226, 240, 250, 0.55);
+  padding: 5px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 162, 237, 0.14);
+  box-shadow: inset 0 1.5px 3px rgba(0, 100, 160, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.rh-nav-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #334155;
+  text-decoration: none;
+  transition: all 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+.rh-nav-pill:hover {
+  color: #0284c7;
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 162, 237, 0.12);
+}
+.rh-nav-pill.active {
+  background: linear-gradient(180deg, #56ccf2 0%, #00a2ed 54%, #0082c8 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 5px 16px rgba(0, 162, 237, 0.35),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 60, 110, 0.25);
+}
+.rh-nav-pill.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6%;
+  right: 6%;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+/* ========================================================
+   3. DERECHA: RELOJ + PERFIL DE USUARIO A LA DERECHA
+   ======================================================== */
+.rh-toolbar-right {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.rh-status-clock-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f8fe 100%);
+  border: 1px solid rgba(0, 162, 237, 0.18);
+  box-shadow: 0 2px 8px rgba(0, 120, 190, 0.06), inset 0 1.5px 1px #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.rh-aero-pearl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6ee7b7 0%, #10b981 60%, #047857 100%);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.65);
+  flex-shrink: 0;
+}
+
+/* Cápsula del Perfil de Usuario (Derecha) */
+.rh-user-profile-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px 4px 5px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1.5px solid rgba(0, 162, 237, 0.28);
+  box-shadow:
+    0 4px 14px rgba(0, 162, 237, 0.12),
+    inset 0 2px 2px #ffffff;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+.rh-user-profile-pill:hover {
+  transform: translateY(-1.5px) scale(1.02);
+  border-color: #00a2ed;
+  box-shadow:
+    0 8px 22px rgba(0, 162, 237, 0.24),
+    inset 0 2px 2px #ffffff;
+}
+.rh-user-profile-pill.active-page {
+  border-color: #00a2ed;
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.18), 0 6px 18px rgba(0, 162, 237, 0.18);
+}
+
+.rh-user-avatar-wrap {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.rh-user-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  border: 2px solid var(--system-aura-color, #00a2ed);
+  box-shadow: 0 2px 8px rgba(0, 162, 237, 0.25);
+}
+.rh-user-online-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6ee7b7 0%, #10b981 70%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.rh-user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  text-align: left;
+}
+.rh-user-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rh-user-handle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.rh-btn-logout {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1.5px 1px #ffffff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.rh-btn-logout:hover {
+  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+  border-color: rgba(230, 0, 18, 0.3);
+  color: #e60012;
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.15);
+}
+
+@media (max-width: 900px) {
+  .rh-common-toolbar-wrap {
+    padding: 10px 12px 0 12px;
+  }
+  .rh-common-toolbar {
+    height: auto;
+    padding: 10px 16px;
+    border-radius: 24px;
+    flex-wrap: wrap;
+  }
+  .rh-status-clock-pill {
+    display: none;
+  }
+}

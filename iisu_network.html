@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="iiSU Network - Plataforma social para emuladores y jugadores retro. Amigos, tablón comunitario y acceso a consolas.">
-    <title>iiSU Network • Social Gaming OS</title>
+    <meta name="description" content="RetroHub - Plataforma social para emuladores y jugadores retro. Amigos, tablón comunitario y acceso a consolas.">
+    <title>RetroHub • Comunidad & Red Social</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="retrohub_toolbar.css">
+    <script src="retrohub_toolbar.js" defer></script>
     <style>
         /* ========================================================
-           1. DESIGN SYSTEM TOKENS (iiSU NINTENDO CLEAN & FLUID GEL)
+           1. DESIGN SYSTEM TOKENS (RETROHUB AERO GLASS)
            ======================================================== */
         :root {
-            --bg-canvas: #f6f8fb;
-            --bg-canvas-2: #edf2f7;
+            --bg-canvas: #eef7ff;
+            --bg-canvas-2: #e0f2fe;
             --glass-card: #ffffff;
             --glass-card-hover: #ffffff;
             --glass-card-subtle: #f8fafc;
-            --glass-border: rgba(0, 0, 0, 0.06);
+            --glass-border: rgba(0, 168, 243, 0.14);
             --glass-border-focus: rgba(0, 162, 237, 0.4);
             --cyan-primary: #00a2ed;
             --cyan-glow: rgba(0, 162, 237, 0.22);
@@ -31,10 +33,10 @@
             --text-main: #334155;
             --text-muted: #64748b;
             --text-dim: #94a3b8;
-            --radius-window: 36px;
-            --radius-card: 26px;
+            --radius-window: 30px;
+            --radius-card: 24px;
             --radius-pill: 9999px;
-            --shadow-elevation: 0 24px 60px rgba(0, 162, 237, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03);
+            --shadow-elevation: 0 24px 60px rgba(0, 162, 237, 0.1), 0 4px 16px rgba(0, 0, 0, 0.03);
             --shadow-subtle: 0 10px 30px rgba(0, 0, 0, 0.04);
         }
 
@@ -52,16 +54,13 @@
             overflow: hidden !important;
             margin: 0;
             padding: 0;
-            background: var(--bg-canvas);
-            background-image: 
-                radial-gradient(circle at 50% 15%, #ffffff 0%, transparent 75%),
-                radial-gradient(circle at 10% 40%, rgba(0, 162, 237, 0.04) 0%, transparent 50%),
-                radial-gradient(circle at 90% 70%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+            background: linear-gradient(160deg, #f4faff 0%, #e0f2fe 45%, #d8f8ee 100%);
             color: var(--text-main);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 12px clamp(10px, 2vw, 24px);
+            justify-content: flex-start;
+            padding: 0 clamp(10px, 2vw, 24px) 16px clamp(10px, 2vw, 24px);
             position: fixed;
             width: 100vw;
             box-sizing: border-box;
@@ -115,16 +114,17 @@
             z-index: 10;
             width: 100%;
             max-width: 1400px;
-            height: 94vh;
-            min-height: 720px;
-            background: rgba(255, 255, 255, 0.94);
+            flex: 1;
+            min-height: 0;
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(28px) saturate(180%);
             -webkit-backdrop-filter: blur(28px) saturate(180%);
             border-radius: var(--radius-window);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-elevation), inset 0 1.5px 2px rgba(255, 255, 255, 1);
+            border: 1.5px solid rgba(255, 255, 255, 0.95);
+            box-shadow: var(--shadow-elevation), inset 0 2px 3px rgba(255, 255, 255, 1);
             display: grid;
-            grid-template-columns: 260px 1fr;
+            grid-template-columns: 245px 1fr;
             overflow: hidden;
             animation: windowEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
@@ -1421,30 +1421,25 @@
         <div class="glow-orb orb-3"></div>
     </div>
 
-    <!-- VENTANA PRINCIPAL DEL SISTEMA OPERATIVO iiSU -->
+    <!-- BARRA DE HERRAMIENTAS COMÚN DE RETROHUB (Logo a la Izquierda • Navegación • Perfil a la Derecha) -->
+    <div id="retrohubGlobalToolbar" style="width: 100%; max-width: 1400px; flex-shrink: 0;"></div>
+
+    <!-- VENTANA PRINCIPAL DE LA COMUNIDAD RETROHUB -->
     <div class="iisu-window" id="iisuAppWindow">
         
-        <!-- SIDEBAR DE NAVEGACIÓN -->
-        <aside class="iisu-sidebar" aria-label="Navegación principal">
+        <!-- SIDEBAR DE MÓDULOS DE COMUNIDAD -->
+        <aside class="iisu-sidebar" aria-label="Secciones de comunidad">
             <div>
-                <!-- Logotipo de iiSU Network -->
-                <a href="home.html" class="sidebar-brand" style="text-decoration: none;" title="Volver a la Página de Inicio">
-                    <div class="brand-logo-box">🎮</div>
+                <div class="sidebar-brand" style="padding: 4px 8px 16px 8px;">
+                    <div class="brand-logo-box">🌐</div>
                     <div class="brand-meta">
-                        <span class="brand-title">iiSU</span>
-                        <span class="brand-subtitle">Ir a Inicio 🏠</span>
+                        <span class="brand-title">Comunidad</span>
+                        <span class="brand-subtitle">Red Social RetroHub</span>
                     </div>
-                </a>
+                </div>
 
                 <!-- Pestañas de Navegación del Módulo -->
                 <nav class="sidebar-nav" role="tablist">
-                    <a class="nav-item" href="home.html" title="Ir a la Página de Inicio Principal">
-                        <div class="nav-item-inner">
-                            <span class="nav-icon">🏠</span>
-                            <span>Página de Inicio</span>
-                        </div>
-                    </a>
-
                     <button class="nav-item active" id="navBtnBoard" role="tab" aria-selected="true" onclick="Navigation.switchTab('board')">
                         <div class="nav-item-inner">
                             <span class="nav-icon">📌</span>
@@ -1464,51 +1459,30 @@
                     <button class="nav-item" id="navBtnEmulators" role="tab" aria-selected="false" onclick="Navigation.switchTab('emulators')">
                         <div class="nav-item-inner">
                             <span class="nav-icon">🕹️</span>
-                            <span>Emuladores</span>
+                            <span>Catálogo Emuladores</span>
                         </div>
                     </button>
-
-                    <a class="nav-item" href="profile.html" target="_blank" rel="noopener noreferrer" title="Abrir Perfil de Usuario en nueva pestaña">
-                        <div class="nav-item-inner">
-                            <span class="nav-icon">👤</span>
-                            <span>Mi Perfil</span>
-                        </div>
-                        <span style="font-size: 11px; opacity: 0.6;">↗</span>
-                    </a>
                 </nav>
             </div>
 
-            <!-- Footer: Tarjeta de identidad del usuario activo -->
-            <div class="sidebar-footer">
-                <a href="profile.html" target="_blank" rel="noopener noreferrer" class="user-identity-card" title="Ver pasaporte gamer completo en nueva pestaña">
-                    <img id="sidebarUserAvatar" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Jugador" class="user-avatar-thumb" alt="Avatar">
-                    <div class="user-details">
-                        <span class="user-display-name" id="sidebarUserName">Jugador</span>
-                        <span class="user-status-text">
-                            <span class="status-dot"></span>
-                            <span id="sidebarUserHandle">@jugador</span>
-                        </span>
-                    </div>
-                </a>
-                <button class="btn-switch-user" onclick="AppState.switchTestProfile()" title="Alternar entre @Sariwiiwi y @AlexGamer para probar solicitudes e interacción">
-                    🔄 Cambiar Perfil Gamer
-                </button>
+            <!-- Elementos ocultos por compatibilidad interna (el perfil activo ya está en la barra superior derecha) -->
+            <div style="display: none;">
+                <img id="sidebarUserAvatar" src="" alt="">
+                <span id="sidebarUserName"></span>
+                <span id="sidebarUserHandle"></span>
+                <span id="liveClockText"></span>
             </div>
         </aside>
 
         <!-- ÁREA PRINCIPAL -->
         <main class="iisu-main">
-            <!-- Barra Superior (Top Bar) -->
+            <!-- Encabezado de Sección -->
             <header class="iisu-topbar">
                 <div class="topbar-left">
                     <h1 class="topbar-section-title" id="topbarSectionTitle">Tablón de Anuncios</h1>
                     <span class="section-pill-tag" id="topbarSectionTag">Comunidad</span>
                 </div>
                 <div class="topbar-right">
-                    <div class="live-clock-badge">
-                        <span>🕒</span>
-                        <span id="liveClockText">12:00</span>
-                    </div>
                     <button class="btn-header-action" id="btnHeaderAction" onclick="Navigation.handleHeaderAction()">
                         <span>+ Publicar Anuncio</span>
                     </button>
