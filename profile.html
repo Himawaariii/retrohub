@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>iiSU Network • Perfil de Usuario (Nintendo Switch OS)</title>
+  <title>RetroHub • Perfil de Usuario</title>
   
-  <!-- Tipografías Oficiales de iiSU & Switch -->
+  <!-- Tipografías Oficiales de RetroHub (Space Grotesk & Outfit) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Estilos del Sistema de Perfil Switch OS + iiSU -->
+  <!-- Estilos Unificados del Sistema RetroHub OS -->
   <link rel="stylesheet" href="IisuProfile.css">
   
   <!-- React 18 y Babel Standalone para renderizado directo en navegador -->
@@ -23,11 +23,11 @@
   <!-- Contenedor Raíz de React -->
   <div id="profileRoot"></div>
 
-  <!-- Componente React IisuSwitchProfile -->
+  <!-- Componente React RetroHubProfileApp -->
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
 
-    // AURAS BIOLUMINISCENTES iiSU
+    // PALETAS DE AURA BIOLUMINISCENTE RETROHUB
     const AURA_PALETTES = {
       mint: { id: 'mint', name: 'Mint Cyan', color: '#00d2be', glow: 'rgba(0, 210, 190, 0.45)' },
       scarlet: { id: 'scarlet', name: 'Joy-Con Scarlet', color: '#ff3c28', glow: 'rgba(255, 60, 40, 0.45)' },
@@ -36,18 +36,7 @@
       gold: { id: 'gold', name: 'Retro Gold', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)' }
     };
 
-    // CATÁLOGO REAL DE ACTIVIDAD DE JUEGO (Cargado dinámicamente)
-    const DEFAULT_PLAY_ACTIVITY = [
-      { id: 'papermario', title: 'Paper Mario', system: 'n64', systemName: 'Nintendo 64', cover: 'ROMS/covers/papermario.png', minutesPlayed: 140, lastPlayed: 'Partida guardada reciente', firstPlayed: 'Sincronizado' }
-    ];
-
-    // AMIGOS REALES (Sin datos ficticios)
-    const DEFAULT_FRIENDS = [];
-
-    // LOGROS E INSIGNIAS (Sin datos ficticios)
-    const RETRO_ACHIEVEMENTS = [];
-
-    // STOCK AVATARES (OFICIALES Y PORTADAS REALES)
+    // AVATARES DE STOCK (PORTADAS REALES, HARDWARE Y PERSONAJES)
     const STOCK_AVATARS = [
       { id: 'av_paper', name: 'Paper Mario', url: 'ROMS/covers/papermario.png', type: 'covers' },
       { id: 'av_3weeks', name: '3 Weeks in Paradise', url: 'ROMS/covers/3weeksinparadise.jpg', type: 'covers' },
@@ -57,48 +46,65 @@
       { id: 'av_n64', name: 'Nintendo 64', url: 'assets/consoles_hires/n64.png', type: 'consoles' },
       { id: 'av_gba', name: 'Game Boy Advance', url: 'assets/consoles_hires/gba.png', type: 'consoles' },
       { id: 'av_nes', name: 'NES', url: 'assets/consoles/nes.png', type: 'consoles' },
-      { id: 'av_sara', name: 'Sariwiiwi', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro', type: 'characters' }
+      { id: 'av_snes', name: 'Super Nintendo', url: 'assets/consoles_hires/snes.png', type: 'consoles' },
+      { id: 'av_ps1', name: 'PlayStation 1', url: 'assets/consoles_hires/ps1.png', type: 'consoles' },
+      { id: 'av_bot_himawari', name: 'Himawari Bot', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraHimawari', type: 'characters' },
+      { id: 'av_bot_retro', name: 'Retro Gamer', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro', type: 'characters' },
+      { id: 'av_bot_pixel', name: 'Pixel Hero', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=RetroHubHero', type: 'characters' }
     ];
 
+    // BANNERS PANORÁMICOS DE STOCK
     const STOCK_BANNERS = [
       { id: 'bn_paper', name: 'Paper Mario Kingdom (N64)', url: 'assets/game_wallpapers/n64/papermario.png' },
-      { id: 'bn_n64', name: 'Nintendo 64 Matrix', url: 'assets/wallpapers/n64.svg' },
-      { id: 'bn_gba', name: 'Game Boy Advance Indigo', url: 'assets/wallpapers/gba.svg' }
+      { id: 'bn_sm64', name: 'Super Mario 64 Castle (N64)', url: 'assets/game_wallpapers/n64/sm64.png' },
+      { id: 'bn_oot', name: 'Zelda Ocarina of Time (N64)', url: 'assets/game_wallpapers/n64/oot.png' },
+      { id: 'bn_smw', name: 'Super Mario World (SNES)', url: 'assets/game_wallpapers/snes/smw.png' },
+      { id: 'bn_emerald', name: 'Pokémon Esmeralda (GBA)', url: 'assets/game_wallpapers/gba/pokemon_emerald.png' },
+      { id: 'bn_n64_art', name: 'Nintendo 64 Matrix', url: 'assets/wallpapers/n64.svg' },
+      { id: 'bn_gba_art', name: 'Game Boy Advance Indigo', url: 'assets/wallpapers/gba.svg' }
     ];
 
-    function ProfileApp() {
-      // Pestaña activa en el riel de navegación Switch
-      const [activeTab, setActiveTab] = useState('perfil'); // 'perfil', 'amigos', 'ajustes', 'logros'
-
-      // Datos de perfil
-      const [profile, setProfile] = useState({
-        id: 2,
-        username: localStorage.getItem('retrohub_user_name') || 'Sariwiiwi',
-        displayName: localStorage.getItem('retrohub_display_name') || 'Sara Gamer',
-        bio: localStorage.getItem('retrohub_user_bio') || 'Coleccionista de joyas en caja original, perseguidora de los 60 FPS y fanática de la era dorada de los 64-bits.',
-        avatarUrl: localStorage.getItem('retrohub_user_avatar') || 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro',
-        bannerUrl: localStorage.getItem('retrohub_user_banner') || 'assets/game_wallpapers/n64/sm64.png',
-        titleHonor: localStorage.getItem('retrohub_honor_title') || '🎮 Maestra de los 64-Bits',
-        systemAura: localStorage.getItem('retrohub_aura_id') || 'mint',
-        favoriteSystem: localStorage.getItem('retrohub_fav_system') || 'n64',
-        friendCode: localStorage.getItem('retrohub_friend_code') || 'SW-4829-1092-4821',
-        socialLinks: [
-          { id: 'l1', platform: 'discord', title: 'Discord', url: 'https://discord.gg/retrohub', icon: '💬' },
-          { id: 'l2', platform: 'twitch', title: 'Twitch', url: 'https://twitch.tv/sariwiiwi', icon: '📺' }
-        ]
+    function RetroHubProfileApp() {
+      // Pestaña activa ('perfil', 'amigos', 'ajustes', 'logros')
+      const [activeTab, setActiveTab] = useState(() => {
+        const p = new URLSearchParams(window.location.search);
+        return p.get('tab') || 'perfil';
       });
 
-      // Estados de actividad y amigos
-      const [playActivity, setPlayActivity] = useState(DEFAULT_PLAY_ACTIVITY);
-      const [friends, setFriends] = useState(DEFAULT_FRIENDS);
+      // Estado de carga inicial
+      const [isLoading, setIsLoading] = useState(true);
+
+      // Datos reales del perfil del usuario autenticado
+      const [profile, setProfile] = useState({
+        id: null,
+        username: localStorage.getItem('retrohub_user_name') || 'himawari',
+        displayName: localStorage.getItem('retrohub_display_name') || localStorage.getItem('retrohub_user_name') || 'himawari',
+        bio: localStorage.getItem('retrohub_user_bio') || '',
+        avatarUrl: localStorage.getItem('retrohub_user_avatar') || 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraHimawari',
+        bannerUrl: localStorage.getItem('retrohub_user_banner') || 'assets/game_wallpapers/n64/papermario.png',
+        titleHonor: localStorage.getItem('retrohub_honor_title') || '🎮 Maestro de los 64-Bits',
+        systemAura: localStorage.getItem('retrohub_aura_id') || 'mint',
+        favoriteSystem: localStorage.getItem('retrohub_fav_system') || 'n64',
+        friendCode: '',
+        socialLinks: [
+          { id: 'l1', platform: 'discord', title: 'Discord', url: 'https://discord.gg/retrohub', icon: '💬' }
+        ],
+        presence: { status: 'online', game: null }
+      });
+
+      // Actividad de juego real (sin mocks hardcodeados)
+      const [playActivity, setPlayActivity] = useState([]);
+      // Amigos reales (sin mocks hardcodeados)
+      const [friends, setFriends] = useState([]);
       const [addFriendInput, setAddFriendInput] = useState('');
-      const [clockText, setClockText] = useState('15:45');
+      const [clockText, setClockText] = useState('12:00');
 
       // Modales y retroalimentación
       const [showQrModal, setShowQrModal] = useState(false);
       const [toast, setToast] = useState(null);
       const [avatarTabFilter, setAvatarTabFilter] = useState('covers');
       const [isSaving, setIsSaving] = useState(false);
+      const [isOwner, setIsOwner] = useState(true);
 
       // Validación de nombre de usuario en tiempo real
       const [usernameInput, setUsernameInput] = useState(profile.username);
@@ -107,7 +113,7 @@
       const fileInputRef = useRef(null);
       const broadcastRef = useRef(null);
 
-      // Inicialización y canales de sincronización
+      // Inicialización y carga de datos reales
       useEffect(() => {
         // 1. Reloj en tiempo real
         const updateClock = () => {
@@ -119,50 +125,105 @@
         updateClock();
         const clockTimer = setInterval(updateClock, 1000);
 
-        // 2. Cargar Play Activity de localStorage si existe
+        // 2. Cargar Play Activity real de localStorage
         try {
           const storedAct = localStorage.getItem('retrohub_play_activity');
           if (storedAct) {
             const parsed = JSON.parse(storedAct);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed)) {
               setPlayActivity(parsed);
             }
           }
-        } catch (e) {}
-
-        // 3. Cargar Clave de Amigo permanente si no existe
-        let fc = localStorage.getItem('retrohub_friend_code');
-        if (!fc || !fc.startsWith('SW-')) {
-          const p1 = Math.floor(1000 + Math.random() * 9000);
-          const p2 = Math.floor(1000 + Math.random() * 9000);
-          const p3 = Math.floor(1000 + Math.random() * 9000);
-          fc = `SW-${p1}-${p2}-${p3}`;
-          localStorage.setItem('retrohub_friend_code', fc);
+        } catch (e) {
+          setPlayActivity([]);
         }
-        setProfile(p => ({ ...p, friendCode: fc }));
 
-        // 4. Cargar perfil desde la API si está disponible
-        fetch(`/api/users/profile/${encodeURIComponent(profile.username)}`)
+        // 3. Determinar usuario a consultar (vía parámetro ?user= o sesión actual JWT)
+        const params = new URLSearchParams(window.location.search);
+        const targetUser = params.get('user') || params.get('username');
+        const token = localStorage.getItem('retrohub_jwt_token');
+
+        let fetchUrl = '/api/users/profile';
+        const fetchHeaders = {};
+        if (token) {
+          fetchHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
+        if (targetUser) {
+          fetchUrl = `/api/users/profile/${encodeURIComponent(targetUser.trim().toLowerCase())}`;
+          const currentLogged = localStorage.getItem('retrohub_user_name');
+          if (currentLogged && currentLogged.toLowerCase() !== targetUser.trim().toLowerCase()) {
+            setIsOwner(false);
+          }
+        }
+
+        // 4. Obtener datos del perfil desde el servidor RetroHub
+        fetch(fetchUrl, { headers: fetchHeaders })
           .then(r => r.json())
           .then(data => {
             if (data.success && data.user) {
               const u = data.user;
+              const userId = u.id;
+              
+              // Cargar o generar Clave de Amigo única vinculada al usuario
+              let fcKey = `retrohub_friend_code_${userId}`;
+              let fc = localStorage.getItem(fcKey) || localStorage.getItem('retrohub_friend_code');
+              if (!fc || !fc.startsWith('SW-')) {
+                const p1 = Math.floor(1000 + Math.random() * 9000);
+                const p2 = Math.floor(1000 + Math.random() * 9000);
+                const p3 = Math.floor(1000 + Math.random() * 9000);
+                fc = `SW-${p1}-${p2}-${p3}`;
+                localStorage.setItem(fcKey, fc);
+                localStorage.setItem('retrohub_friend_code', fc);
+              }
+
+              const newAura = u.systemAura || 'mint';
               setProfile(p => ({
                 ...p,
-                displayName: u.displayName || p.displayName,
-                bio: u.bio || p.bio,
+                id: userId,
+                username: u.username || p.username,
+                displayName: u.displayName || u.username || p.displayName,
+                bio: u.bio !== undefined ? u.bio : p.bio,
                 avatarUrl: u.avatarUrl || p.avatarUrl,
                 bannerUrl: u.bannerUrl || p.bannerUrl,
                 titleHonor: u.titleHonor || p.titleHonor,
-                systemAura: u.systemAura || p.systemAura,
-                favoriteSystem: u.favoriteSystem || p.favoriteSystem
+                systemAura: newAura,
+                favoriteSystem: u.favoriteSystem || p.favoriteSystem,
+                socialLinks: u.socialLinks && u.socialLinks.length ? u.socialLinks : p.socialLinks,
+                friendCode: fc,
+                presence: u.presence || { status: 'online', game: null }
               }));
+
               setUsernameInput(u.username || p.username);
+
+              // Aplicar paleta de Aura dinámica
+              const aura = AURA_PALETTES[newAura] || AURA_PALETTES.mint;
+              document.documentElement.style.setProperty('--system-aura-color', aura.color);
+              document.documentElement.style.setProperty('--system-aura-glow', aura.glow);
+
+              // Almacenar datos básicos de sesión si somos propietarios
+              if (!targetUser || targetUser.toLowerCase() === (u.username || '').toLowerCase()) {
+                localStorage.setItem('retrohub_user_name', u.username);
+                if (u.displayName) localStorage.setItem('retrohub_display_name', u.displayName);
+                if (u.avatarUrl) localStorage.setItem('retrohub_user_avatar', u.avatarUrl);
+                if (u.bannerUrl) localStorage.setItem('retrohub_user_banner', u.bannerUrl);
+                if (u.bio) localStorage.setItem('retrohub_user_bio', u.bio);
+                if (u.titleHonor) localStorage.setItem('retrohub_honor_title', u.titleHonor);
+                if (newAura) localStorage.setItem('retrohub_aura_id', newAura);
+                if (u.favoriteSystem) localStorage.setItem('retrohub_fav_system', u.favoriteSystem);
+              }
             }
           })
-          .catch(() => {});
+          .catch(() => {
+            // Si no hay respuesta o falla, usar valores locales seguros
+            let fc = localStorage.getItem('retrohub_friend_code') || 'SW-4829-1092-4821';
+            setProfile(p => ({ ...p, friendCode: fc }));
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
 
-        // 5. Configurar canal de sincronización bidireccional (BroadcastChannel)
+        // 5. Canal de sincronización en tiempo real (BroadcastChannel)
         if (typeof BroadcastChannel !== 'undefined') {
           broadcastRef.current = new BroadcastChannel('retrohub_profile_sync');
           broadcastRef.current.onmessage = (event) => {
@@ -171,11 +232,6 @@
             }
           };
         }
-
-        // 6. Aplicar paleta de Aura activa
-        const aura = AURA_PALETTES[profile.systemAura] || AURA_PALETTES.mint;
-        document.documentElement.style.setProperty('--system-aura-color', aura.color);
-        document.documentElement.style.setProperty('--system-aura-glow', aura.glow);
 
         return () => {
           clearInterval(clockTimer);
@@ -194,7 +250,6 @@
         localStorage.setItem('retrohub_aura_color', aura.color);
         localStorage.setItem('retrohub_aura_glow', aura.glow);
 
-        // Notificar al launcher
         if (broadcastRef.current) {
           broadcastRef.current.postMessage({
             type: 'PROFILE_UPDATED',
@@ -203,7 +258,7 @@
             systemAuraGlow: aura.glow
           });
         }
-        showToast('info', `Aura bioluminiscente cambiada a ${aura.name}.`);
+        showToast('info', `Aura cambiada a ${aura.name}.`);
       };
 
       // Cambiar avatar desde stock
@@ -216,14 +271,14 @@
             avatarUrl: url
           });
         }
-        showToast('success', 'Foto de perfil actualizada.');
+        showToast('success', 'Foto de perfil seleccionada.');
       };
 
       // Cambiar banner
       const handleSelectBanner = (url) => {
         setProfile(p => ({ ...p, bannerUrl: url }));
         localStorage.setItem('retrohub_user_banner', url);
-        showToast('success', 'Banner panorámico actualizado.');
+        showToast('success', 'Banner panorámico seleccionado.');
       };
 
       // Subida de imagen personalizada
@@ -249,6 +304,7 @@
 
       // Copiar Clave de Amigo al Portapapeles
       const handleCopyFriendCode = () => {
+        if (!profile.friendCode) return;
         navigator.clipboard.writeText(profile.friendCode).then(() => {
           showToast('success', `✓ ¡Clave ${profile.friendCode} copiada al portapapeles!`);
         }).catch(() => {
@@ -270,11 +326,11 @@
           return;
         }
 
-        setUsernameValidation({ status: 'checking', message: '⟳ Comprobando...' });
+        setUsernameValidation({ status: 'checking', message: '⟳ Comprobando disponibilidad...' });
         if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = setTimeout(async () => {
           try {
-            const res = await fetch(`/api/users/check-username/${encodeURIComponent(val.trim())}?excludeUserId=${profile.id}`);
+            const res = await fetch(`/api/users/check-username/${encodeURIComponent(val.trim())}?excludeUserId=${profile.id || 0}`);
             const data = await res.json();
             if (data.available) {
               setUsernameValidation({ status: 'available', message: `✓ ¡@${val} está disponible!` });
@@ -292,28 +348,18 @@
         e.preventDefault();
         const code = addFriendInput.trim().toUpperCase();
         if (!code || !code.startsWith('SW-') || code.length < 14) {
-          showToast('error', 'Introduce una clave de amigo Switch válida (ej: SW-1234-5678-9012).');
+          showToast('error', 'Introduce una clave válida (ej: SW-1234-5678-9012).');
           return;
         }
 
-        const newFriend = {
-          id: `friend_${Date.now()}`,
-          name: `Jugador ${code.slice(-4)}`,
-          username: `sw_player_${code.slice(-4).toLowerCase()}`,
-          avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${code}`,
-          online: true,
-          statusText: '🟢 En línea • Conectado por Clave SW',
-          statusClass: 'status-online'
-        };
-
-        setFriends(prev => [newFriend, ...prev]);
         setAddFriendInput('');
-        showToast('success', `¡Solicitud de amistad enviada con éxito a ${code}!`);
+        showToast('success', `¡Solicitud de amistad enviada a ${code}!`);
       };
 
       // Guardar perfil completo en SQLite y LocalStorage
       const handleSaveProfile = async () => {
         setIsSaving(true);
+        const token = localStorage.getItem('retrohub_jwt_token');
         const payload = {
           userId: profile.id,
           username: usernameInput.trim() || profile.username,
@@ -327,10 +373,13 @@
           socialLinks: profile.socialLinks
         };
 
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         try {
           const res = await fetch('/api/users/profile', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(payload)
           });
           const data = await res.json();
@@ -342,13 +391,12 @@
             }));
             localStorage.setItem('retrohub_user_name', payload.username);
             localStorage.setItem('retrohub_display_name', payload.displayName);
-            localStorage.setItem('retrohub_user_bio', payload.bio);
+            localStorage.setItem('retrohub_user_bio', payload.bio || '');
             localStorage.setItem('retrohub_user_avatar', payload.avatarUrl);
             localStorage.setItem('retrohub_user_banner', payload.bannerUrl);
             localStorage.setItem('retrohub_honor_title', payload.titleHonor);
             localStorage.setItem('retrohub_fav_system', payload.favoriteSystem);
 
-            // Sincronizar con el launcher en vivo
             if (broadcastRef.current) {
               broadcastRef.current.postMessage({
                 type: 'PROFILE_UPDATED',
@@ -358,12 +406,11 @@
                 systemAura: payload.systemAura
               });
             }
-            showToast('success', '✓ Cambios guardados y sincronizados con RetroHub.');
+            showToast('success', '✓ Cambios guardados con éxito.');
           } else {
             showToast('error', data.error ? data.error.message : 'Error al guardar perfil.');
           }
         } catch {
-          // Fallback a localStorage
           localStorage.setItem('retrohub_user_name', payload.username);
           localStorage.setItem('retrohub_display_name', payload.displayName);
           localStorage.setItem('retrohub_user_avatar', payload.avatarUrl);
@@ -373,8 +420,8 @@
         }
       };
 
-      // Formateador de tiempo al estilo Nintendo Switch OS
-      const formatSwitchPlayTime = (minutes) => {
+      // Formateador de tiempo al estilo consola
+      const formatPlayTime = (minutes) => {
         if (!minutes || minutes < 60) return 'Jugado por primera vez';
         const hours = Math.floor(minutes / 60);
         return `Jugado durante ${hours} horas o más`;
@@ -386,8 +433,8 @@
         setTimeout(() => setToast(null), 3800);
       };
 
-      // Navegar de regreso a la Repisa de Juegos
-      const handleReturnToShelf = () => {
+      // Regresar al Launcher
+      const handleReturnToLauncher = () => {
         if (window.opener && !window.opener.closed) {
           window.close();
         } else {
@@ -398,7 +445,7 @@
       const activeAuraData = AURA_PALETTES[profile.systemAura] || AURA_PALETTES.mint;
 
       return (
-        <div className="profile-page-wrapper">
+        <div className="retrohub-window-wrapper">
           <input
             type="file"
             ref={fileInputRef}
@@ -407,720 +454,695 @@
             onChange={handleFileUpload}
           />
 
-          {/* Orbes bioluminiscentes ambientales iiSU */}
+          {/* Orbes de resplandor ambiental RetroHub */}
           <div className="profile-ambient-orb profile-orb-1" style={{ background: activeAuraData.glow }} />
           <div className="profile-ambient-orb profile-orb-2" />
           <div className="profile-ambient-orb profile-orb-3" />
 
           {/* Toast Flotante */}
           {toast && (
-            <div className={`profile-toast toast-${toast.type}`}>
+            <div className={`retrohub-toast toast-${toast.type}`}>
               <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✗' : 'ℹ'}</span>
               <span>{toast.message}</span>
             </div>
           )}
 
-          {/* BARRA SUPERIOR SWITCH OS (SIN BATERÍA) */}
-          <header className="profile-topbar">
-            <div className="topbar-left-zone">
-              <button className="btn-switch-return" onClick={handleReturnToShelf} title="Volver a la Repisa de Emuladores">
-                <span className="cue-circle cue-b">B</span>
-                <span>Volver a la Repisa</span>
-              </button>
-
-              <div className="topbar-brand-link">
-                <div className="topbar-brand-icon">
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                    <path d="M7 2h-1a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1 7H4v-2h2v2z"/>
-                    <path d="M17 2h1a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm2 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-1-7h2V6h-2v2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <span className="topbar-brand-title">iiSU RetroHub</span>
-                  <span className="topbar-brand-sub">Página de Usuario</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="topbar-status-right">
-              <button className="btn-topbar-action" onClick={handleCopyFriendCode} title="Copiar tu clave de amigo">
-                <span className="cue-circle cue-y">Y</span>
-                <span>Copiar Clave</span>
-              </button>
-              <button className="btn-topbar-action" onClick={() => setShowQrModal(true)} title="Mostrar código QR de tu perfil">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                  <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                  <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                  <rect x="14" y="14" width="3" height="3"></rect>
-                  <path d="M21 14v7h-4"></path>
-                  <path d="M17 21h4"></path>
-                </svg>
-                <span>Código QR</span>
-              </button>
-              <span className="topbar-clock">{clockText}</span>
-              <div className="topbar-wifi" title="Wi-Fi: Señal Óptima (100%)">
-                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                  <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                  <circle cx="12" cy="20" r="1.3" fill="currentColor"></circle>
-                </svg>
-              </div>
-            </div>
-          </header>
-
-          {/* ARQUITECTURA DE LA PÁGINA: RIEL LATERAL + VIEWPORT */}
-          <main className="switch-userpage-layout">
+          {/* VENTANA FLOTANTE PRINCIPAL RETROHUB */}
+          <div className="retrohub-window">
             
-            {/* RIEL LATERAL DE NAVEGACIÓN SWITCH OS */}
-            <aside className="switch-userpage-rail">
-              {/* Tarjeta de Usuario Mini */}
-              <div className="rail-user-card" onClick={() => setActiveTab('perfil')} style={{ cursor: 'pointer' }}>
-                <div className="rail-avatar-box">
-                  <img src={profile.avatarUrl} className="rail-avatar-img" alt="Avatar" />
-                  <div className="rail-online-dot" />
-                </div>
-                <div className="rail-user-info">
-                  <div className="rail-user-name">{profile.displayName}</div>
-                  <div className="rail-user-tag">@{profile.username}</div>
-                  <div className="rail-user-status">
-                    <span style={{ color: '#10b981' }}>●</span> En línea
+            {/* BARRA LATERAL IZQUIERDA (SIDEBAR) */}
+            <aside className="retrohub-sidebar">
+              <div>
+                {/* Branding Oficial RetroHub */}
+                <div className="sidebar-brand">
+                  <div className="brand-logo-box">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                      <path d="M7 2h-1a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1 7H4v-2h2v2z"/>
+                      <path d="M17 2h1a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm2 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-1-7h2V6h-2v2z"/>
+                    </svg>
+                  </div>
+                  <div className="brand-meta">
+                    <span className="brand-title">RetroHub</span>
+                    <span className="brand-sub">Gaming OS</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Lista Vertical de Pestañas */}
-              <nav className="rail-tabs-list">
-                <button
-                  className={`rail-tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('perfil')}
-                >
-                  <div className="rail-tab-left">
-                    <span className="rail-tab-icon">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    </span>
-                    <span>Perfil</span>
-                  </div>
-                  <span className="rail-tab-badge">SW</span>
-                </button>
-
-                <button
-                  className={`rail-tab-btn ${activeTab === 'amigos' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('amigos')}
-                >
-                  <div className="rail-tab-left">
-                    <span className="rail-tab-icon">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                      </svg>
-                    </span>
-                    <span>Lista de amigos</span>
-                  </div>
-                  <span className="rail-tab-badge">{friends.length}</span>
-                </button>
-
-                <button
-                  className={`rail-tab-btn ${activeTab === 'ajustes' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('ajustes')}
-                >
-                  <div className="rail-tab-left">
-                    <span className="rail-tab-icon">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                      </svg>
-                    </span>
-                    <span>Ajustes de usuario</span>
-                  </div>
-                  <span className="rail-tab-badge">Studio</span>
-                </button>
-
-                <button
-                  className={`rail-tab-btn ${activeTab === 'logros' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('logros')}
-                >
-                  <div className="rail-tab-left">
-                    <span className="rail-tab-icon">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="8" r="6"></circle>
-                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-                      </svg>
-                    </span>
-                    <span>Logros e insignias</span>
-                  </div>
-                  <span className="rail-tab-badge">{RETRO_ACHIEVEMENTS.filter(a => a.unlocked).length}/{RETRO_ACHIEVEMENTS.length}</span>
-                </button>
-              </nav>
-
-              {/* Prompts al pie del Riel */}
-              <div className="rail-controller-prompts">
-                <div className="prompt-group">
-                  <span className="key-tiny k-a">A</span>
-                  <span>Seleccionar</span>
-                </div>
-                <div className="prompt-group">
-                  <span className="key-tiny k-b">B</span>
-                  <span>Atrás</span>
-                </div>
-              </div>
-            </aside>
-
-            {/* VIEWPORT DINÁMICO DE CONTENIDO */}
-            <section className="switch-userpage-viewport">
-
-              {/* ========================================================
-                  PESTAÑA 1: PERFIL & ACTITUD DE JUEGO
-                  ======================================================== */}
-              {activeTab === 'perfil' && (
-                <>
-                  {/* Hero Card Panorámico */}
-                  <div className="profile-hero-card">
-                    <div className="hero-banner-wrap">
-                      <img src={profile.bannerUrl} className="hero-banner-img" alt="Banner de Perfil" />
-                      <div className="hero-banner-overlay-top">
-                        <button className="btn-topbar-action" onClick={() => setActiveTab('ajustes')}>
-                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                          </svg>
-                          <span>Cambiar Banner</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="hero-body-content">
-                      <div className="hero-avatar-identity">
-                        <div className="hero-avatar-box" onClick={() => setActiveTab('ajustes')} title="Cambiar avatar en ajustes">
-                          <img src={profile.avatarUrl} className="hero-avatar-img" alt="Avatar" />
-                          <div className="hero-avatar-online-badge" />
-                        </div>
-
-                        <div className="hero-details-wrap">
-                          <h1 className="hero-display-name">
-                            {profile.displayName}
-                          </h1>
-                          <div className="hero-username-pill">
-                            <span>●</span> @{profile.username}
-                          </div>
-
-                          <div className="hero-badges-row">
-                            <span className="hero-honor-pill">{profile.titleHonor}</span>
-                            <span className="hero-system-pill">
-                              Consola Favorita: {profile.favoriteSystem.toUpperCase()}
-                            </span>
-                            <span className="hero-status-pill">
-                              <span style={{ fontSize: '10px' }}>🎮</span> Jugando a Super Mario 64
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Clave de Amigo Oficial Switch */}
-                      <div className="switch-friend-code-card">
-                        <div className="friend-code-icon-box">
-                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="2" y="6" width="20" height="12" rx="6"></rect>
-                            <line x1="6" y1="12" x2="10" y2="12"></line>
-                            <line x1="8" y1="10" x2="8" y2="14"></line>
-                            <circle cx="15.5" cy="13.5" r="1.2" fill="currentColor"></circle>
-                            <circle cx="18.5" cy="10.5" r="1.2" fill="currentColor"></circle>
-                          </svg>
-                        </div>
-                        <div className="friend-code-meta">
-                          <span className="friend-code-label">Clave de amigo</span>
-                          <span className="friend-code-digits">{profile.friendCode}</span>
-                        </div>
-                        <div className="friend-code-actions">
-                          <button className="btn-fc-action" onClick={handleCopyFriendCode} title="Copiar clave">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                            <span>Copiar</span>
-                          </button>
-                          <button className="btn-fc-action" onClick={() => setShowQrModal(true)} title="Ver código QR">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="3" y="3" width="7" height="7"></rect>
-                              <rect x="14" y="3" width="7" height="7"></rect>
-                              <rect x="3" y="14" width="7" height="7"></rect>
-                              <rect x="14" y="14" width="3" height="3"></rect>
-                            </svg>
-                            <span>QR</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sección: Actividad de Juego (Play Activity) */}
-                  <div className="switch-section-box">
-                    <div className="section-header-row">
-                      <div className="section-title-wrap">
-                        <div className="section-icon-badge">
-                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="2" y="6" width="20" height="12" rx="6"></rect>
-                            <line x1="6" y1="12" x2="10" y2="12"></line>
-                            <line x1="8" y1="10" x2="8" y2="14"></line>
-                            <circle cx="15.5" cy="13.5" r="1.3" fill="currentColor"></circle>
-                            <circle cx="18.5" cy="10.5" r="1.3" fill="currentColor"></circle>
-                          </svg>
-                        </div>
-                        <div>
-                          <h2 className="section-title">Actividad de juego (Play Activity)</h2>
-                          <p className="section-subtitle">Títulos retro jugados recientemente en esta consola con tiempos registrados</p>
-                        </div>
-                      </div>
-
-                      <a href="index.html" className="btn-topbar-action" style={{ textDecoration: 'none' }}>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                {/* Menú de Navegación Vertical */}
+                <nav className="sidebar-nav" style={{ marginTop: '16px' }}>
+                  <button
+                    className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('perfil')}
+                  >
+                    <div className="nav-item-inner">
+                      <div className="nav-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span>Abrir Launcher</span>
-                      </a>
-                    </div>
-
-                    {playActivity && playActivity.length > 0 ? (
-                      <div className="play-activity-track">
-                        {playActivity.map(game => (
-                          <div
-                            key={game.id}
-                            className="activity-game-card"
-                            onClick={() => window.location.href = `index.html?launch=${game.id}`}
-                            title={`Jugar a ${game.title} en RetroHub`}
-                          >
-                            <div className="activity-cover-box">
-                              <div className="activity-cover-ambient" style={{ backgroundImage: `url(${game.cover})` }} />
-                              <img src={game.cover} className="activity-cover-art" alt={game.title} onError={(e) => { e.target.src = 'ROMS/covers/papermario.png'; }} />
-                              <span className="activity-system-badge">{game.system.toUpperCase()}</span>
-                            </div>
-
-                            <div className="activity-info-box">
-                              <div className="activity-game-title">{game.title}</div>
-                              <div className="activity-play-time">{formatSwitchPlayTime(game.minutesPlayed)}</div>
-                              <div className="activity-last-played">{game.lastPlayed}</div>
-                            </div>
-                          </div>
-                        ))}
                       </div>
-                    ) : (
-                      <div className="profile-empty-state">
-                        <div className="profile-empty-icon">🎮</div>
-                        <div className="profile-empty-title">Sin actividad de juego registrada</div>
-                        <div className="profile-empty-subtitle">Inicia cualquier ROM desde el lanzador principal para registrar tus horas y sesiones de juego aquí.</div>
-                        <a href="index.html" className="btn-empty-action">Ir al lanzador de juegos</a>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Descripción Personal y Enlaces */}
-                  <div className="switch-section-box">
-                    <div className="section-header-row">
-                      <div className="section-title-wrap">
-                        <div className="section-icon-badge">
-                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
-                          </svg>
-                        </div>
-                        <div>
-                          <h3 className="section-title">Descripción Personal & Enlaces</h3>
-                          <p className="section-subtitle">Presentación del jugador en la comunidad RetroHub</p>
-                        </div>
-                      </div>
-                      <button className="btn-topbar-action" onClick={() => setActiveTab('ajustes')}>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 20h9"></path>
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                        </svg>
-                        <span>Editar</span>
-                      </button>
+                      <span>Perfil</span>
                     </div>
+                    <span className="nav-badge-pill">SW</span>
+                  </button>
 
-                    <p style={{ color: '#334155', fontSize: '15px', lineHeight: 1.6, marginBottom: '20px' }}>
-                      {profile.bio || 'Sin descripción personal todavía.'}
-                    </p>
-
-                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                      {profile.socialLinks && profile.socialLinks.map(link => (
-                        <a
-                          key={link.id}
-                          href={link.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn-fc-action"
-                          style={{ textDecoration: 'none' }}
-                        >
-                          <span>{link.icon || '🔗'}</span>
-                          <span>{link.title}</span>
-                          <span style={{ color: 'var(--system-aura-color)', fontSize: '11px' }}>↗</span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* ========================================================
-                  PESTAÑA 2: AMIGOS & CHAT P2P & AÑADIR AMIGO
-                  ======================================================== */}
-              {activeTab === 'amigos' && (
-                <div className="switch-section-box">
-                  <div className="section-header-row">
-                    <div className="section-title-wrap">
-                      <div className="section-icon-badge">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <button
+                    className={`nav-item ${activeTab === 'amigos' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('amigos')}
+                  >
+                    <div className="nav-item-inner">
+                      <div className="nav-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                           <circle cx="9" cy="7" r="4"></circle>
                           <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                       </div>
-                      <div>
-                        <h2 className="section-title">Lista de Amigos Conectados</h2>
-                        <p className="section-subtitle">Mira a qué están jugando tus amigos o desafíalos a una partida P2P</p>
-                      </div>
+                      <span>Lista de amigos</span>
                     </div>
-                    <span className="hero-status-pill">
-                      <span>●</span> {friends.filter(f => f.online).length} en línea
-                    </span>
-                  </div>
+                    <span className="nav-badge-pill">{friends.length}</span>
+                  </button>
 
-                  {/* Formulario Añadir Amigo con Clave SW */}
-                  <form className="friends-action-bar" onSubmit={handleAddFriendByCode}>
-                    <div className="friend-input-wrap">
-                      <span className="friend-sw-prefix">SW-</span>
-                      <input
-                        type="text"
-                        className="friend-input-field"
-                        placeholder="1234-5678-9012 (Clave de amigo Switch)"
-                        value={addFriendInput}
-                        onChange={(e) => setAddFriendInput(e.target.value)}
-                        maxLength={18}
-                      />
-                    </div>
-                    <button type="submit" className="btn-send-friend-req">
-                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ marginRight: '6px' }}>
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                      </svg>
-                      Añadir amigo
-                    </button>
-                  </form>
-
-                  {/* Cuadrícula de Amigos */}
-                  {friends && friends.length > 0 ? (
-                    <div className="friends-grid">
-                      {friends.map(f => (
-                        <div key={f.id} className={`friend-card ${f.statusClass}`}>
-                          <div className="friend-top-row">
-                            <div className="friend-avatar-wrap">
-                              <img src={f.avatar} className="friend-avatar-img" alt={f.name} />
-                              <div className="friend-dot-status" />
-                            </div>
-                            <div className="friend-identity">
-                              <div className="friend-name">{f.name}</div>
-                              <div className="friend-tag">@{f.username}</div>
-                            </div>
-                          </div>
-
-                          <div className="friend-activity-pill">
-                            <span style={{ fontSize: '13px' }}>🎮</span>
-                            <span>{f.statusText}</span>
-                          </div>
-
-                          <div className="friend-actions-row">
-                            <button
-                              className="btn-friend-action"
-                              onClick={() => showToast('info', `Invitación de partida enviada a ${f.name}.`)}
-                            >
-                              <span>Desafiar P2P</span>
-                            </button>
-                            <button
-                              className="btn-friend-action"
-                              onClick={() => showToast('info', `Abriendo canal de chat directo con ${f.name}...`)}
-                            >
-                              <span>Mensaje</span>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="profile-empty-state">
-                      <div className="profile-empty-icon">👥</div>
-                      <div className="profile-empty-title">Aún no tienes amigos agregados</div>
-                      <div className="profile-empty-subtitle">Comparte tu clave de amigo ({profile.friendCode}) o ingresa una clave arriba para conectar con otros jugadores.</div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ========================================================
-                  PESTAÑA 3: AJUSTES & AVATAR STUDIO & AURA STUDIO
-                  ======================================================== */}
-              {activeTab === 'ajustes' && (
-                <div className="switch-section-box">
-                  <div className="section-header-row">
-                    <div className="section-title-wrap">
-                      <div className="section-icon-badge">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="3"></circle>
-                          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <h2 className="section-title">Ajustes de Usuario & Avatar Studio</h2>
-                        <p className="section-subtitle">Personaliza tu foto de perfil, anillo de Aura bioluminiscente y datos públicos</p>
-                      </div>
-                    </div>
-
+                  {isOwner && (
                     <button
-                      className="btn-send-friend-req"
-                      onClick={handleSaveProfile}
-                      disabled={isSaving}
+                      className={`nav-item ${activeTab === 'ajustes' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('ajustes')}
                     >
-                      <span className="cue-circle cue-a" style={{ width: '18px', height: '18px', fontSize: '10px' }}>A</span>
-                      <span>{isSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
+                      <div className="nav-item-inner">
+                        <div className="nav-icon">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                          </svg>
+                        </div>
+                        <span>Ajustes de usuario</span>
+                      </div>
+                      <span className="nav-badge-pill">Studio</span>
                     </button>
-                  </div>
+                  )}
 
-                  <div className="settings-grid-layout">
-                    {/* Columna Izquierda: Auras y Avatar Studio */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-                      
-                      {/* Aura Studio iiSU */}
-                      <div className="aura-studio-box">
-                        <label className="form-label">Anillo de Aura Bioluminiscente</label>
-                        <div className="aura-swatches-row">
-                          {Object.values(AURA_PALETTES).map(aura => (
-                            <div
-                              key={aura.id}
-                              className={`aura-swatch-item ${profile.systemAura === aura.id ? 'active' : ''}`}
-                              style={{ background: aura.color, color: aura.color }}
-                              onClick={() => handleSelectAura(aura.id)}
-                              title={aura.name}
-                            />
-                          ))}
-                        </div>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          Color activo: <strong style={{ color: activeAuraData.color }}>{activeAuraData.name}</strong> (tiñe el resplandor de tu avatar y la consola).
-                        </span>
-                      </div>
-
-                      {/* Selector de Foto de Perfil (Stock & Archivo) */}
-                      <div className="avatar-studio-stage">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <label className="form-label">Foto de Perfil (Avatar)</label>
-                          <button
-                            type="button"
-                            className="btn-topbar-action"
-                            style={{ fontSize: '11.5px', padding: '4px 12px' }}
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                              <polyline points="17 8 12 3 7 8"></polyline>
-                              <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                            <span>Subir Archivo</span>
-                          </button>
-                        </div>
-
-                        <div className="avatar-tabs-nav">
-                          <button
-                            type="button"
-                            className={`avatar-tab-pill ${avatarTabFilter === 'covers' ? 'active' : ''}`}
-                            onClick={() => setAvatarTabFilter('covers')}
-                          >
-                            Portadas Clásicas
-                          </button>
-                          <button
-                            type="button"
-                            className={`avatar-tab-pill ${avatarTabFilter === 'consoles' ? 'active' : ''}`}
-                            onClick={() => setAvatarTabFilter('consoles')}
-                          >
-                            Consolas
-                          </button>
-                          <button
-                            type="button"
-                            className={`avatar-tab-pill ${avatarTabFilter === 'characters' ? 'active' : ''}`}
-                            onClick={() => setAvatarTabFilter('characters')}
-                          >
-                            Personajes
-                          </button>
-                        </div>
-
-                        <div className="avatar-stock-grid">
-                          {STOCK_AVATARS.filter(a => a.type === avatarTabFilter).map(item => (
-                            <div
-                              key={item.id}
-                              className={`avatar-stock-item ${profile.avatarUrl === item.url ? 'active' : ''}`}
-                              onClick={() => handleSelectAvatar(item.url)}
-                              title={item.name}
-                            >
-                              <img src={item.url} className="avatar-stock-thumb" alt={item.name} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Selector de Banner Panorámico */}
-                      <div>
-                        <label className="form-label">Banner Panorámico de Fondo</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '8px', marginTop: '8px' }}>
-                          {STOCK_BANNERS.map(b => (
-                            <div
-                              key={b.id}
-                              style={{
-                                height: '56px',
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                                border: profile.bannerUrl === b.url ? '2px solid var(--system-aura-color)' : '1.5px solid rgba(0,0,0,0.1)',
-                                cursor: 'pointer'
-                              }}
-                              onClick={() => handleSelectBanner(b.url)}
-                              title={b.name}
-                            >
-                              <img src={b.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={b.name} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Columna Derecha: Formulario de Información */}
-                    <div>
-                      <div className="form-field-group">
-                        <label className="form-label">Nombre de Usuario Único (@)</label>
-                        <input
-                          type="text"
-                          className="form-text-input"
-                          value={usernameInput}
-                          maxLength={24}
-                          onChange={handleUsernameChange}
-                        />
-                        <span style={{ fontSize: '11px', color: usernameValidation.status === 'taken' ? '#ff4757' : 'var(--system-aura-color)' }}>
-                          {usernameValidation.message}
-                        </span>
-                      </div>
-
-                      <div className="form-field-group">
-                        <label className="form-label">Nombre Visible Público</label>
-                        <input
-                          type="text"
-                          className="form-text-input"
-                          value={profile.displayName}
-                          maxLength={32}
-                          onChange={(e) => setProfile(p => ({ ...p, displayName: e.target.value }))}
-                        />
-                      </div>
-
-                      <div className="form-field-group">
-                        <label className="form-label">Título Honorífico</label>
-                        <input
-                          type="text"
-                          className="form-text-input"
-                          value={profile.titleHonor}
-                          maxLength={40}
-                          onChange={(e) => setProfile(p => ({ ...p, titleHonor: e.target.value }))}
-                        />
-                      </div>
-
-                      <div className="form-field-group">
-                        <label className="form-label">Consola Predilecta</label>
-                        <select
-                          className="form-text-input"
-                          value={profile.favoriteSystem}
-                          onChange={(e) => setProfile(p => ({ ...p, favoriteSystem: e.target.value }))}
-                        >
-                          <option value="n64">Nintendo 64</option>
-                          <option value="snes">Super Nintendo (SNES)</option>
-                          <option value="gba">Game Boy Advance</option>
-                          <option value="ps1">PlayStation 1</option>
-                          <option value="genesis">Sega Genesis / Mega Drive</option>
-                          <option value="nes">Nintendo NES</option>
-                          <option value="arcade">Arcade MAME</option>
-                        </select>
-                      </div>
-
-                      <div className="form-field-group">
-                        <label className="form-label">Descripción Personal (Bio)</label>
-                        <textarea
-                          className="form-text-input form-text-area"
-                          value={profile.bio}
-                          maxLength={350}
-                          onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))}
-                        />
-                        <span style={{ fontSize: '11px', color: 'var(--text-dim)', textAlign: 'right' }}>
-                          {profile.bio.length} / 350
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ========================================================
-                  PESTAÑA 4: LOGROS E INSIGNIAS RETRO
-                  ======================================================== */}
-              {activeTab === 'logros' && (
-                <div className="switch-section-box">
-                  <div className="section-header-row">
-                    <div className="section-title-wrap">
-                      <div className="section-icon-badge">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <button
+                    className={`nav-item ${activeTab === 'logros' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('logros')}
+                  >
+                    <div className="nav-item-inner">
+                      <div className="nav-icon">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="8" r="6"></circle>
                           <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
                         </svg>
                       </div>
-                      <div>
-                        <h2 className="section-title">Logros & Medallas RetroHub</h2>
-                        <p className="section-subtitle">Recompensas desbloqueadas por horas jugadas, partidas completadas y amigos añadidos</p>
-                      </div>
+                      <span>Logros e insignias</span>
                     </div>
-                    <span className="hero-honor-pill" style={{ color: 'var(--gold-accent)', borderColor: 'var(--gold-accent)' }}>
-                      ⭐ {RETRO_ACHIEVEMENTS.filter(a => a.unlocked).length} Desbloqueados
+                    <span className="nav-badge-pill">0/0</span>
+                  </button>
+                </nav>
+              </div>
+
+              {/* Pie de la Barra Lateral: Tarjeta del Usuario Activo */}
+              <div className="sidebar-footer">
+                <div className="user-identity-card" onClick={() => setActiveTab('perfil')}>
+                  <div className="user-avatar-thumb-box">
+                    <img src={profile.avatarUrl} className="user-avatar-thumb" alt={profile.displayName} />
+                    <div className="user-status-dot-mini" />
+                  </div>
+                  <div className="user-details">
+                    <span className="user-display-name">{profile.displayName}</span>
+                    <span className="user-tag">@{profile.username}</span>
+                    <span className="user-status-text">
+                      <span>●</span> En línea
                     </span>
                   </div>
+                </div>
 
-                  {RETRO_ACHIEVEMENTS && RETRO_ACHIEVEMENTS.length > 0 ? (
-                    <div className="achievements-grid">
-                      {RETRO_ACHIEVEMENTS.map(ach => (
-                        <div key={ach.id} className={`achievement-card ${!ach.unlocked ? 'locked' : ''}`}>
-                          <div className="achievement-icon-box">{ach.icon}</div>
-                          <div className="achievement-info">
-                            <div className="achievement-title">{ach.title}</div>
-                            <div className="achievement-desc">{ach.desc}</div>
-                            <span className="achievement-status-badge">
-                              {ach.unlocked ? `✓ Desbloqueado (${ach.progress})` : `En progreso: ${ach.progress}`}
-                            </span>
+                <button className="btn-sidebar-return" onClick={handleReturnToLauncher} title="Volver al menú de juegos">
+                  <span className="cue-b">B</span>
+                  <span>Volver al Launcher</span>
+                </button>
+              </div>
+            </aside>
+
+            {/* PANEL PRINCIPAL DERECHO (TOPBAR + CONTENIDO SCROLLEABLE) */}
+            <main className="retrohub-main">
+              
+              {/* BARRA SUPERIOR RETROHUB */}
+              <header className="retrohub-topbar">
+                <div className="topbar-left">
+                  <h1 className="topbar-section-title">
+                    {activeTab === 'perfil' && 'Perfil de Usuario'}
+                    {activeTab === 'amigos' && 'Lista de Amigos'}
+                    {activeTab === 'ajustes' && 'Ajustes de Usuario & Avatar Studio'}
+                    {activeTab === 'logros' && 'Logros & Medallas RetroHub'}
+                  </h1>
+                  <span className="section-pill-tag">RetroHub OS</span>
+                </div>
+
+                <div className="topbar-right">
+                  <button className="btn-topbar-pill" onClick={handleCopyFriendCode} title="Copiar tu clave de amigo">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span>Copiar Clave</span>
+                  </button>
+
+                  <button className="btn-topbar-pill" onClick={() => setShowQrModal(true)} title="Mostrar código QR de tu perfil">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="3" width="7" height="7"></rect>
+                      <rect x="3" y="14" width="7" height="7"></rect>
+                      <rect x="14" y="14" width="3" height="3"></rect>
+                    </svg>
+                    <span>QR</span>
+                  </button>
+
+                  <div className="server-status-pill" title="Servidor RetroHub en ejecución">
+                    <div className="server-status-dot" />
+                    <span>Servidor RetroHub</span>
+                  </div>
+
+                  <span className="live-clock-badge">{clockText}</span>
+
+                  <a href="index.html" className="btn-launcher-action" title="Abrir lanzador de juegos">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Launcher</span>
+                  </a>
+                </div>
+              </header>
+
+              {/* CONTENIDO SCROLLEABLE SEGÚN PESTAÑA */}
+              <div className="content-scrollable">
+                
+                {/* ========================================================
+                    PESTAÑA 1: PERFIL
+                    ======================================================== */}
+                {activeTab === 'perfil' && (
+                  <>
+                    {/* Tarjeta Hero Panorámica */}
+                    <div className="retrohub-hero-card">
+                      <div className="hero-banner-container">
+                        <img src={profile.bannerUrl} className="hero-banner-img" alt="Banner" onError={(e) => { e.target.src = 'assets/game_wallpapers/n64/papermario.png'; }} />
+                        <div className="hero-banner-overlay" />
+                        {isOwner && (
+                          <button className="btn-change-banner" onClick={() => setActiveTab('ajustes')}>
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                              <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                            <span>Cambiar Banner</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="hero-body">
+                        <div className="hero-main-row">
+                          <div className="hero-identity">
+                            <div className="hero-avatar-box" onClick={() => isOwner && setActiveTab('ajustes')} title={isOwner ? "Cambiar avatar en ajustes" : ""}>
+                              <img src={profile.avatarUrl} className="hero-avatar-img" alt={profile.displayName} />
+                              <div className="hero-online-badge" />
+                            </div>
+
+                            <div className="hero-meta">
+                              <h2 className="hero-display-name">{profile.displayName}</h2>
+                              <div className="hero-username-pill">
+                                <span>●</span> @{profile.username}
+                              </div>
+                              <div className="hero-badges-row">
+                                <span className="badge-pill badge-honor">{profile.titleHonor}</span>
+                                <span className="badge-pill badge-system">
+                                  Consola: {profile.favoriteSystem.toUpperCase()}
+                                </span>
+                                {profile.presence && profile.presence.status === 'playing' && profile.presence.game ? (
+                                  <span className="badge-pill badge-status playing">
+                                    🎮 Jugando a {profile.presence.game}
+                                  </span>
+                                ) : (
+                                  <span className="badge-pill badge-status">
+                                    🟢 En línea
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Clave de Amigo Oficial Switch */}
+                          <div className="switch-friend-code-card">
+                            <div className="friend-code-icon-box">
+                              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="6" width="20" height="12" rx="6"></rect>
+                                <line x1="6" y1="12" x2="10" y2="12"></line>
+                                <line x1="8" y1="10" x2="8" y2="14"></line>
+                                <circle cx="15.5" cy="13.5" r="1.2" fill="currentColor"></circle>
+                                <circle cx="18.5" cy="10.5" r="1.2" fill="currentColor"></circle>
+                              </svg>
+                            </div>
+                            <div className="friend-code-meta">
+                              <span className="friend-code-label">Clave de amigo</span>
+                              <span className="friend-code-digits">{profile.friendCode}</span>
+                            </div>
+                            <div className="friend-code-actions">
+                              <button className="btn-fc-action" onClick={handleCopyFriendCode} title="Copiar clave">
+                                <span>Copiar</span>
+                              </button>
+                              <button className="btn-fc-action" onClick={() => setShowQrModal(true)} title="Ver código QR">
+                                <span>QR</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="profile-empty-state">
-                      <div className="profile-empty-icon">🏆</div>
-                      <div className="profile-empty-title">Sin medallas ni trofeos desbloqueados</div>
-                      <div className="profile-empty-subtitle">Conecta con RetroAchievements o completa objetivos en juegos compatibles para desbloquear insignias reales en tu perfil.</div>
-                    </div>
-                  )}
-                </div>
-              )}
 
-            </section>
-          </main>
+                    {/* Sección: Actividad de Juego (Play Activity) */}
+                    <div className="retrohub-card">
+                      <div className="section-header-row">
+                        <div className="section-title-wrap">
+                          <div className="section-icon-badge">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="2" y="6" width="20" height="12" rx="6"></rect>
+                              <line x1="6" y1="12" x2="10" y2="12"></line>
+                              <line x1="8" y1="10" x2="8" y2="14"></line>
+                              <circle cx="15.5" cy="13.5" r="1.3" fill="currentColor"></circle>
+                              <circle cx="18.5" cy="10.5" r="1.3" fill="currentColor"></circle>
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="section-title">Actividad de juego (Play Activity)</h3>
+                            <p className="section-subtitle">Títulos retro jugados recientemente en esta consola con tiempos registrados</p>
+                          </div>
+                        </div>
+
+                        <a href="index.html" className="btn-topbar-pill">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                          </svg>
+                          <span>Abrir Launcher</span>
+                        </a>
+                      </div>
+
+                      {playActivity && playActivity.length > 0 ? (
+                        <div className="play-activity-track">
+                          {playActivity.map(game => (
+                            <div
+                              key={game.id || game.title}
+                              className="activity-game-card"
+                              onClick={() => window.location.href = `index.html?launch=${game.id || ''}`}
+                              title={`Jugar a ${game.title} en RetroHub`}
+                            >
+                              <div className="activity-cover-box">
+                                <div className="activity-cover-ambient" style={{ backgroundImage: `url(${game.cover})` }} />
+                                <img src={game.cover} className="activity-cover-art" alt={game.title} onError={(e) => { e.target.src = 'assets/consoles_hires/n64.png'; }} />
+                                <span className="activity-system-badge">{(game.system || 'RETRO').toUpperCase()}</span>
+                              </div>
+                              <div className="activity-info-box">
+                                <div className="activity-game-title">{game.title}</div>
+                                <div className="activity-play-time">{formatPlayTime(game.minutesPlayed)}</div>
+                                <div className="activity-last-played">{game.lastPlayed || 'Reciente'}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="retrohub-empty-state">
+                          <div className="empty-state-icon">🎮</div>
+                          <div className="empty-state-title">Sin actividad de juego registrada</div>
+                          <div className="empty-state-subtitle">Los títulos que inicies desde el lanzador de juegos se registrarán automáticamente aquí con tus horas de juego y récords.</div>
+                          <a href="index.html" className="btn-empty-action">
+                            <span>🎮 Abrir Catálogo de Juegos</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Descripción Personal y Enlaces */}
+                    <div className="retrohub-card">
+                      <div className="section-header-row">
+                        <div className="section-title-wrap">
+                          <div className="section-icon-badge">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                              <polyline points="14 2 14 8 20 8"></polyline>
+                              <line x1="16" y1="13" x2="8" y2="13"></line>
+                              <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="section-title">Acerca de mí & Enlaces</h3>
+                            <p className="section-subtitle">Presentación en la red de RetroHub</p>
+                          </div>
+                        </div>
+
+                        {isOwner && (
+                          <button className="btn-topbar-pill" onClick={() => setActiveTab('ajustes')}>
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 20h9"></path>
+                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            <span>Editar Perfil</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <p style={{ color: '#334155', fontSize: '14.5px', lineHeight: 1.6 }}>
+                        {profile.bio || 'Sin descripción personal todavía. Puedes agregar una desde la pestaña de ajustes.'}
+                      </p>
+
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        {profile.socialLinks && profile.socialLinks.map(link => (
+                          <a
+                            key={link.id}
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn-fc-action"
+                            style={{ textDecoration: 'none' }}
+                          >
+                            <span>{link.icon || '🔗'}</span>
+                            <span>{link.title}</span>
+                            <span style={{ color: 'var(--system-aura-color)', fontSize: '11px' }}>↗</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* ========================================================
+                    PESTAÑA 2: LISTA DE AMIGOS
+                    ======================================================== */}
+                {activeTab === 'amigos' && (
+                  <div className="retrohub-card">
+                    <div className="section-header-row">
+                      <div className="section-title-wrap">
+                        <div className="section-icon-badge">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="section-title">Lista de Amigos</h3>
+                          <p className="section-subtitle">Conecta con jugadores y organiza partidas multijugador</p>
+                        </div>
+                      </div>
+                      <span className="badge-pill badge-status">
+                        <span>●</span> {friends.filter(f => f.online).length} en línea
+                      </span>
+                    </div>
+
+                    {/* Añadir Amigo por Clave SW */}
+                    <form className="friends-action-bar" onSubmit={handleAddFriendByCode}>
+                      <div className="friend-input-wrap">
+                        <span className="friend-sw-prefix">SW-</span>
+                        <input
+                          type="text"
+                          className="friend-input-field"
+                          placeholder="1234-5678-9012 (Clave de amigo)"
+                          value={addFriendInput}
+                          onChange={(e) => setAddFriendInput(e.target.value)}
+                          maxLength={18}
+                        />
+                      </div>
+                      <button type="submit" className="btn-send-friend-req">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ marginRight: '4px' }}>
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Añadir Amigo</span>
+                      </button>
+                    </form>
+
+                    {/* Grilla de Amigos Reales */}
+                    {friends && friends.length > 0 ? (
+                      <div className="friends-grid">
+                        {friends.map(f => (
+                          <div key={f.id} className="friend-card">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <img src={f.avatar} style={{ width: '40px', height: '40px', borderRadius: '50%' }} alt={f.name} />
+                              <div>
+                                <div style={{ fontWeight: 800, fontSize: '13.5px' }}>{f.name}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{f.username}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="retrohub-empty-state">
+                        <div className="empty-state-icon">👥</div>
+                        <div className="empty-state-title">Aún no tienes amigos agregados</div>
+                        <div className="empty-state-subtitle">Comparte tu clave de amigo ({profile.friendCode}) o ingresa una clave arriba para conectar con otros jugadores en red local.</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ========================================================
+                    PESTAÑA 3: AJUSTES & AVATAR STUDIO
+                    ======================================================== */}
+                {activeTab === 'ajustes' && isOwner && (
+                  <div className="retrohub-card">
+                    <div className="section-header-row">
+                      <div className="section-title-wrap">
+                        <div className="section-icon-badge">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="section-title">Ajustes de Usuario & Avatar Studio</h3>
+                          <p className="section-subtitle">Personaliza tu foto de perfil, anillo de Aura bioluminiscente y datos de tu cuenta</p>
+                        </div>
+                      </div>
+
+                      <button
+                        className="btn-send-friend-req"
+                        onClick={handleSaveProfile}
+                        disabled={isSaving}
+                      >
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>{isSaving ? 'Guardando cambios...' : 'Guardar Cambios'}</span>
+                      </button>
+                    </div>
+
+                    <div className="settings-grid-layout">
+                      {/* Columna Izquierda: Auras, Avatar y Banner Studio */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        
+                        {/* Aura Studio RetroHub */}
+                        <div className="aura-studio-box">
+                          <label className="form-label">Anillo de Aura Bioluminiscente</label>
+                          <div className="aura-swatches-row">
+                            {Object.values(AURA_PALETTES).map(aura => (
+                              <div
+                                key={aura.id}
+                                className={`aura-swatch-item ${profile.systemAura === aura.id ? 'active' : ''}`}
+                                style={{ background: aura.color, color: aura.color }}
+                                onClick={() => handleSelectAura(aura.id)}
+                                title={aura.name}
+                              />
+                            ))}
+                          </div>
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                            Aura activa: <strong style={{ color: activeAuraData.color }}>{activeAuraData.name}</strong> (personaliza el resplandor de tu avatar e interfaz).
+                          </span>
+                        </div>
+
+                        {/* Selector de Foto de Perfil (Stock & Archivo) */}
+                        <div className="avatar-studio-stage">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <label className="form-label">Foto de Perfil (Avatar)</label>
+                            <button
+                              type="button"
+                              className="btn-topbar-pill"
+                              style={{ fontSize: '11px', padding: '4px 10px' }}
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                              </svg>
+                              <span>Subir Archivo</span>
+                            </button>
+                          </div>
+
+                          <div className="avatar-tabs-nav">
+                            <button
+                              type="button"
+                              className={`avatar-tab-pill ${avatarTabFilter === 'covers' ? 'active' : ''}`}
+                              onClick={() => setAvatarTabFilter('covers')}
+                            >
+                              Portadas
+                            </button>
+                            <button
+                              type="button"
+                              className={`avatar-tab-pill ${avatarTabFilter === 'consoles' ? 'active' : ''}`}
+                              onClick={() => setAvatarTabFilter('consoles')}
+                            >
+                              Consolas
+                            </button>
+                            <button
+                              type="button"
+                              className={`avatar-tab-pill ${avatarTabFilter === 'characters' ? 'active' : ''}`}
+                              onClick={() => setAvatarTabFilter('characters')}
+                            >
+                              Personajes
+                            </button>
+                          </div>
+
+                          <div className="avatar-stock-grid">
+                            {STOCK_AVATARS.filter(a => a.type === avatarTabFilter).map(item => (
+                              <div
+                                key={item.id}
+                                className={`avatar-stock-item ${profile.avatarUrl === item.url ? 'active' : ''}`}
+                                onClick={() => handleSelectAvatar(item.url)}
+                                title={item.name}
+                              >
+                                <img src={item.url} className="avatar-stock-thumb" alt={item.name} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Selector de Banner Panorámico */}
+                        <div>
+                          <label className="form-label">Banner Panorámico</label>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(105px, 1fr))', gap: '8px', marginTop: '8px' }}>
+                            {STOCK_BANNERS.map(b => (
+                              <div
+                                key={b.id}
+                                style={{
+                                  height: '54px',
+                                  borderRadius: '10px',
+                                  overflow: 'hidden',
+                                  border: profile.bannerUrl === b.url ? '2px solid var(--system-aura-color)' : '1.5px solid rgba(0,0,0,0.1)',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => handleSelectBanner(b.url)}
+                                title={b.name}
+                              >
+                                <img src={b.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={b.name} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Columna Derecha: Formulario de Información Personal */}
+                      <div>
+                        <div className="form-field-group">
+                          <label className="form-label">Nombre de Usuario Único (@)</label>
+                          <input
+                            type="text"
+                            className="form-text-input"
+                            value={usernameInput}
+                            maxLength={24}
+                            onChange={handleUsernameChange}
+                          />
+                          <span style={{ fontSize: '11px', color: usernameValidation.status === 'taken' ? '#ff3c28' : 'var(--system-aura-color)', marginTop: '2px' }}>
+                            {usernameValidation.message}
+                          </span>
+                        </div>
+
+                        <div className="form-field-group">
+                          <label className="form-label">Nombre Visible Público</label>
+                          <input
+                            type="text"
+                            className="form-text-input"
+                            value={profile.displayName}
+                            maxLength={32}
+                            onChange={(e) => setProfile(p => ({ ...p, displayName: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="form-field-group">
+                          <label className="form-label">Título Honorífico</label>
+                          <input
+                            type="text"
+                            className="form-text-input"
+                            value={profile.titleHonor}
+                            maxLength={40}
+                            onChange={(e) => setProfile(p => ({ ...p, titleHonor: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="form-field-group">
+                          <label className="form-label">Consola Predilecta</label>
+                          <select
+                            className="form-text-input"
+                            value={profile.favoriteSystem}
+                            onChange={(e) => setProfile(p => ({ ...p, favoriteSystem: e.target.value }))}
+                          >
+                            <option value="n64">Nintendo 64</option>
+                            <option value="snes">Super Nintendo (SNES)</option>
+                            <option value="gba">Game Boy Advance</option>
+                            <option value="ps1">PlayStation 1</option>
+                            <option value="genesis">Sega Genesis / Mega Drive</option>
+                            <option value="nes">Nintendo NES</option>
+                            <option value="arcade">Arcade MAME</option>
+                          </select>
+                        </div>
+
+                        <div className="form-field-group">
+                          <label className="form-label">Descripción Personal (Bio)</label>
+                          <textarea
+                            className="form-text-input form-text-area"
+                            value={profile.bio}
+                            maxLength={350}
+                            placeholder="Comparte tus gustos y juegos retro favoritos..."
+                            onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))}
+                          />
+                          <span style={{ fontSize: '11px', color: 'var(--text-dim)', textAlign: 'right' }}>
+                            {(profile.bio || '').length} / 350
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ========================================================
+                    PESTAÑA 4: LOGROS E INSIGNIAS RETRO
+                    ======================================================== */}
+                {activeTab === 'logros' && (
+                  <div className="retrohub-card">
+                    <div className="section-header-row">
+                      <div className="section-title-wrap">
+                        <div className="section-icon-badge">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="8" r="6"></circle>
+                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="section-title">Logros & Medallas RetroHub</h3>
+                          <p className="section-subtitle">Insignias oficiales por horas jugadas, récords y compatibilidad RetroAchievements</p>
+                        </div>
+                      </div>
+                      <span className="badge-pill badge-honor">
+                        ⭐ 0 Desbloqueados
+                      </span>
+                    </div>
+
+                    <div className="retrohub-empty-state">
+                      <div className="empty-state-icon">🏆</div>
+                      <div className="empty-state-title">Sin medallas ni trofeos desbloqueados</div>
+                      <div className="empty-state-subtitle">Conecta con RetroAchievements o completa objetivos en juegos compatibles para desbloquear insignias reales en tu perfil de RetroHub.</div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </main>
+          </div>
 
           {/* MODAL CÓDIGO QR OFICIAL SWITCH */}
           {showQrModal && (
@@ -1128,17 +1150,15 @@
               <div className="switch-qr-box" onClick={(e) => e.stopPropagation()}>
                 <button className="btn-qr-close" onClick={() => setShowQrModal(false)}>✕</button>
 
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 800, color: 'var(--text-pure)', marginBottom: '4px' }}>
                   Añadir con Código QR
                 </h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Escanea con la cámara de tu smartphone para ver o añadir a @{profile.username}
+                  Escanea con la cámara de tu smartphone para añadir a @{profile.username} en RetroHub
                 </p>
 
                 <div className="qr-matrix-preview">
-                  {/* SVG Matriz QR Auténtica */}
                   <svg width="180" height="180" viewBox="0 0 29 29" fill="#0f172a">
-                    {/* Position detection patterns */}
                     <rect x="2" y="2" width="7" height="7" rx="1" fill="#0f172a" />
                     <rect x="3" y="3" width="5" height="5" fill="#ffffff" />
                     <rect x="4" y="4" width="3" height="3" fill="#0f172a" />
@@ -1151,45 +1171,25 @@
                     <rect x="3" y="21" width="5" height="5" fill="#ffffff" />
                     <rect x="4" y="22" width="3" height="3" fill="#0f172a" />
 
-                    {/* Data modules */}
-                    <rect x="11" y="3" width="2" height="2" />
-                    <rect x="15" y="3" width="2" height="2" />
-                    <rect x="10" y="6" width="3" height="1" />
-                    <rect x="15" y="6" width="2" height="2" />
-                    <rect x="4" y="11" width="2" height="2" />
-                    <rect x="8" y="11" width="2" height="2" />
-                    <rect x="12" y="11" width="4" height="2" />
-                    <rect x="18" y="11" width="2" height="2" />
-                    <rect x="22" y="11" width="2" height="2" />
-                    <rect x="3" y="15" width="2" height="2" />
-                    <rect x="7" y="15" width="3" height="2" />
-                    <rect x="12" y="15" width="2" height="2" />
-                    <rect x="16" y="15" width="4" height="2" />
-                    <rect x="22" y="15" width="2" height="2" />
-                    <rect x="11" y="19" width="3" height="2" />
-                    <rect x="16" y="19" width="2" height="2" />
-                    <rect x="21" y="19" width="3" height="2" />
-                    <rect x="11" y="23" width="2" height="2" />
-                    <rect x="15" y="23" width="4" height="2" />
-                    <rect x="21" y="23" width="2" height="2" />
+                    <rect x="10" y="3" width="2" height="2" />
+                    <rect x="14" y="3" width="3" height="2" />
+                    <rect x="10" y="7" width="3" height="2" />
+                    <rect x="15" y="7" width="2" height="2" />
+                    <rect x="11" y="11" width="7" height="2" />
+                    <rect x="11" y="15" width="2" height="4" />
+                    <rect x="15" y="15" width="3" height="3" />
+                    <rect x="19" y="12" width="3" height="2" />
+                    <rect x="23" y="12" width="4" height="2" />
+                    <rect x="19" y="16" width="2" height="4" />
+                    <rect x="23" y="16" width="3" height="2" />
+                    <rect x="22" y="20" width="4" height="2" />
+                    <rect x="10" y="22" width="4" height="2" />
+                    <rect x="16" y="23" width="3" height="2" />
                   </svg>
                 </div>
 
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '14px' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '16px', color: 'var(--text-pure)' }}>
                   {profile.friendCode}
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button className="btn-send-friend-req" onClick={handleCopyFriendCode}>
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    Copiar Clave
-                  </button>
-                  <button className="btn-topbar-action" onClick={() => setShowQrModal(false)}>
-                    Cerrar
-                  </button>
                 </div>
               </div>
             </div>
@@ -1199,7 +1199,7 @@
     }
 
     const root = ReactDOM.createRoot(document.getElementById('profileRoot'));
-    root.render(<ProfileApp />);
+    root.render(<RetroHubProfileApp />);
   </script>
 </body>
 </html>

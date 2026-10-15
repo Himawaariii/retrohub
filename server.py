@@ -303,25 +303,50 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'success': True, 'available': True, 'message': f"¡'{uname}' está disponible!"}).encode('utf-8'))
             return
 
-        if self.path.startswith('/api/users/profile/'):
+        if self.path.startswith('/api/users/profile') or self.path.startswith('/api/user/profile'):
             import urllib.parse
-            target_uname = self.path.split('/api/users/profile/')[1].split('?')[0].strip().lower()
+            prefix = None
+            if self.path.startswith('/api/users/profile/'):
+                prefix = '/api/users/profile/'
+            elif self.path.startswith('/api/user/profile/'):
+                prefix = '/api/user/profile/'
+
+            target_uname = ''
+            if prefix and len(self.path) > len(prefix):
+                target_uname = urllib.parse.unquote(self.path[len(prefix):].split('?')[0].strip().lower())
+
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
             cur = conn.cursor()
-            cur.execute("SELECT id, username, created_at FROM users WHERE username_clean = ?", (target_uname,))
-            user_row = cur.fetchone()
+
+            user_row = None
+            if target_uname:
+                cur.execute("SELECT id, username, created_at FROM users WHERE username_clean = ?", (target_uname,))
+                user_row = cur.fetchone()
+            else:
+                auth_header = self.headers.get('Authorization', '')
+                if auth_header.startswith('Bearer '):
+                    dec = decode_token(auth_header.split(' ', 1)[1])
+                    if dec and 'id' in dec:
+                        cur.execute("SELECT id, username, created_at FROM users WHERE id = ?", (dec['id'],))
+                        user_row = cur.fetchone()
+
             if not user_row:
                 conn.close()
-                self.send_response(404)
+                self.send_response(404 if target_uname else 401)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.end_headers()
-                self.wfile.write(json.dumps({'success': False, 'error': {'code': 'USER_NOT_FOUND', 'message': 'Usuario no encontrado.'}}).encode('utf-8'))
+                err_code = 'USER_NOT_FOUND' if target_uname else 'UNAUTHORIZED'
+                err_msg = 'Usuario no encontrado.' if target_uname else 'Token no válido o sesión no iniciada.'
+                self.wfile.write(json.dumps({'success': False, 'error': {'code': err_code, 'message': err_msg}}).encode('utf-8'))
                 return
 
             uid, u_name, created_at = user_row
             cur.execute("SELECT display_name, bio, avatar_url, banner_url, title_honor, system_aura, favorite_system, favorite_games, social_links FROM profiles WHERE user_id = ?", (uid,))
             prof_row = cur.fetchone()
+
+            cur.execute("SELECT status, emulator_name, rom_name FROM presences WHERE user_id = ?", (uid,))
+            pres_row = cur.fetchone()
             conn.close()
 
             if not prof_row:
@@ -341,6 +366,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             except:
                 parsed_links = []
 
+            presence = {
+                'status': pres_row[0] if pres_row else 'online',
+                'emulator': pres_row[1] if pres_row else None,
+                'game': pres_row[2] if pres_row else None
+            }
+
             resp_data = {
                 'success': True,
                 'user': {
@@ -355,6 +386,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     'favoriteSystem': fav_sys,
                     'favoriteGames': parsed_games,
                     'socialLinks': parsed_links,
+                    'presence': presence,
                     'isFriend': False,
                     'activity': None
                 }
@@ -615,8 +647,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'url': f'assets/uploads/{fname}'}).encode('utf-8'))
             return
 
-        if self.path.startswith('/api/users/profile'):
-            user_id = body.get('userId') or 2
+        if self.path.startswith('/api/users/profile') or self.path.startswith('/api/user/profile'):
+            auth_header = self.headers.get('Authorization', '')
+            user_id = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    user_id = dec['id']
+            if not user_id:
+                user_id = body.get('userId')
+
+            if not user_id:
+                self.send_response(401)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': {'code': 'UNAUTHORIZED', 'message': 'Token no válido o sesión no iniciada.'}}).encode('utf-8'))
+                return
+
             new_username = body.get('username')
             disp_name = body.get('displayName')
             bio = body.get('bio')
