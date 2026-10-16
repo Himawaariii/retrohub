@@ -266,7 +266,8 @@
       row.className = `interior-game-row ${isActive ? 'active' : ''}`;
       row.id = `interior-game-row-${idx}`;
 
-      const coverSrc = g.cover || `assets/consoles/${c.img}`;
+      const rawCover = g.cover || `assets/consoles/${c.img}`;
+      const coverSrc = rawCover.includes('papermario') ? `${rawCover}?v=2` : rawCover;
 
       row.innerHTML = `
         <img src="${coverSrc}" class="game-row-thumb" alt="${g.title}" onerror="this.src='assets/consoles/${c.img}'">
@@ -302,6 +303,71 @@
     renderInteriorGameDetail(filteredGames[activeGameIndex], c);
   };
 
+  // Compositor dinámico de cartuchos N64 usando n64_shell_base.png como carcasa base
+  const n64CartCache = {};
+  let n64ShellBaseImg = null;
+
+  function renderN64CartridgeWithBase(artUrl, targetImgEl) {
+    if (!targetImgEl || !artUrl) return;
+    if (n64CartCache[artUrl]) {
+      targetImgEl.src = n64CartCache[artUrl];
+      return;
+    }
+
+    const ensureShell = (cb) => {
+      if (n64ShellBaseImg && n64ShellBaseImg.complete && n64ShellBaseImg.naturalWidth > 0) {
+        cb(n64ShellBaseImg);
+      } else {
+        n64ShellBaseImg = new Image();
+        n64ShellBaseImg.crossOrigin = 'anonymous';
+        n64ShellBaseImg.onload = () => cb(n64ShellBaseImg);
+        n64ShellBaseImg.src = 'ROMS/cartridges/n64_shell_base.png?v=2';
+      }
+    };
+
+    ensureShell((shellImg) => {
+      const artImg = new Image();
+      artImg.crossOrigin = 'anonymous';
+      artImg.onload = () => {
+        const w = shellImg.naturalWidth || 599;
+        const h = shellImg.naturalHeight || 416;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        // Coordenadas exactas de la ventana central del cartucho N64
+        const winX = 160;
+        const winY = 56;
+        const winW = 285;
+        const winH = 326;
+
+        const scale = Math.max(winW / artImg.naturalWidth, winH / artImg.naturalHeight);
+        const drawW = artImg.naturalWidth * scale;
+        const drawH = artImg.naturalHeight * scale;
+        const drawX = winX + (winW - drawW) / 2;
+        const drawY = winY + (winH - drawH) / 2;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(winX, winY, winW, winH);
+        ctx.clip();
+        ctx.drawImage(artImg, drawX, drawY, drawW, drawH);
+        ctx.restore();
+
+        // Superponer la carcasa N64 original encima
+        ctx.drawImage(shellImg, 0, 0, w, h);
+
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          n64CartCache[artUrl] = dataUrl;
+          targetImgEl.src = dataUrl;
+        } catch (e) {}
+      };
+      artImg.src = artUrl;
+    });
+  }
+
   function renderInteriorGameDetail(game, consoleObj) {
     const cartImg = document.getElementById('showcaseCartridgeImg');
     const cartImgBack = document.getElementById('showcaseCartridgeImgBack');
@@ -314,9 +380,15 @@
     triggerCartridge3DSpin();
 
     if (!game) {
-      const fallbackCart = getDefaultCartridgeForConsole(consoleObj.id);
+      const fallbackCart =
+        consoleObj.id === 'n64'
+          ? 'ROMS/cartridges/n64_shell_base.png?v=2'
+          : getDefaultCartridgeForConsole(consoleObj.id);
       if (cartImg) cartImg.src = fallbackCart;
-      if (cartImgBack) cartImgBack.src = fallbackCart;
+      if (cartImgBack) {
+        cartImgBack.src =
+          consoleObj.id === 'n64' ? 'ROMS/cartridges/n64_shell_back.png?v=2' : fallbackCart;
+      }
       if (genreChip) genreChip.textContent = consoleObj.maker || 'Retro';
       if (yearChip) yearChip.textContent = consoleObj.arch || '';
       if (titleEl) titleEl.textContent = consoleObj.name;
@@ -333,19 +405,33 @@
       playBtn.onclick = () => playSelectedGame(game, consoleObj);
     }
 
-    const cartSrc = game.cartridge || getDefaultCartridgeForConsole(consoleObj.id);
-
-    if (cartImg) {
-      cartImg.src = cartSrc;
-      cartImg.onerror = () => {
-        cartImg.src = getDefaultCartridgeForConsole(consoleObj.id);
-      };
-    }
-    if (cartImgBack) {
-      cartImgBack.src = cartSrc;
-      cartImgBack.onerror = () => {
-        cartImgBack.src = getDefaultCartridgeForConsole(consoleObj.id);
-      };
+    if (consoleObj.id === 'n64') {
+      const isPaperMario = (game.title || '').toLowerCase().includes('paper mario');
+      if (isPaperMario) {
+        if (cartImg) cartImg.src = 'ROMS/cartridges/cart_papermario.png?v=2';
+      } else if (game.cover) {
+        if (cartImg) cartImg.src = 'ROMS/cartridges/n64_shell_base.png?v=2';
+        renderN64CartridgeWithBase(game.cover, cartImg);
+      } else {
+        if (cartImg) cartImg.src = 'ROMS/cartridges/n64_shell_base.png?v=2';
+      }
+      if (cartImgBack) {
+        cartImgBack.src = 'ROMS/cartridges/n64_shell_back.png?v=2';
+      }
+    } else {
+      const cartSrc = game.cartridge || getDefaultCartridgeForConsole(consoleObj.id);
+      if (cartImg) {
+        cartImg.src = cartSrc;
+        cartImg.onerror = () => {
+          cartImg.src = getDefaultCartridgeForConsole(consoleObj.id);
+        };
+      }
+      if (cartImgBack) {
+        cartImgBack.src = cartSrc;
+        cartImgBack.onerror = () => {
+          cartImgBack.src = getDefaultCartridgeForConsole(consoleObj.id);
+        };
+      }
     }
 
     if (genreChip) genreChip.textContent = game.genre || 'Aventura';
@@ -519,9 +605,49 @@
     }
   }
 
+  function initCartridge3DInteractiveTilt() {
+    const stage = document.getElementById('showcaseCartridgeStage');
+    const rig = document.getElementById('showcaseCartridgeRig');
+    const glare = document.getElementById('cartridge3DGlare');
+    if (!stage || !rig) return;
+
+    let isHovered = false;
+
+    stage.addEventListener('mouseenter', () => {
+      isHovered = true;
+      if (glare) glare.style.opacity = '0.65';
+    });
+
+    stage.addEventListener('mousemove', (e) => {
+      if (!isHovered) return;
+      const rect = stage.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to 1
+      const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2; // -1 to 1
+
+      const rotY = -16 + nx * 24;
+      const rotX = 7 - ny * 18;
+      const lift = -ny * 10;
+
+      rig.style.transform = `translateY(${lift}px) rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+
+      if (glare) {
+        const gx = nx * 50;
+        const gy = ny * 40;
+        glare.style.transform = `translate(${gx}px, ${gy}px) translateZ(14px)`;
+      }
+    });
+
+    stage.addEventListener('mouseleave', () => {
+      isHovered = false;
+      rig.style.transform = '';
+      if (glare) glare.style.opacity = '0';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       window.renderConsoleRing3D();
+      initCartridge3DInteractiveTilt();
     }, 60);
   });
 })();
