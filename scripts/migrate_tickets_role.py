@@ -65,23 +65,7 @@ CREATE TABLE IF NOT EXISTS ticket_replies (
 ''')
 print('Checked ticket_replies table')
 
-# Insert a couple of realistic demo tickets so the admin can see and test immediately
-cur.execute("SELECT COUNT(*) FROM tickets")
-if cur.fetchone()[0] == 0:
-    cur.execute('''
-        INSERT INTO tickets (user_id, contact_name, category, title, description, priority, system_console, status, created_at)
-        VALUES 
-        (8, 'himawari', 'emulador', 'Audio entrecortado en Super Mario 64 tras 20 minutos de juego', 'Al jugar en el core de Nintendo 64 en Chrome, tras aproximadamente 20 minutos de sesión el audio de la música del castillo de Peach empieza a sufrir stuttering leve. ¿Hay alguna configuración recomendada de buffer de audio?', 'media', 'n64', 'open', datetime('now', '-2 hours')),
-        (8, 'himawari', 'peticion', 'Petición para añadir The Legend of Zelda: The Minish Cap', 'Sería genial incluir Minish Cap en la sección de Game Boy Advance, es uno de los mejores clásicos de Capcom y Nintendo.', 'baja', 'gba', 'resolved', datetime('now', '-1 day'))
-    ''')
-    cur.execute('''
-        INSERT INTO ticket_replies (ticket_id, user_id, user_name, user_role, avatar_url, message, created_at)
-        VALUES 
-        (2, 2, 'Sariwiiwi', 'admin', 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Sariwiiwi', '¡Hola himawari! Hemos revisado la ROM y ya ha sido añadida a la biblioteca oficial de GBA con carátula en alta definición y shaders optimizados. ¡Que lo disfrutes!', datetime('now', '-18 hours'))
-    ''')
-    cur.execute("UPDATE tickets SET admin_response = 'Añadido con carátula HD y shaders optimizados.', admin_responder_id = 2, admin_responder_name = 'Sariwiiwi', responded_at = datetime('now', '-18 hours') WHERE id = 2")
-    print('Inserted seed tickets')
-
+# Ensure tables are ready without inserting any fake or demo data
 conn.commit()
 
 print('Users:')

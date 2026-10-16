@@ -166,45 +166,38 @@
       flex-shrink: 0;
     }
 
-    .sim-toggle-capsule {
-      display: inline-flex;
+    .inc-hero-actions {
+      display: flex;
       align-items: center;
-      background: #f1f5f9;
-      padding: 4px;
-      border-radius: 9999px;
-      border: 1.5px solid #e2e8f0;
-      gap: 4px;
+      gap: 10px;
+      flex-shrink: 0;
     }
 
-    .sim-toggle-btn {
-      padding: 6px 14px;
-      border-radius: 9999px;
-      border: none;
-      background: transparent;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--rh-ink-muted);
-      cursor: pointer;
+    .btn-refresh-tickets {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .sim-toggle-btn.active {
+      gap: 7px;
       background: #ffffff;
-      color: var(--rh-ink);
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-      font-weight: 800;
+      color: #334155;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 9999px;
+      padding: 9px 18px;
+      font-size: 13.5px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .sim-toggle-btn.admin.active {
-      color: #7c3aed;
+    .btn-refresh-tickets:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1.5px);
     }
 
-    .sim-toggle-btn.user.active {
-      color: #0284c7;
+    .btn-refresh-tickets:active {
+      transform: scale(0.96);
     }
 
     /* 2. STATS BAR (SOLO ADMIN) */
@@ -1082,19 +1075,16 @@
         </div>
       </div>
 
-      <!-- Selector de simulación para cambiar rol de prueba -->
-      <div class="inc-hero-role-toggle">
-        <span style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Simulador de Rol:</span>
-        <div class="sim-toggle-capsule" role="radiogroup" aria-label="Cambiar perspectiva de usuario">
-          <button type="button" class="sim-toggle-btn admin active" id="btnRoleAdmin" onclick="setSimulatedRole('admin')">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-            <span>Admin (Sariwiiwi)</span>
-          </button>
-          <button type="button" class="sim-toggle-btn user" id="btnRoleUser" onclick="setSimulatedRole('user')">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>Usuario (himawari)</span>
-          </button>
-        </div>
+      <!-- Acciones de cabecera -->
+      <div class="inc-hero-actions">
+        <button type="button" class="btn-create-ticket" onclick="abrirModalNuevaIncidencia()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Nueva Incidencia</span>
+        </button>
+        <button type="button" class="btn-refresh-tickets" onclick="cargarIncidencias()" title="Actualizar lista de incidencias">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          <span>Actualizar</span>
+        </button>
       </div>
     </section>
 
@@ -1263,7 +1253,7 @@
         <!-- Título -->
         <div class="form-group">
           <label class="form-label" for="newTicketTitle">Título Descriptivo *</label>
-          <input type="text" id="newTicketTitle" class="form-input" placeholder="Ej: Audio entrecortado en Super Mario 64 o petición de ROM" required maxlength="120" autocomplete="off" />
+          <input type="text" id="newTicketTitle" class="form-input" placeholder="Describe brevemente el fallo o solicitud (ej. Error gráfico en emulador, petición de juego...)" required maxlength="120" autocomplete="off" />
         </div>
 
         <!-- Fila de Consola y Prioridad -->
@@ -1449,90 +1439,72 @@
     /* ========================================================================
        2. INICIALIZACIÓN DE IDENTIDAD Y ROLES
        ======================================================================== */
-    function initUserRole() {
-      // Comprobar si hay usuario guardado en localStorage
+    async function initUserRole() {
       const storedUser = localStorage.getItem('retrohub_user_name');
       const storedRole = localStorage.getItem('retrohub_user_role');
+      const storedId = localStorage.getItem('retrohub_user_id');
+      const token = localStorage.getItem('retrohub_jwt_token') || localStorage.getItem('retrohub_token');
 
-      if (!storedUser || storedUser.toLowerCase() === 'sariwiiwi') {
-        // Por defecto, YO en mi perfil soy Sariwiiwi y soy Administradora
-        STATE.activeUsername = 'Sariwiiwi';
-        STATE.activeDisplayName = localStorage.getItem('retrohub_display_name') || 'Sariwiiwi';
-        STATE.role = 'admin';
-        STATE.activeUserId = 2;
-      } else {
-        STATE.activeUsername = storedUser;
-        STATE.activeDisplayName = localStorage.getItem('retrohub_display_name') || storedUser;
-        STATE.role = storedRole || 'user';
-        STATE.activeUserId = 8;
+      // Refrescar datos verídicos desde la API de autenticación si hay sesión activa
+      if (token) {
+        try {
+          const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data && data.user) {
+            localStorage.setItem('retrohub_user_name', data.user.username);
+            localStorage.setItem('retrohub_display_name', data.user.displayName || data.user.username);
+            localStorage.setItem('retrohub_user_role', data.user.role || (data.user.username.toLowerCase() === 'sariwiiwi' ? 'admin' : 'user'));
+            localStorage.setItem('retrohub_user_id', data.user.id);
+          }
+        } catch {}
       }
 
-      // Guardar en localStorage para consistencia de todo RetroHub
-      localStorage.setItem('retrohub_user_name', STATE.activeUsername);
-      localStorage.setItem('retrohub_user_role', STATE.role);
+      const activeUser = localStorage.getItem('retrohub_user_name') || 'Sariwiiwi';
+      const activeRole = localStorage.getItem('retrohub_user_role') || (activeUser.toLowerCase() === 'sariwiiwi' ? 'admin' : 'user');
+      const activeId = localStorage.getItem('retrohub_user_id') || (activeUser.toLowerCase() === 'sariwiiwi' ? 2 : 0);
+
+      STATE.activeUsername = activeUser;
+      STATE.activeDisplayName = localStorage.getItem('retrohub_display_name') || activeUser;
+      STATE.role = activeRole;
+      STATE.activeUserId = Number(activeId);
 
       updateRoleUI();
-    }
-
-    function setSimulatedRole(role) {
-      if (role === 'admin') {
-        STATE.role = 'admin';
-        STATE.activeUsername = 'Sariwiiwi';
-        STATE.activeDisplayName = 'Sariwiiwi';
-        STATE.activeUserId = 2;
-      } else {
-        STATE.role = 'user';
-        STATE.activeUsername = 'himawari';
-        STATE.activeDisplayName = 'himawari';
-        STATE.activeUserId = 8;
-      }
-
-      localStorage.setItem('retrohub_user_name', STATE.activeUsername);
-      localStorage.setItem('retrohub_display_name', STATE.activeDisplayName);
-      localStorage.setItem('retrohub_user_role', STATE.role);
-
-      if (window.RetroHubToolbar) {
-        window.RetroHubToolbar.updateUser({
-          username: STATE.activeUsername,
-          displayName: STATE.activeDisplayName,
-          avatarUrl: `https://api.dicebear.com/7.x/${STATE.role === 'admin' ? 'pixel-art' : 'bottts'}/svg?seed=${STATE.activeUsername}`
-        });
-      }
-
-      updateRoleUI();
-      cargarIncidencias();
     }
 
     function updateRoleUI() {
-      const btnAdmin = document.getElementById('btnRoleAdmin');
-      const btnUser = document.getElementById('btnRoleUser');
       const heroRoleBadge = document.getElementById('heroRoleBadge');
       const heroSubtitle = document.getElementById('heroSubtitle');
       const adminStatsGrid = document.getElementById('adminStatsGrid');
       const tabAllText = document.getElementById('tabAllText');
 
       if (STATE.role === 'admin') {
-        btnAdmin.classList.add('active');
-        btnUser.classList.remove('active');
-        heroRoleBadge.className = 'role-badge admin';
-        heroRoleBadge.innerHTML = `
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-          <span>Administradora Oficial</span>
-        `;
-        heroSubtitle.textContent = 'Bienvenida al panel oficial de incidencias. Como administradora puedes revisar reportes de emuladores, atender peticiones de ROMs y responder personalmente a cualquier jugador.';
-        adminStatsGrid.style.display = 'grid';
-        tabAllText.textContent = 'Todas las Incidencias (Admin)';
+        if (heroRoleBadge) {
+          heroRoleBadge.className = 'role-badge admin';
+          heroRoleBadge.innerHTML = `
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            <span>Administradora Oficial</span>
+          `;
+        }
+        if (heroSubtitle) {
+          heroSubtitle.textContent = `Bienvenida al panel oficial de incidencias, ${STATE.activeDisplayName}. Como administradora puedes resolver incidencias, atender solicitudes de la comunidad y responder oficialmente a cualquier jugador.`;
+        }
+        if (adminStatsGrid) adminStatsGrid.style.display = 'grid';
+        if (tabAllText) tabAllText.textContent = 'Todas las Incidencias (Admin)';
       } else {
-        btnUser.classList.add('active');
-        btnAdmin.classList.remove('active');
-        heroRoleBadge.className = 'role-badge user';
-        heroRoleBadge.innerHTML = `
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span>Jugador / Usuario Normal</span>
-        `;
-        heroSubtitle.textContent = '¿Tienes algún fallo en un emulador, una partida congelada o quieres pedir una nueva ROM? Envíanos tu reporte y el equipo de administración te responderá personalmente.';
-        adminStatsGrid.style.display = 'none';
-        tabAllText.textContent = 'Incidencias Públicas';
+        if (heroRoleBadge) {
+          heroRoleBadge.className = 'role-badge user';
+          heroRoleBadge.innerHTML = `
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Usuario Registrado</span>
+          `;
+        }
+        if (heroSubtitle) {
+          heroSubtitle.textContent = 'Centro de soporte oficial de RetroHub. Envíanos reportes de errores en emuladores, fallos de sonido o peticiones de juegos para que el equipo de administración lo revise.';
+        }
+        if (adminStatsGrid) adminStatsGrid.style.display = 'none';
+        if (tabAllText) tabAllText.textContent = 'Incidencias Públicas';
       }
     }
 
@@ -2059,8 +2031,8 @@
     }
 
     // Arranque al cargar DOM
-    document.addEventListener('DOMContentLoaded', () => {
-      initUserRole();
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initUserRole();
       cargarIncidencias();
       setupDialogLightDismissFallbacks();
     });
