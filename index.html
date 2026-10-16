@@ -1195,6 +1195,12 @@
             box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35), inset 0 1px 2px #ffffff;
             color: #0284c7;
         }
+        .switch-top-circle.circle-tickets:hover {
+            transform: scale(1.12) translateY(-2px);
+            border-color: #f59e0b;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35), inset 0 1px 2px #ffffff;
+            color: #d97706;
+        }
 
         .switch-top-circle:active {
             transform: scale(0.92);
@@ -1219,6 +1225,13 @@
         .circle-eshop:hover .eshop-bag-svg {
             color: #ff5500;
             transform: rotate(-6deg) scale(1.08);
+        }
+        .circle-tickets .ticket-svg {
+            color: #f59e0b;
+        }
+        .circle-tickets:hover .ticket-svg {
+            color: #d97706;
+            transform: scale(1.1) rotate(6deg);
         }
         .circle-album .album-svg {
             color: #0284c7;
@@ -5250,6 +5263,16 @@
                         <path d="M19 6h-3c0-2.21-1.79-4-4-4S8 3.79 8 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm7 16H5V8h3v1.5c0 .55.45 1 1 1s1-.45 1-1V8h4v1.5c0 .55.45 1 1 1s1-.45 1-1V8h3v12z"/>
                     </svg>
                 </button>
+
+                <!-- 3. INCIDENCIAS Y SOPORTE TÉCNICO -->
+                <a href="incidencias.html" class="switch-top-circle circle-tickets" data-tooltip="Centro de Incidencias y Soporte Técnico" aria-label="Incidencias">
+                    <svg class="switch-circle-svg ticket-svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path>
+                        <path d="M13 5v2"></path>
+                        <path d="M13 11v2"></path>
+                        <path d="M13 17v2"></path>
+                    </svg>
+                </a>
 
                 <!-- 3. REPRODUCTOR DE AUDIOS MP3 REALES POR CONSOLA -->
                 <button class="rh-top-audio-pill" id="topAudioPill" onclick="toggleTopBarAudioMute()" title="Activar / Silenciar MP3 de la consola seleccionada (Carpeta /audios)">

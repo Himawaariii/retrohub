@@ -80,7 +80,7 @@ db.exec(`
     bio TEXT DEFAULT 'Explorador del multiverso retro.',
     avatar_url TEXT NOT NULL,
     banner_url TEXT NOT NULL,
-    title_honor TEXT DEFAULT '🎮 Maestro de los 64-Bits',
+    title_honor TEXT DEFAULT 'Maestro de los 64-Bits',
     system_aura TEXT DEFAULT 'scarlet',
     favorite_system TEXT DEFAULT 'n64',
     favorite_games TEXT DEFAULT '[]',
@@ -219,8 +219,14 @@ db.exec(`
   );
 `);
 
-// Migración dinámica de columnas de perfil si no existen
+// Migración dinámica de columnas y tablas de incidencias y roles
 try {
+  const userCols = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
+  if (!userCols.includes('role')) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+  }
+  db.prepare("UPDATE users SET role = 'admin' WHERE username = 'Sariwiiwi' OR email = 'saragomezmanzanares@gmail.com'").run();
+
   const profileCols = db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name);
   if (!profileCols.includes('favorite_games')) {
     db.exec("ALTER TABLE profiles ADD COLUMN favorite_games TEXT DEFAULT '[]'");
@@ -228,8 +234,40 @@ try {
   if (!profileCols.includes('social_links')) {
     db.exec("ALTER TABLE profiles ADD COLUMN social_links TEXT DEFAULT '[]'");
   }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      contact_name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      priority TEXT DEFAULT 'media',
+      system_console TEXT DEFAULT '',
+      status TEXT DEFAULT 'open',
+      admin_response TEXT DEFAULT NULL,
+      admin_responder_id INTEGER DEFAULT NULL,
+      admin_responder_name TEXT DEFAULT NULL,
+      responded_at DATETIME DEFAULT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS ticket_replies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      user_name TEXT NOT NULL,
+      user_role TEXT DEFAULT 'user',
+      avatar_url TEXT DEFAULT '',
+      message TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
+    );
+  `);
 } catch (e) {
-  console.error('[RetroHub DB]: Error en migración de profiles:', e);
+  console.error('[RetroHub DB]: Error en migración de tickets y roles:', e);
 }
 
 // ========================================================
@@ -306,11 +344,13 @@ function isValidUsername(username) {
 }
 
 function generateToken(user) {
+  const role = user.role || (user.username === 'Sariwiiwi' ? 'admin' : 'user');
   return jwt.sign(
     {
       id: user.id,
       username: user.username,
       email: user.email,
+      role: role,
       onboarding_completed: Boolean(user.onboarding_completed)
     },
     JWT_SECRET,
@@ -530,7 +570,7 @@ app.post('/api/auth/register', (req, res) => {
       avatarUrl: defaultAvatar,
       bannerUrl: defaultBanner,
       bio: 'Explorador del multiverso retro.',
-      titleHonor: '🎮 Maestro de los 64-Bits',
+      titleHonor: 'Maestro de los 64-Bits',
       systemAura: 'scarlet',
       favoriteSystem: 'n64'
     }
@@ -564,7 +604,8 @@ app.post('/api/auth/login', (req, res) => {
   db.prepare("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?").run(user.id);
 
   const profile = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(user.id) || {};
-  const token = generateToken(user);
+  const role = (user.username === 'Sariwiiwi' || user.role === 'admin') ? 'admin' : 'user';
+  const token = generateToken({ ...user, role });
 
   res.json({
     success: true,
@@ -573,6 +614,7 @@ app.post('/api/auth/login', (req, res) => {
       id: user.id,
       email: user.email,
       username: user.username,
+      role: role,
       onboarding_completed: Boolean(user.onboarding_completed)
     },
     profile: {
@@ -580,7 +622,7 @@ app.post('/api/auth/login', (req, res) => {
       avatarUrl: profile.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.username}`,
       bannerUrl: profile.banner_url || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1280&q=80',
       bio: profile.bio || '',
-      titleHonor: profile.title_honor || '🎮 Maestro de los 64-Bits',
+      titleHonor: (profile.title_honor || 'Maestro de los 64-Bits').replace(/^[^\w\dÁÉÍÓÚáéíóúÑñ¡!¿?]+\s*/, ''),
       systemAura: profile.system_aura || 'scarlet',
       favoriteSystem: profile.favorite_system || 'n64'
     }
@@ -589,6 +631,8 @@ app.post('/api/auth/login', (req, res) => {
 
 // Sesión Actual (/api/auth/me)
 app.get('/api/auth/me', authMiddleware, (req, res) => {
+  const userRow = db.prepare('SELECT role FROM users WHERE id = ?').get(req.user.id);
+  const role = (req.user.username === 'Sariwiiwi' || (userRow && userRow.role === 'admin')) ? 'admin' : 'user';
   const profile = db.prepare('SELECT * FROM profiles WHERE user_id = ?').get(req.user.id) || {};
   const privacy = db.prepare('SELECT * FROM privacy_settings WHERE user_id = ?').get(req.user.id) || {};
   const favoriteEmus = db.prepare(`
@@ -603,6 +647,7 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
       id: req.user.id,
       email: req.user.email,
       username: req.user.username,
+      role: role,
       onboarding_completed: Boolean(req.user.onboarding_completed)
     },
     profile: {
@@ -610,7 +655,7 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
       avatarUrl: profile.avatar_url,
       bannerUrl: profile.banner_url,
       bio: profile.bio,
-      titleHonor: profile.title_honor,
+      titleHonor: (profile.title_honor || 'Maestro de los 64-Bits').replace(/^[^\w\dÁÉÍÓÚáéíóúÑñ¡!¿?]+\s*/, ''),
       systemAura: profile.system_aura,
       favoriteSystem: profile.favorite_system
     },
@@ -638,7 +683,7 @@ app.put('/api/users/onboarding', authMiddleware, (req, res) => {
   const validBio = bio ? String(bio).trim().slice(0, 300) : 'Explorador del multiverso retro.';
   const validAvatar = avatarUrl || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${req.user.username}`;
   const validBanner = bannerUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1280&q=80';
-  const validTitle = titleHonor || '🎮 Maestro de los 64-Bits';
+  const validTitle = titleHonor || 'Maestro de los 64-Bits';
   const validAura = systemAura || 'scarlet';
   const validFavSys = favoriteSystem || 'n64';
 
@@ -1767,10 +1812,232 @@ io.on('connection', (socket) => {
 });
 
 // ========================================================
+// 12. SISTEMA DE INCIDENCIAS & SOPORTE TÉCNICO (ROLES ADMIN Y USUARIO)
+// ========================================================
+app.get('/api/tickets/stats', (req, res) => {
+  try {
+    const total = db.prepare("SELECT COUNT(*) as count FROM tickets").get().count;
+    const open_cnt = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'open'").get().count;
+    const in_prog = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'in_progress'").get().count;
+    const resolv = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'resolved'").get().count;
+    const closed_cnt = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'closed'").get().count;
+    const urgent_cnt = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE priority IN ('urgente', 'alta') AND status NOT IN ('closed', 'resolved')").get().count;
+
+    res.json({
+      success: true,
+      stats: {
+        total,
+        open: open_cnt,
+        in_progress: in_prog,
+        resolved: resolv,
+        closed: closed_cnt,
+        urgent: urgent_cnt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/tickets/:id', (req, res) => {
+  try {
+    const ticketId = Number(req.params.id);
+    const ticket = db.prepare(`
+      SELECT t.*, 
+             (SELECT avatar_url FROM profiles p WHERE p.user_id = t.user_id) AS author_avatar,
+             (SELECT role FROM users u WHERE u.id = t.user_id) AS author_role
+      FROM tickets t 
+      WHERE t.id = ?
+    `).get(ticketId);
+
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Incidencia no encontrada.' });
+    }
+
+    if (ticket.contact_name === 'Sariwiiwi') {
+      ticket.author_role = 'admin';
+    }
+
+    const replies = db.prepare("SELECT * FROM ticket_replies WHERE ticket_id = ? ORDER BY created_at ASC").all(ticketId);
+
+    res.json({ success: true, ticket, replies });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/tickets', (req, res) => {
+  try {
+    const { user_id, status, category, priority, search } = req.query;
+    const where = [];
+    const params = [];
+
+    if (user_id) {
+      where.push("t.user_id = ?");
+      params.push(Number(user_id));
+    }
+    if (status && status !== 'all') {
+      where.push("t.status = ?");
+      params.push(status);
+    }
+    if (category && category !== 'all') {
+      where.push("t.category = ?");
+      params.push(category);
+    }
+    if (priority && priority !== 'all') {
+      where.push("t.priority = ?");
+      params.push(priority);
+    }
+    if (search) {
+      where.push("(t.title LIKE ? OR t.description LIKE ? OR t.contact_name LIKE ?)");
+      const term = `%${search}%`;
+      params.push(term, term, term);
+    }
+
+    const whereSql = where.length ? "WHERE " + where.join(" AND ") : "";
+    const sql = `
+      SELECT t.*, 
+             (SELECT COUNT(*) FROM ticket_replies r WHERE r.ticket_id = t.id) AS replies_count,
+             (SELECT avatar_url FROM profiles p WHERE p.user_id = t.user_id) AS author_avatar,
+             (SELECT role FROM users u WHERE u.id = t.user_id) AS author_role
+      FROM tickets t
+      ${whereSql}
+      ORDER BY t.created_at DESC
+    `;
+
+    const rows = db.prepare(sql).all(...params).map(r => {
+      if (r.contact_name === 'Sariwiiwi') r.author_role = 'admin';
+      return r;
+    });
+
+    res.json({ success: true, tickets: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/tickets', (req, res) => {
+  try {
+    const { contact_name, category, title, description, priority, system_console, user_id } = req.body;
+    const cName = contact_name || 'Usuario';
+    const cat = category || 'sugerencia';
+    const tit = title || 'Sin título';
+    const desc = description || '';
+    const prio = priority || 'media';
+    const sysCon = system_console || '';
+    const uId = user_id || 1;
+
+    const result = db.prepare(`
+      INSERT INTO tickets (user_id, contact_name, category, title, description, priority, system_console)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(uId, cName, cat, tit, desc, prio, sysCon);
+
+    res.status(201).json({
+      success: true,
+      ticket_id: Number(result.lastInsertRowid),
+      message: 'Incidencia registrada con éxito en el sistema.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/tickets/:id/reply', (req, res) => {
+  try {
+    const tId = Number(req.params.id);
+    const { user_id, user_name, user_role, avatar_url, message, new_status } = req.body;
+
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ success: false, message: 'El mensaje no puede estar vacío.' });
+    }
+
+    const uId = user_id || 1;
+    const uName = user_name || 'Usuario';
+    const finalRole = (uName.toLowerCase() === 'sariwiiwi' || user_role === 'admin') ? 'admin' : 'user';
+    const avatar = avatar_url || '';
+    const cleanMsg = String(message).trim();
+
+    const insertReply = db.prepare(`
+      INSERT INTO ticket_replies (ticket_id, user_id, user_name, user_role, avatar_url, message)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(tId, uId, uName, finalRole, avatar, cleanMsg);
+
+    if (finalRole === 'admin') {
+      const statusToSet = new_status || 'in_progress';
+      db.prepare(`
+        UPDATE tickets 
+        SET admin_response = ?, admin_responder_id = ?, admin_responder_name = ?, responded_at = CURRENT_TIMESTAMP, status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(cleanMsg, uId, uName, statusToSet, tId);
+    } else {
+      db.prepare("UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(tId);
+    }
+
+    res.status(201).json({
+      success: true,
+      reply_id: Number(insertReply.lastInsertRowid),
+      message: 'Respuesta añadida con éxito.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+const handleTicketUpdate = (req, res) => {
+  try {
+    const tId = Number(req.params.id);
+    const { status, priority, category, title, description, admin_response, admin_responder_name } = req.body;
+
+    const updates = ["updated_at = CURRENT_TIMESTAMP"];
+    const params = [];
+
+    if (status) { updates.push("status = ?"); params.push(status); }
+    if (priority) { updates.push("priority = ?"); params.push(priority); }
+    if (category) { updates.push("category = ?"); params.push(category); }
+    if (title) { updates.push("title = ?"); params.push(title); }
+    if (description) { updates.push("description = ?"); params.push(description); }
+    if (admin_response) {
+      updates.push("admin_response = ?");
+      params.push(admin_response);
+      updates.push("responded_at = CURRENT_TIMESTAMP");
+    }
+    if (admin_responder_name) {
+      updates.push("admin_responder_name = ?");
+      params.push(admin_responder_name);
+    }
+
+    params.push(tId);
+    db.prepare(`UPDATE tickets SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+
+    res.json({ success: true, message: 'Incidencia actualizada con éxito.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+app.put('/api/tickets/:id', handleTicketUpdate);
+app.post('/api/tickets/:id/update', handleTicketUpdate);
+
+app.delete('/api/tickets/:id', (req, res) => {
+  try {
+    const tId = Number(req.params.id);
+    db.prepare("DELETE FROM ticket_replies WHERE ticket_id = ?").run(tId);
+    db.prepare("DELETE FROM tickets WHERE id = ?").run(tId);
+    res.json({ success: true, message: 'Incidencia eliminada.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ========================================================
 // 13. SERVIR FRONTEND ESTÁTICO DE RETROHUB & RUTAS DIRECTAS
 // ========================================================
 app.get(['/profile', '/profile/:username'], (req, res) => {
   res.sendFile(path.join(ROOT_DIR, 'profile.html'));
+});
+
+app.get(['/incidencias', '/tickets', '/soporte'], (req, res) => {
+  res.sendFile(path.join(ROOT_DIR, 'incidencias.html'));
 });
 
 app.use(express.static(ROOT_DIR));
@@ -1778,9 +2045,9 @@ app.use(express.static(ROOT_DIR));
 // Iniciar servidor
 server.listen(PORT, () => {
   console.log(`=============================================================`);
-  console.log(` 🎮 RETROHUB MASTER PLATFORM ONLINE — PUERTO ${PORT}`);
+  console.log(` RETROHUB MASTER PLATFORM ONLINE — PUERTO ${PORT}`);
   console.log(` URL: http://localhost:${PORT}/`);
   console.log(` Base de Datos SQLite: ${DB_PATH}`);
-  console.log(` Arquitectura: Autenticación JWT + Amistades + Privacidad + Socket.io`);
+  console.log(` Arquitectura: Autenticación JWT + Amistades + Privacidad + Socket.io + Incidencias`);
   console.log(`=============================================================`);
 });

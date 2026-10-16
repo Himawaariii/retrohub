@@ -33,6 +33,14 @@ def init_tickets_db():
     try:
         master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
         conn = sqlite3.connect(master_db)
+        cur = conn.cursor()
+
+        # Asegurar columna 'role' en tabla users y marcar a Sariwiiwi como admin
+        user_cols = [c[1] for c in cur.execute('PRAGMA table_info(users)').fetchall()]
+        if 'role' not in user_cols:
+            cur.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+        cur.execute("UPDATE users SET role = 'admin' WHERE username = 'Sariwiiwi' OR email = 'saragomezmanzanares@gmail.com'")
+
         conn.execute('''
             CREATE TABLE IF NOT EXISTS tickets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,11 +49,46 @@ def init_tickets_db():
                 category TEXT NOT NULL,
                 title TEXT NOT NULL,
                 description TEXT,
+                priority TEXT DEFAULT 'media',
+                system_console TEXT DEFAULT '',
                 status TEXT DEFAULT 'open',
+                admin_response TEXT DEFAULT NULL,
+                admin_responder_id INTEGER DEFAULT NULL,
+                admin_responder_name TEXT DEFAULT NULL,
+                responded_at DATETIME DEFAULT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        # Migrar columnas adicionales en tickets si existen esquemas antiguos
+        ticket_cols = [c[1] for c in cur.execute('PRAGMA table_info(tickets)').fetchall()]
+        for col, defn in [
+            ('priority', "TEXT DEFAULT 'media'"),
+            ('system_console', "TEXT DEFAULT ''"),
+            ('admin_response', "TEXT DEFAULT NULL"),
+            ('admin_responder_id', "INTEGER DEFAULT NULL"),
+            ('admin_responder_name', "TEXT DEFAULT NULL"),
+            ('responded_at', "DATETIME DEFAULT NULL"),
+        ]:
+            if col not in ticket_cols:
+                cur.execute(f"ALTER TABLE tickets ADD COLUMN {col} {defn}")
+
+        # Tabla de respuestas e hilos de conversación para incidencias
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ticket_replies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ticket_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                user_name TEXT NOT NULL,
+                user_role TEXT DEFAULT 'user',
+                avatar_url TEXT DEFAULT '',
+                message TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
+            )
+        ''')
+
         conn.execute('''
             CREATE TABLE IF NOT EXISTS chat_groups (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,7 +121,6 @@ def init_tickets_db():
             )
         ''')
         # Limpiar emojis heredados en títulos honoríficos
-        cur = conn.cursor()
         cur.execute("SELECT user_id, title_honor FROM profiles")
         for uid, t_hon in cur.fetchall():
             if t_hon:
@@ -98,13 +140,14 @@ def init_tickets_db():
 
 init_tickets_db()
 
-def generate_token(user_id, username, email, onboarding_completed=1):
+def generate_token(user_id, username, email, onboarding_completed=1, role='user'):
     header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).decode().rstrip('=')
     payload = base64.urlsafe_b64encode(json.dumps({
         "id": user_id,
         "username": username,
         "email": email,
-        "onboarding_completed": bool(onboarding_completed)
+        "onboarding_completed": bool(onboarding_completed),
+        "role": role
     }).encode()).decode().rstrip('=')
     sig = base64.urlsafe_b64encode(hmac.new(JWT_SECRET, f"{header}.{payload}".encode(), hashlib.sha256).digest()).decode().rstrip('=')
     return f"{header}.{payload}.{sig}"
@@ -391,14 +434,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
             user_row = None
             if target_uname:
-                cur.execute("SELECT id, username, created_at FROM users WHERE username_clean = ?", (target_uname,))
+                cur.execute("SELECT id, username, created_at, role FROM users WHERE username_clean = ?", (target_uname,))
                 user_row = cur.fetchone()
             else:
                 auth_header = self.headers.get('Authorization', '')
                 if auth_header.startswith('Bearer '):
                     dec = decode_token(auth_header.split(' ', 1)[1])
                     if dec and 'id' in dec:
-                        cur.execute("SELECT id, username, created_at FROM users WHERE id = ?", (dec['id'],))
+                        cur.execute("SELECT id, username, created_at, role FROM users WHERE id = ?", (dec['id'],))
                         user_row = cur.fetchone()
 
             if not user_row:
@@ -411,7 +454,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'success': False, 'error': {'code': err_code, 'message': err_msg}}).encode('utf-8'))
                 return
 
-            uid, u_name, created_at = user_row
+            uid, u_name, created_at, u_role = user_row
+            final_role = 'admin' if (u_name.lower() == 'sariwiiwi' or u_role == 'admin') else 'user'
             cur.execute("SELECT display_name, bio, avatar_url, banner_url, title_honor, system_aura, favorite_system, favorite_games, social_links FROM profiles WHERE user_id = ?", (uid,))
             prof_row = cur.fetchone()
 
@@ -457,6 +501,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     'favoriteGames': parsed_games,
                     'socialLinks': parsed_links,
                     'presence': presence,
+                    'role': final_role,
                     'isFriend': False,
                     'activity': None
                 }
@@ -533,7 +578,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             cur = conn.cursor()
             user_row = None
             if user_id:
-                cur.execute("SELECT id, email, username, onboarding_completed FROM users WHERE id = ?", (user_id,))
+                cur.execute("SELECT id, email, username, onboarding_completed, role FROM users WHERE id = ?", (user_id,))
                 user_row = cur.fetchone()
 
             if not user_row:
@@ -544,7 +589,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'success': False, 'error': {'code': 'UNAUTHORIZED', 'message': 'Token no válido o expirado.'}}).encode('utf-8'))
                 return
 
-            u_id, u_email, u_name, u_onboard = user_row
+            u_id, u_email, u_name, u_onboard, u_role = user_row
+            final_role = 'admin' if (u_name.lower() == 'sariwiiwi' or u_role == 'admin') else 'user'
             cur.execute("SELECT display_name, bio, avatar_url, banner_url, title_honor, system_aura, favorite_system, favorite_games, social_links FROM profiles WHERE user_id = ?", (u_id,))
             prof_row = cur.fetchone()
             cur.execute("SELECT profile_visibility, online_visibility, emulator_visibility, game_visibility, friend_list_visibility, friend_request_permission FROM privacy_settings WHERE user_id = ?", (u_id,))
@@ -568,7 +614,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     'id': u_id,
                     'email': u_email,
                     'username': u_name,
-                    'onboarding_completed': bool(u_onboard)
+                    'onboarding_completed': bool(u_onboard),
+                    'role': final_role
                 },
                 'profile': {
                     'displayName': prof_row[0] if prof_row else u_name,
@@ -893,14 +940,129 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'server': status}, ensure_ascii=False).encode('utf-8'))
             return
 
-        if self.path == '/api/tickets':
+        parsed_url = urllib.parse.urlparse(self.path)
+        path_clean = parsed_url.path
+
+        if path_clean == '/api/tickets/stats':
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            total = cur.execute("SELECT COUNT(*) FROM tickets").fetchone()[0]
+            open_cnt = cur.execute("SELECT COUNT(*) FROM tickets WHERE status = 'open'").fetchone()[0]
+            in_prog = cur.execute("SELECT COUNT(*) FROM tickets WHERE status = 'in_progress'").fetchone()[0]
+            resolv = cur.execute("SELECT COUNT(*) FROM tickets WHERE status = 'resolved'").fetchone()[0]
+            closed_cnt = cur.execute("SELECT COUNT(*) FROM tickets WHERE status = 'closed'").fetchone()[0]
+            urgent_cnt = cur.execute("SELECT COUNT(*) FROM tickets WHERE priority IN ('urgente', 'alta') AND status NOT IN ('closed', 'resolved')").fetchone()[0]
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'stats': {
+                    'total': total,
+                    'open': open_cnt,
+                    'in_progress': in_prog,
+                    'resolved': resolv,
+                    'closed': closed_cnt,
+                    'urgent': urgent_cnt
+                }
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if path_clean.startswith('/api/tickets/') and path_clean[len('/api/tickets/'):].isdigit():
+            ticket_id = int(path_clean[len('/api/tickets/'):])
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
-            cur.execute("SELECT * FROM tickets ORDER BY created_at DESC")
-            rows = [dict(r) for r in cur.fetchall()]
+            cur.execute("""
+                SELECT t.*, 
+                       (SELECT avatar_url FROM profiles p WHERE p.user_id = t.user_id) AS author_avatar,
+                       (SELECT role FROM users u WHERE u.id = t.user_id) AS author_role
+                FROM tickets t 
+                WHERE t.id = ?
+            """, (ticket_id,))
+            t_row = cur.fetchone()
+            if not t_row:
+                conn.close()
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'message': 'Incidencia no encontrada.'}).encode('utf-8'))
+                return
+
+            cur.execute("SELECT * FROM ticket_replies WHERE ticket_id = ? ORDER BY created_at ASC", (ticket_id,))
+            replies = [dict(r) for r in cur.fetchall()]
             conn.close()
+
+            t_dict = dict(t_row)
+            if t_dict.get('contact_name') == 'Sariwiiwi':
+                t_dict['author_role'] = 'admin'
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'ticket': t_dict,
+                'replies': replies
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if path_clean == '/api/tickets':
+            qs = urllib.parse.parse_qs(parsed_url.query)
+            u_id = qs.get('user_id', [None])[0]
+            st = qs.get('status', [None])[0]
+            cat = qs.get('category', [None])[0]
+            prio = qs.get('priority', [None])[0]
+            srch = qs.get('search', [None])[0]
+
+            where = []
+            params = []
+            if u_id:
+                try:
+                    where.append("t.user_id = ?")
+                    params.append(int(u_id))
+                except:
+                    pass
+            if st and st != 'all':
+                where.append("t.status = ?")
+                params.append(st)
+            if cat and cat != 'all':
+                where.append("t.category = ?")
+                params.append(cat)
+            if prio and prio != 'all':
+                where.append("t.priority = ?")
+                params.append(prio)
+            if srch:
+                where.append("(t.title LIKE ? OR t.description LIKE ? OR t.contact_name LIKE ?)")
+                p_srch = f"%{srch}%"
+                params.extend([p_srch, p_srch, p_srch])
+
+            where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+            sql = f"""
+                SELECT t.*, 
+                       (SELECT COUNT(*) FROM ticket_replies r WHERE r.ticket_id = t.id) AS replies_count,
+                       (SELECT avatar_url FROM profiles p WHERE p.user_id = t.user_id) AS author_avatar,
+                       (SELECT role FROM users u WHERE u.id = t.user_id) AS author_role
+                FROM tickets t
+                {where_sql}
+                ORDER BY t.created_at DESC
+            """
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(sql, params)
+            rows = []
+            for r in cur.fetchall():
+                d = dict(r)
+                if d.get('contact_name') == 'Sariwiiwi':
+                    d['author_role'] = 'admin'
+                rows.append(d)
+            conn.close()
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
@@ -1135,19 +1297,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 return
 
             p_hash = 'sha256:' + hashlib.sha256(password.encode()).hexdigest()
-            cur.execute("INSERT INTO users (email, username, username_clean, password_hash, onboarding_completed) VALUES (?, ?, ?, ?, 0)",
-                        (email, username, clean_u, p_hash))
+            new_role = 'admin' if clean_u == 'sariwiiwi' else 'user'
+            cur.execute("INSERT INTO users (email, username, username_clean, password_hash, onboarding_completed, role) VALUES (?, ?, ?, ?, 0, ?)",
+                        (email, username, clean_u, p_hash, new_role))
             new_uid = cur.lastrowid
             default_avatar = f"https://api.dicebear.com/7.x/pixel-art/svg?seed={clean_u}"
             default_banner = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1280&q=80"
-            cur.execute("INSERT INTO profiles (user_id, display_name, avatar_url, banner_url) VALUES (?, ?, ?, ?)",
+            cur.execute("INSERT INTO profiles (user_id, display_name, avatar_url, banner_url, title_honor) VALUES (?, ?, ?, ?, 'Maestro de los 64-Bits')",
                         (new_uid, username, default_avatar, default_banner))
             cur.execute("INSERT INTO privacy_settings (user_id) VALUES (?)", (new_uid,))
             cur.execute("INSERT INTO presences (user_id, status) VALUES (?, 'offline')", (new_uid,))
             conn.commit()
             conn.close()
 
-            token = generate_token(new_uid, username, email, 0)
+            token = generate_token(new_uid, username, email, 0, new_role)
             self.send_response(201)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
@@ -1155,13 +1318,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 'success': True,
                 'message': 'Cuenta creada con éxito.',
                 'token': token,
-                'user': {'id': new_uid, 'email': email, 'username': username, 'onboarding_completed': False},
+                'user': {'id': new_uid, 'email': email, 'username': username, 'onboarding_completed': False, 'role': new_role},
                 'profile': {
                     'displayName': username,
                     'avatarUrl': default_avatar,
                     'bannerUrl': default_banner,
                     'bio': 'Explorador del multiverso retro.',
-                    'titleHonor': '🎮 Maestro de los 64-Bits',
+                    'titleHonor': 'Maestro de los 64-Bits',
                     'systemAura': 'scarlet',
                     'favoriteSystem': 'n64'
                 }
@@ -1181,7 +1344,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
             cur = conn.cursor()
-            cur.execute("SELECT id, email, username, password_hash, onboarding_completed FROM users WHERE email = ? OR username_clean = ?", (identifier, identifier))
+            cur.execute("SELECT id, email, username, password_hash, onboarding_completed, role FROM users WHERE email = ? OR username_clean = ?", (identifier, identifier))
             user_row = cur.fetchone()
             if not user_row:
                 conn.close()
@@ -1191,7 +1354,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'success': False, 'error': {'code': 'INVALID_CREDENTIALS', 'message': 'Credenciales inválidas.'}}).encode('utf-8'))
                 return
 
-            u_id, u_email, u_name, stored_hash, u_onboard = user_row
+            u_id, u_email, u_name, stored_hash, u_onboard, u_role = user_row
             valid = False
             if stored_hash == 'hash_seed_123' or stored_hash.startswith('$2'):
                 valid = True
@@ -1212,20 +1375,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             prof = cur.fetchone()
             conn.close()
 
-            token = generate_token(u_id, u_name, u_email, u_onboard)
+            final_role = 'admin' if (u_name.lower() == 'sariwiiwi' or u_role == 'admin') else 'user'
+            token = generate_token(u_id, u_name, u_email, u_onboard, final_role)
+            clean_honor = re.sub(r'^[^\w\dÁÉÍÓÚáéíóúÑñ¡!¿?]+\s*', '', prof[4]).strip() if (prof and prof[4]) else 'Maestro de los 64-Bits'
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps({
                 'success': True,
                 'token': token,
-                'user': {'id': u_id, 'email': u_email, 'username': u_name, 'onboarding_completed': bool(u_onboard)},
+                'user': {'id': u_id, 'email': u_email, 'username': u_name, 'onboarding_completed': bool(u_onboard), 'role': final_role},
                 'profile': {
                     'displayName': prof[0] if prof else u_name,
                     'bio': prof[1] if prof else '',
                     'avatarUrl': prof[2] if prof else f'https://api.dicebear.com/7.x/pixel-art/svg?seed={u_name}',
                     'bannerUrl': prof[3] if prof else 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1280&q=80',
-                    'titleHonor': prof[4] if prof else '🎮 Maestro de los 64-Bits',
+                    'titleHonor': clean_honor,
                     'systemAura': prof[5] if prof else 'scarlet',
                     'favoriteSystem': prof[6] if prof else 'n64'
                 }
@@ -1640,20 +1805,24 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             }, ensure_ascii=False).encode('utf-8'))
             return
 
-        if self.path == '/api/tickets':
+        path_clean = urllib.parse.urlparse(self.path).path
+
+        if path_clean == '/api/tickets':
             c_name = body.get('contact_name') or body.get('nombre') or 'Usuario'
             cat = body.get('category') or body.get('categoria') or 'sugerencia'
             title = body.get('title') or body.get('titulo') or 'Sin título'
             desc = body.get('description') or body.get('mensaje') or ''
+            prio = body.get('priority') or 'media'
+            sys_con = body.get('system_console') or ''
             u_id = body.get('user_id', 1)
 
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
             cur = conn.cursor()
             cur.execute('''
-                INSERT INTO tickets (user_id, contact_name, category, title, description)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (u_id, c_name, cat, title, desc))
+                INSERT INTO tickets (user_id, contact_name, category, title, description, priority, system_console)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (u_id, c_name, cat, title, desc, prio, sys_con))
             new_ticket_id = cur.lastrowid
             conn.commit()
             conn.close()
@@ -1667,6 +1836,130 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 'message': 'Incidencia registrada con éxito en el sistema.'
             }, ensure_ascii=False).encode('utf-8'))
             return
+
+        if path_clean.startswith('/api/tickets/') and path_clean.endswith('/reply'):
+            ticket_id_str = path_clean[len('/api/tickets/'):-len('/reply')].strip('/')
+            if ticket_id_str.isdigit():
+                t_id = int(ticket_id_str)
+                u_id = body.get('user_id', 1)
+                u_name = body.get('user_name', 'Usuario')
+                u_role = body.get('user_role', 'user')
+                avatar = body.get('avatar_url', '')
+                msg = body.get('message', '').strip()
+                new_status = body.get('new_status')
+
+                if not msg:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'success': False, 'message': 'El mensaje no puede estar vacío.'}).encode('utf-8'))
+                    return
+
+                if u_name.lower() == 'sariwiiwi':
+                    u_role = 'admin'
+
+                master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+                conn = sqlite3.connect(master_db)
+                cur = conn.cursor()
+                cur.execute('''
+                    INSERT INTO ticket_replies (ticket_id, user_id, user_name, user_role, avatar_url, message)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (t_id, u_id, u_name, u_role, avatar, msg))
+                reply_id = cur.lastrowid
+
+                # Si es administrador quien responde, actualiza el ticket con respuesta oficial
+                if u_role == 'admin':
+                    status_to_set = new_status if new_status else 'in_progress'
+                    cur.execute('''
+                        UPDATE tickets 
+                        SET admin_response = ?, admin_responder_id = ?, admin_responder_name = ?, responded_at = CURRENT_TIMESTAMP, status = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    ''', (msg, u_id, u_name, status_to_set, t_id))
+                else:
+                    cur.execute("UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", (t_id,))
+
+                conn.commit()
+                conn.close()
+
+                self.send_response(201)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'success': True,
+                    'reply_id': reply_id,
+                    'message': 'Respuesta añadida con éxito.'
+                }, ensure_ascii=False).encode('utf-8'))
+                return
+
+        if path_clean.startswith('/api/tickets/') and (self.command in ('PUT', 'POST') and (path_clean.endswith('/update') or path_clean.endswith('/status') or path_clean[len('/api/tickets/'):].isdigit())):
+            parts = [p for p in path_clean.split('/') if p]
+            if len(parts) >= 3 and parts[2].isdigit():
+                t_id = int(parts[2])
+                status = body.get('status')
+                priority = body.get('priority')
+                category = body.get('category')
+                title = body.get('title')
+                desc = body.get('description')
+                admin_resp = body.get('admin_response')
+                admin_name = body.get('admin_responder_name')
+
+                updates = ["updated_at = CURRENT_TIMESTAMP"]
+                params = []
+                if status:
+                    updates.append("status = ?")
+                    params.append(status)
+                if priority:
+                    updates.append("priority = ?")
+                    params.append(priority)
+                if category:
+                    updates.append("category = ?")
+                    params.append(category)
+                if title:
+                    updates.append("title = ?")
+                    params.append(title)
+                if desc:
+                    updates.append("description = ?")
+                    params.append(desc)
+                if admin_resp:
+                    updates.append("admin_response = ?")
+                    params.append(admin_resp)
+                    updates.append("responded_at = CURRENT_TIMESTAMP")
+                if admin_name:
+                    updates.append("admin_responder_name = ?")
+                    params.append(admin_name)
+
+                params.append(t_id)
+
+                master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+                conn = sqlite3.connect(master_db)
+                cur = conn.cursor()
+                cur.execute(f"UPDATE tickets SET {', '.join(updates)} WHERE id = ?", params)
+                conn.commit()
+                conn.close()
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'message': 'Incidencia actualizada con éxito.'}).encode('utf-8'))
+                return
+
+        if self.command == 'DELETE' and path_clean.startswith('/api/tickets/'):
+            parts = [p for p in path_clean.split('/') if p]
+            if len(parts) >= 3 and parts[2].isdigit():
+                t_id = int(parts[2])
+                master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+                conn = sqlite3.connect(master_db)
+                cur = conn.cursor()
+                cur.execute("DELETE FROM ticket_replies WHERE ticket_id = ?", (t_id,))
+                cur.execute("DELETE FROM tickets WHERE id = ?", (t_id,))
+                conn.commit()
+                conn.close()
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'message': 'Incidencia eliminada.'}).encode('utf-8'))
+                return
 
         self.send_response(404)
         self.send_header('Content-Type', 'application/json; charset=utf-8')

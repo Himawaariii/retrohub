@@ -262,6 +262,17 @@ body.profile-body {
   color: #059669;
 }
 
+.aero-gel-tag.admin-shield {
+  background: #f5f3ff;
+  border-color: rgba(139, 92, 246, 0.38);
+  color: #6d28d9;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.12);
+}
+.aero-gel-tag.admin-shield .aero-gel-tag-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #ffffff;
+}
+
 /* Cápsula Derecha: Clave de Amigo + Acciones Rápidas (Copiar, QR, Abrir Chat) */
 .aero-friendcode-capsule {
   display: flex;
@@ -355,7 +366,7 @@ body.profile-body {
 .aero-channel-dock {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   padding: 8px;
   border-radius: 22px;
@@ -410,6 +421,10 @@ body.profile-body {
   background: rgba(0, 162, 237, 0.12);
   color: #0284c7;
 }
+.aero-tab-icon-badge.amber {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
 
 .aero-channel-tab:hover {
   background: #f8fafc;
@@ -448,6 +463,11 @@ body.profile-body {
   background: linear-gradient(135deg, #00b4ff, #0284c7);
   color: #ffffff;
   box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+}
+.aero-channel-tab.active .aero-tab-icon-badge.amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
 }
 
 .aero-tab-counter {

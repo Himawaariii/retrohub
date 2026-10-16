@@ -19,13 +19,16 @@
     close: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
     copy: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`,
     logout: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>`,
-    joycons: `<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><path d="M7 2h-1a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1 7H4v-2h2v2z"/><path d="M17 2h1a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm2 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-1-7h2V6h-2v2z"/></svg>`
+    joycons: `<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><path d="M7 2h-1a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1 7H4v-2h2v2z"/><path d="M17 2h1a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm2 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-1-7h2V6h-2v2z"/></svg>`,
+    ticket: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path><path d="M13 5v2"></path><path d="M13 11v2"></path><path d="M13 17v2"></path></svg>`,
+    shieldCheck: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`
   };
 
   function getCurrentPageKey() {
     const path = (window.location.pathname || '').toLowerCase();
     if (path.includes('profile')) return 'profile';
     if (path.includes('iisu_network') || path.includes('network')) return 'community';
+    if (path.includes('incidencia') || path.includes('ticket')) return 'incidencias';
     return 'launcher';
   }
 
@@ -51,9 +54,14 @@
     const pageKey = getCurrentPageKey();
     const username = localStorage.getItem('retrohub_user_name') || 'himawari';
     const displayName = localStorage.getItem('retrohub_display_name') || username;
+    const role = localStorage.getItem('retrohub_user_role') || (username.toLowerCase() === 'sariwiiwi' ? 'admin' : 'user');
     const avatarUrl =
       localStorage.getItem('retrohub_user_avatar') ||
       `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+
+    const adminBadgeHTML = role === 'admin' 
+      ? `<span class="rh-user-role-badge admin" title="Administradora del Sistema">${ICONS.shieldCheck} Admin</span>` 
+      : '';
 
     return `
       <div class="rh-common-toolbar-wrap">
@@ -81,6 +89,10 @@
               <span class="rh-nav-icon-circle icon-community">${ICONS.globe}</span>
               <span>Comunidad</span>
             </a>
+            <a href="incidencias.html" class="rh-nav-pill ${pageKey === 'incidencias' ? 'active' : ''}">
+              <span class="rh-nav-icon-circle icon-incidencias">${ICONS.ticket}</span>
+              <span>Incidencias</span>
+            </a>
             <a href="profile.html" class="rh-nav-pill ${pageKey === 'profile' ? 'active' : ''}">
               <span class="rh-nav-icon-circle icon-profile">${ICONS.user}</span>
               <span>Mi Perfil</span>
@@ -106,7 +118,10 @@
                 <span class="rh-user-online-badge"></span>
               </div>
               <div class="rh-user-meta">
-                <span class="rh-user-name" id="rhToolbarDisplayName">${escapeHtml(displayName)}</span>
+                <div class="rh-user-name-line" style="display: flex; align-items: center; gap: 5px;">
+                  <span class="rh-user-name" id="rhToolbarDisplayName">${escapeHtml(displayName)}</span>
+                  ${adminBadgeHTML}
+                </div>
                 <span class="rh-user-handle" id="rhToolbarUsername">@${escapeHtml(username)}</span>
               </div>
             </a>
@@ -980,6 +995,7 @@
     const dNameEl = document.getElementById('rhToolbarDisplayName');
     const uNameEl = document.getElementById('rhToolbarUsername');
     const avEl = document.getElementById('rhToolbarAvatar');
+    const nameLineEl = document.querySelector('.rh-user-name-line');
 
     if (dNameEl && (userObj.displayName || userObj.username)) {
       dNameEl.textContent = userObj.displayName || userObj.username;
@@ -989,6 +1005,26 @@
     }
     if (avEl && userObj.avatarUrl) {
       avEl.src = userObj.avatarUrl;
+    }
+
+    const currentUsername = userObj.username || localStorage.getItem('retrohub_user_name') || '';
+    const role = userObj.role || localStorage.getItem('retrohub_user_role') || (currentUsername.toLowerCase() === 'sariwiiwi' ? 'admin' : 'user');
+    if (userObj.role) {
+      localStorage.setItem('retrohub_user_role', userObj.role);
+    }
+    if (nameLineEl) {
+      let badge = nameLineEl.querySelector('.rh-user-role-badge');
+      if (role === 'admin') {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'rh-user-role-badge admin';
+          badge.title = 'Administradora del Sistema';
+          badge.innerHTML = `${ICONS.shieldCheck} Admin`;
+          nameLineEl.appendChild(badge);
+        }
+      } else if (badge) {
+        badge.remove();
+      }
     }
   }
 
@@ -1013,11 +1049,13 @@
           const u = data.user;
           localStorage.setItem('retrohub_user_name', u.username);
           localStorage.setItem('retrohub_display_name', u.displayName || u.username);
+          if (u.role) localStorage.setItem('retrohub_user_role', u.role);
           if (u.avatarUrl) localStorage.setItem('retrohub_user_avatar', u.avatarUrl);
           updateToolbarUser({
             username: u.username,
             displayName: u.displayName || u.username,
-            avatarUrl: u.avatarUrl
+            avatarUrl: u.avatarUrl,
+            role: u.role
           });
           fetchChatOverview();
         }

@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetroHub • Centro de Incidencias & Soporte</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Barra de Herramientas Común + Chat Lateral -->
+  <link rel="stylesheet" href="retrohub_toolbar.css" />
+
+  <style>
+    :root {
+      --rh-bg: #f6f8fa;
+      --rh-card-bg: #ffffff;
+      --rh-card-border: rgba(226, 232, 240, 0.95);
+      --rh-card-shadow: 0 12px 32px rgba(15, 23, 42, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
+      --rh-scarlet: #e60012;
+      --rh-teal: #00d2be;
+      --rh-sky: #00a2ed;
+      --rh-orange: #ff7300;
+      --rh-gold: #f59e0b;
+      --rh-violet: #8b5cf6;
+      --rh-emerald: #10b981;
+      --rh-ink: #0f172a;
+      --rh-ink-mid: #334155;
+      --rh-ink-muted: #64748b;
+    }
+
+    html {
+      overflow-y: scroll;
+      box-sizing: border-box;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      color: var(--rh-ink);
+      background-color: var(--rh-bg);
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(245, 158, 11, 0.04) 0%, transparent 42%),
+        radial-gradient(circle at 88% 22%, rgba(0, 162, 237, 0.05) 0%, transparent 46%),
+        radial-gradient(circle at 50% 85%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      padding-bottom: 70px;
+    }
+
+    .rh-incidencias-stage {
+      width: 100%;
+      max-width: 1280px;
+      margin: 20px auto 40px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 1. HERO BANNER DE INCIDENCIAS */
+    .inc-hero-card {
+      background: var(--rh-card-bg);
+      border: 1.5px solid var(--rh-card-border);
+      border-radius: 26px;
+      box-shadow: var(--rh-card-shadow);
+      padding: 26px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .inc-hero-card::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .inc-hero-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .inc-hero-icon-orb {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
+      flex-shrink: 0;
+    }
+
+    .inc-hero-texts h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--rh-ink);
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .inc-hero-texts p {
+      font-size: 14px;
+      color: var(--rh-ink-muted);
+      margin-top: 5px;
+      max-width: 680px;
+      line-height: 1.45;
+    }
+
+    /* Role Badge en Hero */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1.5px solid transparent;
+    }
+
+    .role-badge.admin {
+      background: #f5f3ff;
+      border-color: rgba(139, 92, 246, 0.35);
+      color: #7c3aed;
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+    }
+
+    .role-badge.user {
+      background: #ecfdf5;
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #059669;
+    }
+
+    /* Selector de simulación / cambio rápido de rol */
+    .inc-hero-role-toggle {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .sim-toggle-capsule {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 9999px;
+      border: 1.5px solid #e2e8f0;
+      gap: 4px;
+    }
+
+    .sim-toggle-btn {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: none;
+      background: transparent;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--rh-ink-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .sim-toggle-btn.active {
+      background: #ffffff;
+      color: var(--rh-ink);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      font-weight: 800;
+    }
+
+    .sim-toggle-btn.admin.active {
+      color: #7c3aed;
+    }
+
+    .sim-toggle-btn.user.active {
+      color: #0284c7;
+    }
+
+    /* 2. STATS BAR (SOLO ADMIN) */
+    .inc-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .inc-stat-card {
+      background: var(--rh-card-bg);
+      border: 1.5px solid var(--rh-card-border);
+      border-radius: 20px;
+      box-shadow: var(--rh-card-shadow);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .inc-stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    .inc-stat-icon-wrap {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .inc-stat-icon-wrap.sky { background: rgba(0, 162, 237, 0.12); color: #0284c7; }
+    .inc-stat-icon-wrap.gold { background: rgba(245, 158, 11, 0.14); color: #d97706; }
+    .inc-stat-icon-wrap.violet { background: rgba(139, 92, 246, 0.14); color: #7c3aed; }
+    .inc-stat-icon-wrap.emerald { background: rgba(16, 185, 129, 0.14); color: #059669; }
+
+    .inc-stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--rh-ink);
+      line-height: 1.1;
+    }
+
+    .inc-stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--rh-ink-muted);
+      margin-top: 2px;
+    }
+
+    /* 3. BARRA DE CONTROL Y PESTAÑAS */
+    .inc-controls-card {
+      background: var(--rh-card-bg);
+      border: 1.5px solid var(--rh-card-border);
+      border-radius: 22px;
+      box-shadow: var(--rh-card-shadow);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .inc-controls-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .inc-nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .inc-tab-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 9999px;
+      border: 1.5px solid transparent;
+      background: #f8fafc;
+      color: var(--rh-ink-mid);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .inc-tab-pill:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+
+    .inc-tab-pill.active {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: rgba(245, 158, 11, 0.45);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
+    }
+
+    .inc-tab-counter {
+      background: rgba(245, 158, 11, 0.15);
+      color: #d97706;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .btn-create-ticket {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 22px;
+      border-radius: 9999px;
+      border: none;
+      background: linear-gradient(135deg, #00d2be 0%, #00a2ed 100%);
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 162, 237, 0.35);
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .btn-create-ticket:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 18px rgba(0, 162, 237, 0.45);
+    }
+
+    /* Filtros y búsqueda */
+    .inc-filters-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+    }
+
+    .search-input-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 9px 14px 9px 40px;
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13.5px;
+      color: var(--rh-ink);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      background: #ffffff;
+      border-color: #00a2ed;
+      box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.12);
+    }
+
+    .filter-select {
+      padding: 9px 14px;
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--rh-ink-mid);
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-select:focus {
+      background: #ffffff;
+      border-color: #00a2ed;
+    }
+
+    .btn-reset-filters {
+      padding: 9px 14px;
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      background: #ffffff;
+      color: #64748b;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset-filters:hover {
+      background: #f1f5f9;
+      color: var(--rh-ink);
+    }
+
+    /* 4. LISTA DE TICKETS / CARDS */
+    .inc-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 18px;
+    }
+
+    .inc-card {
+      background: var(--rh-card-bg);
+      border: 1.5px solid var(--rh-card-border);
+      border-radius: 22px;
+      box-shadow: var(--rh-card-shadow);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    .inc-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+      border-color: #cbd5e1;
+    }
+
+    .inc-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .inc-card-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 9px;
+      border-radius: 9999px;
+    }
+
+    /* Estados de Incidencia */
+    .badge-chip.st-open {
+      background: #fffbeb;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #b45309;
+    }
+    .badge-chip.st-in_progress {
+      background: #f5f3ff;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #7c3aed;
+    }
+    .badge-chip.st-resolved {
+      background: #ecfdf5;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #047857;
+    }
+    .badge-chip.st-closed {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #64748b;
+    }
+
+    /* Prioridades */
+    .badge-chip.prio-urgente {
+      background: #fff1f2;
+      border: 1px solid rgba(230, 0, 18, 0.4);
+      color: #e60012;
+    }
+    .badge-chip.prio-alta {
+      background: #fff7ed;
+      border: 1px solid rgba(255, 115, 0, 0.4);
+      color: #c2410c;
+    }
+    .badge-chip.prio-media {
+      background: #f0f9ff;
+      border: 1px solid rgba(0, 162, 237, 0.35);
+      color: #0284c7;
+    }
+    .badge-chip.prio-baja {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+    }
+
+    .inc-ticket-id {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #94a3b8;
+    }
+
+    .inc-card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--rh-ink);
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+
+    .inc-card-desc {
+      font-size: 13px;
+      color: var(--rh-ink-muted);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .inc-card-category-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .category-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+
+    .console-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #be123c;
+      background: #ffe4e6;
+      padding: 3px 8px;
+      border-radius: 8px;
+      text-transform: uppercase;
+    }
+
+    /* Admin reply indicator en la tarjeta */
+    .inc-admin-reply-box {
+      background: #faf5ff;
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 12px;
+      color: #5b21b6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .inc-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .inc-author-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .inc-author-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e2e8f0;
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .inc-author-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--rh-ink-mid);
+    }
+
+    .inc-author-time {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .btn-view-ticket {
+      padding: 7px 14px;
+      border-radius: 9999px;
+      border: 1.5px solid #e2e8f0;
+      background: #ffffff;
+      color: var(--rh-ink);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-view-ticket:hover {
+      background: #f8fafc;
+      border-color: #00a2ed;
+      color: #00a2ed;
+      transform: translateY(-1px);
+    }
+
+    /* Estado vacío */
+    .inc-empty-card {
+      grid-column: 1 / -1;
+      background: var(--rh-card-bg);
+      border: 1.5px solid var(--rh-card-border);
+      border-radius: 24px;
+      padding: 60px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .inc-empty-icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 24px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .inc-empty-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--rh-ink);
+    }
+
+    .inc-empty-card p {
+      font-size: 13.5px;
+      color: var(--rh-ink-muted);
+      max-width: 440px;
+      line-height: 1.5;
+    }
+
+    /* 5. MODALES MODERNOS CON <dialog closedby="any"> */
+    dialog.rh-dialog {
+      margin: auto;
+      border: none;
+      border-radius: 26px;
+      background: #ffffff;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+      width: 90%;
+      max-width: 640px;
+      padding: 0;
+      overflow: hidden;
+      animation: dialogPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    dialog.rh-dialog[open]::backdrop {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(5px);
+    }
+
+    @keyframes dialogPop {
+      0% { opacity: 0; transform: scale(0.94) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .dialog-header {
+      padding: 22px 26px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .dialog-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dialog-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--rh-ink);
+    }
+
+    .dialog-close-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid #e2e8f0;
+      background: #ffffff;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .dialog-close-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .dialog-body {
+      padding: 24px 26px;
+      max-height: 75vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--rh-ink-mid);
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13.5px;
+      color: var(--rh-ink);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      background: #ffffff;
+      border-color: #00a2ed;
+      box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.12);
+    }
+
+    .form-textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: right;
+    }
+
+    /* Selector de categorías táctiles en el modal */
+    .cat-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .cat-btn-option {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--rh-ink-mid);
+      transition: all 0.2s ease;
+    }
+
+    .cat-btn-option:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+
+    .cat-btn-option.selected {
+      background: #eff6ff;
+      border-color: #00a2ed;
+      color: #0284c7;
+      box-shadow: 0 2px 8px rgba(0, 162, 237, 0.12);
+    }
+
+    .dialog-footer {
+      padding: 16px 26px 22px 26px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      background: #ffffff;
+    }
+
+    .btn-secondary {
+      padding: 10px 18px;
+      border-radius: 9999px;
+      border: 1.5px solid #e2e8f0;
+      background: #ffffff;
+      color: #64748b;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #f1f5f9;
+      color: var(--rh-ink);
+    }
+
+    .btn-primary {
+      padding: 10px 22px;
+      border-radius: 9999px;
+      border: none;
+      background: linear-gradient(135deg, #00d2be 0%, #00a2ed 100%);
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0, 162, 237, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 162, 237, 0.45);
+    }
+
+    /* Modal de Detalle de Incidencia y Conversación */
+    .detail-dialog {
+      max-width: 760px !important;
+    }
+
+    .ticket-original-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ticket-meta-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ticket-replies-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .reply-bubble {
+      padding: 14px 18px;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+    }
+
+    .reply-bubble.admin-reply {
+      background: #faf5ff;
+      border-color: rgba(139, 92, 246, 0.35);
+      box-shadow: 0 2px 10px rgba(139, 92, 246, 0.08);
+    }
+
+    .reply-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .reply-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .reply-text {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--rh-ink-mid);
+    }
+
+    /* Panel de Gestión del Administrador */
+    .admin-controls-well {
+      background: #f5f3ff;
+      border: 1.5px solid rgba(139, 92, 246, 0.3);
+      border-radius: 18px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .admin-controls-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: #6d28d9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-admin-action {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--rh-ink-mid);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-admin-action:hover {
+      border-color: #8b5cf6;
+      color: #7c3aed;
+      transform: translateY(-1px);
+    }
+
+    .btn-admin-action.resolve {
+      background: #ecfdf5;
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #047857;
+    }
+    .btn-admin-action.resolve:hover {
+      background: #d1fae5;
+    }
+
+    .btn-admin-action.danger {
+      background: #fff1f2;
+      border-color: rgba(230, 0, 18, 0.35);
+      color: #e60012;
+      margin-left: auto;
+    }
+    .btn-admin-action.danger:hover {
+      background: #ffe4e6;
+    }
+
+    @media (max-width: 860px) {
+      .inc-hero-card { flex-direction: column; align-items: flex-start; }
+      .inc-hero-role-toggle { align-items: flex-start; }
+      .inc-stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .inc-cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR COMÚN (Logo RetroHub • Navegación con Incidencias • Chat y Grupos • Perfil) -->
+  <div id="retrohubGlobalToolbar"></div>
+
+  <!-- ESCENARIO PRINCIPAL -->
+  <main class="rh-incidencias-stage">
+
+    <!-- 1. HERO CARD CON IDENTIDAD Y SIMULADOR DE ROLES -->
+    <section class="inc-hero-card">
+      <div class="inc-hero-left">
+        <div class="inc-hero-icon-orb">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path>
+            <path d="M13 5v2"></path>
+            <path d="M13 11v2"></path>
+            <path d="M13 17v2"></path>
+          </svg>
+        </div>
+        <div class="inc-hero-texts">
+          <h1 id="heroTitle">
+            Centro de Incidencias & Soporte
+            <span class="role-badge admin" id="heroRoleBadge">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+              <span>Administradora Oficial</span>
+            </span>
+          </h1>
+          <p id="heroSubtitle">
+            Bienvenida al panel oficial de incidencias. Como administradora puedes revisar reportes de emuladores, atender peticiones de ROMs y responder personalmente a cualquier jugador.
+          </p>
+        </div>
+      </div>
+
+      <!-- Selector de simulación para cambiar rol de prueba -->
+      <div class="inc-hero-role-toggle">
+        <span style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Simulador de Rol:</span>
+        <div class="sim-toggle-capsule" role="radiogroup" aria-label="Cambiar perspectiva de usuario">
+          <button type="button" class="sim-toggle-btn admin active" id="btnRoleAdmin" onclick="setSimulatedRole('admin')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            <span>Admin (Sariwiiwi)</span>
+          </button>
+          <button type="button" class="sim-toggle-btn user" id="btnRoleUser" onclick="setSimulatedRole('user')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Usuario (himawari)</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. KPI / STATS BAR (SOLO EN MODO ADMIN) -->
+    <section class="inc-stats-grid" id="adminStatsGrid">
+      <div class="inc-stat-card">
+        <div class="inc-stat-icon-wrap sky">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path></svg>
+        </div>
+        <div>
+          <div class="inc-stat-num" id="statTotal">0</div>
+          <div class="inc-stat-label">Total Incidencias</div>
+        </div>
+      </div>
+
+      <div class="inc-stat-card">
+        <div class="inc-stat-icon-wrap gold">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div>
+          <div class="inc-stat-num" id="statOpen">0</div>
+          <div class="inc-stat-label">Abiertas / Pendientes</div>
+        </div>
+      </div>
+
+      <div class="inc-stat-card">
+        <div class="inc-stat-icon-wrap violet">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        </div>
+        <div>
+          <div class="inc-stat-num" id="statInProgress">0</div>
+          <div class="inc-stat-label">En Revisión</div>
+        </div>
+      </div>
+
+      <div class="inc-stat-card">
+        <div class="inc-stat-icon-wrap emerald">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <div>
+          <div class="inc-stat-num" id="statResolved">0</div>
+          <div class="inc-stat-label">Resueltas</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. BARRA DE CONTROL, PESTAÑAS Y FILTROS -->
+    <section class="inc-controls-card">
+      <div class="inc-controls-top">
+        <div class="inc-nav-tabs">
+          <button type="button" class="inc-tab-pill active" id="tabAllTickets" onclick="switchMainTab('all')">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <span id="tabAllText">Todas las Incidencias</span>
+            <span class="inc-tab-counter" id="badgeAllCount">0</span>
+          </button>
+          <button type="button" class="inc-tab-pill" id="tabMyTickets" onclick="switchMainTab('mine')">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Mis Incidencias</span>
+            <span class="inc-tab-counter" id="badgeMineCount">0</span>
+          </button>
+        </div>
+
+        <button type="button" class="btn-create-ticket" onclick="abrirModalNuevaIncidencia()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Nueva Incidencia / Reporte</span>
+        </button>
+      </div>
+
+      <!-- Barra de Filtros -->
+      <div class="inc-filters-bar">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="filterSearch" class="search-input" placeholder="Buscar por título, problema o autor..." oninput="handleSearchInput()" autocomplete="off" />
+        </div>
+
+        <select id="filterStatus" class="filter-select" onchange="aplicarFiltros()">
+          <option value="all">Estado: Todos</option>
+          <option value="open">Abierta / Pendiente</option>
+          <option value="in_progress">En Revisión</option>
+          <option value="resolved">Resuelta</option>
+          <option value="closed">Cerrada</option>
+        </select>
+
+        <select id="filterCategory" class="filter-select" onchange="aplicarFiltros()">
+          <option value="all">Categoría: Todas</option>
+          <option value="emulador">Fallo en Emulador</option>
+          <option value="juego">Juego / Freeze / Glitch</option>
+          <option value="peticion">Petición de ROM</option>
+          <option value="web">Web / Perfil / Cuenta</option>
+          <option value="sugerencia">Sugerencia / Idea</option>
+        </select>
+
+        <select id="filterPriority" class="filter-select" onchange="aplicarFiltros()">
+          <option value="all">Prioridad: Todas</option>
+          <option value="urgente">Urgente</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+
+        <button type="button" class="btn-reset-filters" onclick="resetearFiltros()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+          <span>Limpiar</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. GRID DE TARJETAS DE INCIDENCIAS -->
+    <section class="inc-cards-grid" id="ticketsGrid">
+      <!-- Se puebla dinámicamente con JavaScript -->
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL 1: NUEVA INCIDENCIA (<dialog closedby="any">)
+       ======================================================== -->
+  <dialog id="modalNuevaIncidencia" class="rh-dialog" closedby="any" aria-labelledby="dialogNuevaTitle">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <div class="inc-stat-icon-wrap gold" style="width: 36px; height: 36px; border-radius: 10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path></svg>
+        </div>
+        <h2 class="dialog-title" id="dialogNuevaTitle">Crear Nueva Incidencia</h2>
+      </div>
+      <button type="button" class="dialog-close-btn" onclick="cerrarModalNuevaIncidencia()" aria-label="Cerrar ventana">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <form id="formNuevaIncidencia" onsubmit="handleCrearIncidencia(event)">
+      <div class="dialog-body">
+        
+        <!-- Categoría táctil -->
+        <div class="form-group">
+          <label class="form-label">Selecciona el Tipo de Incidencia</label>
+          <div class="cat-selector-grid">
+            <button type="button" class="cat-btn-option selected" data-cat="emulador" onclick="selectModalCategory('emulador')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="6"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15.5" cy="13.5" r="1.2" fill="currentColor"></circle></svg>
+              <span>Fallo Emulador</span>
+            </button>
+            <button type="button" class="cat-btn-option" data-cat="juego" onclick="selectModalCategory('juego')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+              <span>Juego / Audio</span>
+            </button>
+            <button type="button" class="cat-btn-option" data-cat="peticion" onclick="selectModalCategory('peticion')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>Petición ROM</span>
+            </button>
+            <button type="button" class="cat-btn-option" data-cat="web" onclick="selectModalCategory('web')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+              <span>Web / Perfil</span>
+            </button>
+            <button type="button" class="cat-btn-option" data-cat="sugerencia" onclick="selectModalCategory('sugerencia')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"></path></svg>
+              <span>Sugerencia</span>
+            </button>
+            <button type="button" class="cat-btn-option" data-cat="otro" onclick="selectModalCategory('otro')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+              <span>Otra Consulta</span>
+            </button>
+          </div>
+          <input type="hidden" id="newTicketCategory" value="emulador" required />
+        </div>
+
+        <!-- Título -->
+        <div class="form-group">
+          <label class="form-label" for="newTicketTitle">Título Descriptivo *</label>
+          <input type="text" id="newTicketTitle" class="form-input" placeholder="Ej: Audio entrecortado en Super Mario 64 o petición de ROM" required maxlength="120" autocomplete="off" />
+        </div>
+
+        <!-- Fila de Consola y Prioridad -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label" for="newTicketConsole">Consola / Sistema Afectado</label>
+            <select id="newTicketConsole" class="form-select">
+              <option value="">Ninguna / No aplica</option>
+              <option value="n64">Nintendo 64</option>
+              <option value="gba">Game Boy Advance</option>
+              <option value="snes">Super Nintendo (SNES)</option>
+              <option value="nes">Nintendo NES</option>
+              <option value="ps1">PlayStation 1 (PSX)</option>
+              <option value="genesis">SEGA Genesis / Mega Drive</option>
+              <option value="web">Plataforma Web / Perfil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newTicketPriority">Nivel de Prioridad Estimado</label>
+            <select id="newTicketPriority" class="form-select">
+              <option value="baja">Baja (Consulta / Sugerencia)</option>
+              <option value="media" selected>Media (Fallo menor o normal)</option>
+              <option value="alta">Alta (Juego o función rota)</option>
+              <option value="urgente">Urgente (Bloqueo total / Crash)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Descripción detallada -->
+        <div class="form-group">
+          <label class="form-label" for="newTicketDesc">Detalles del Problema o Petición *</label>
+          <textarea id="newTicketDesc" class="form-textarea" placeholder="Explica detalladamente qué sucede, cómo reproducirlo o qué versión/ROM estás utilizando..." required minlength="10" maxlength="1500" oninput="updateCharCount(this)"></textarea>
+          <div class="char-count" id="newTicketCharCount">0 / 1500 caracteres</div>
+        </div>
+
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn-secondary" onclick="cerrarModalNuevaIncidencia()">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btnSubmitNewTicket">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <span>Registrar Incidencia</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ========================================================
+       MODAL 2: DETALLE, HILO Y GESTIÓN (<dialog closedby="any">)
+       ======================================================== -->
+  <dialog id="modalDetalleIncidencia" class="rh-dialog detail-dialog" closedby="any" aria-labelledby="dialogDetalleTitle">
+    <div class="dialog-header">
+      <div class="dialog-title-group">
+        <div class="inc-stat-icon-wrap violet" style="width: 36px; height: 36px; border-radius: 10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div>
+          <span class="inc-ticket-id" id="detailTicketId">#INC-000</span>
+          <h2 class="dialog-title" id="dialogDetalleTitle" style="font-size: 16px;">Cargando incidencia...</h2>
+        </div>
+      </div>
+      <button type="button" class="dialog-close-btn" onclick="cerrarModalDetalle()" aria-label="Cerrar ventana">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <!-- Tarjeta del Reporte Original -->
+      <div class="ticket-original-card">
+        <div class="ticket-meta-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img id="detailAuthorAvatar" src="" class="inc-author-avatar" alt="Avatar" />
+            <div>
+              <span class="inc-author-name" id="detailAuthorName">Usuario</span>
+              <span class="inc-author-time" id="detailCreatedTime">hace instantes</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="badge-chip" id="detailStatusBadge">Abierta</span>
+            <span class="badge-chip" id="detailPriorityBadge">Media</span>
+            <span class="category-tag" id="detailCategoryTag">Emulador</span>
+            <span class="console-tag" id="detailConsoleTag" style="display: none;">N64</span>
+          </div>
+        </div>
+        <p class="reply-text" id="detailFullDescription" style="white-space: pre-line;"></p>
+      </div>
+
+      <!-- PANEL DE CONTROL DE ADMINISTRADORA (Visible para Admin) -->
+      <div class="admin-controls-well" id="adminControlsBlock" style="display: none;">
+        <div class="admin-controls-title">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+          <span>Panel de Moderación & Acciones de Administradora (Sariwiiwi)</span>
+        </div>
+        <div class="admin-actions-row">
+          <span style="font-size: 11.5px; font-weight: 700; color: #6d28d9;">Cambiar Estado:</span>
+          <button type="button" class="btn-admin-action" onclick="adminCambiarEstado('open')">Abierta</button>
+          <button type="button" class="btn-admin-action" onclick="adminCambiarEstado('in_progress')">En Revisión</button>
+          <button type="button" class="btn-admin-action resolve" onclick="adminCambiarEstado('resolved')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Marcar Resuelta</span>
+          </button>
+          <button type="button" class="btn-admin-action" onclick="adminCambiarEstado('closed')">Cerrar</button>
+          
+          <button type="button" class="btn-admin-action danger" onclick="adminEliminarTicket()" title="Eliminar definitivamente esta incidencia">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hilo de Respuestas y Conversación -->
+      <div>
+        <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800; color: var(--rh-ink); margin-bottom: 8px;">
+          Hilo de Conversación (<span id="detailRepliesCount">0</span>)
+        </h3>
+        <div class="ticket-replies-list" id="detailRepliesContainer">
+          <!-- Burbujas de respuesta generadas por JS -->
+        </div>
+      </div>
+
+      <!-- Caja para redactar nueva respuesta -->
+      <form id="formReplyTicket" onsubmit="handleEnviarRespuesta(event)" style="display: flex; flex-direction: column; gap: 8px;">
+        <label class="form-label" for="replyInput" id="replyBoxLabel">Escribir Respuesta</label>
+        <textarea id="replyInput" class="form-textarea" style="min-height: 80px;" placeholder="Escribe aquí tu respuesta para dar seguimiento a este reporte..." required></textarea>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div id="adminQuickResolveCheck" style="display: none; align-items: center; gap: 6px;">
+            <input type="checkbox" id="checkAutoResolve" style="cursor: pointer;" />
+            <label for="checkAutoResolve" style="font-size: 12.5px; font-weight: 700; color: #047857; cursor: pointer;">
+              Marcar como Resuelta con esta respuesta
+            </label>
+          </div>
+          <button type="submit" class="btn-primary" id="btnSubmitReply" style="margin-left: auto;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <span id="btnSubmitReplyText">Enviar Respuesta</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- SCRIPT DE BARRA SUPERIOR COMÚN -->
+  <script src="retrohub_toolbar.js"></script>
+
+  <!-- LÓGICA DE NEGOCIO Y CONTROLADOR DE INCIDENCIAS -->
+  <script>
+    /* ========================================================================
+       1. ESTADO GLOBAL DE LA APLICACIÓN DE INCIDENCIAS
+       ======================================================================== */
+    const STATE = {
+      // Rol activo actual: 'admin' | 'user'
+      role: 'admin',
+      activeUsername: 'Sariwiiwi',
+      activeDisplayName: 'Sariwiiwi',
+      activeUserId: 2,
+      activeTab: 'all', // 'all' | 'mine'
+      tickets: [],
+      filteredTickets: [],
+      stats: { total: 0, open: 0, in_progress: 0, resolved: 0, closed: 0, urgent: 0 },
+      activeTicketDetail: null
+    };
+
+    const CONSOLE_NAMES = {
+      n64: 'Nintendo 64',
+      gba: 'Game Boy Advance',
+      snes: 'Super Nintendo',
+      nes: 'Nintendo NES',
+      ps1: 'PlayStation 1',
+      genesis: 'SEGA Genesis',
+      web: 'Plataforma Web'
+    };
+
+    const CATEGORY_NAMES = {
+      emulador: 'Fallo en Emulador',
+      juego: 'Juego / Audio / Freeze',
+      peticion: 'Petición de ROM',
+      web: 'Fallo Web / Perfil',
+      sugerencia: 'Sugerencia de Mejora',
+      otro: 'Consulta General'
+    };
+
+    /* ========================================================================
+       2. INICIALIZACIÓN DE IDENTIDAD Y ROLES
+       ======================================================================== */
+    function initUserRole() {
+      // Comprobar si hay usuario guardado en localStorage
+      const storedUser = localStorage.getItem('retrohub_user_name');
+      const storedRole = localStorage.getItem('retrohub_user_role');
+
+      if (!storedUser || storedUser.toLowerCase() === 'sariwiiwi') {
+        // Por defecto, YO en mi perfil soy Sariwiiwi y soy Administradora
+        STATE.activeUsername = 'Sariwiiwi';
+        STATE.activeDisplayName = localStorage.getItem('retrohub_display_name') || 'Sariwiiwi';
+        STATE.role = 'admin';
+        STATE.activeUserId = 2;
+      } else {
+        STATE.activeUsername = storedUser;
+        STATE.activeDisplayName = localStorage.getItem('retrohub_display_name') || storedUser;
+        STATE.role = storedRole || 'user';
+        STATE.activeUserId = 8;
+      }
+
+      // Guardar en localStorage para consistencia de todo RetroHub
+      localStorage.setItem('retrohub_user_name', STATE.activeUsername);
+      localStorage.setItem('retrohub_user_role', STATE.role);
+
+      updateRoleUI();
+    }
+
+    function setSimulatedRole(role) {
+      if (role === 'admin') {
+        STATE.role = 'admin';
+        STATE.activeUsername = 'Sariwiiwi';
+        STATE.activeDisplayName = 'Sariwiiwi';
+        STATE.activeUserId = 2;
+      } else {
+        STATE.role = 'user';
+        STATE.activeUsername = 'himawari';
+        STATE.activeDisplayName = 'himawari';
+        STATE.activeUserId = 8;
+      }
+
+      localStorage.setItem('retrohub_user_name', STATE.activeUsername);
+      localStorage.setItem('retrohub_display_name', STATE.activeDisplayName);
+      localStorage.setItem('retrohub_user_role', STATE.role);
+
+      if (window.RetroHubToolbar) {
+        window.RetroHubToolbar.updateUser({
+          username: STATE.activeUsername,
+          displayName: STATE.activeDisplayName,
+          avatarUrl: `https://api.dicebear.com/7.x/${STATE.role === 'admin' ? 'pixel-art' : 'bottts'}/svg?seed=${STATE.activeUsername}`
+        });
+      }
+
+      updateRoleUI();
+      cargarIncidencias();
+    }
+
+    function updateRoleUI() {
+      const btnAdmin = document.getElementById('btnRoleAdmin');
+      const btnUser = document.getElementById('btnRoleUser');
+      const heroRoleBadge = document.getElementById('heroRoleBadge');
+      const heroSubtitle = document.getElementById('heroSubtitle');
+      const adminStatsGrid = document.getElementById('adminStatsGrid');
+      const tabAllText = document.getElementById('tabAllText');
+
+      if (STATE.role === 'admin') {
+        btnAdmin.classList.add('active');
+        btnUser.classList.remove('active');
+        heroRoleBadge.className = 'role-badge admin';
+        heroRoleBadge.innerHTML = `
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+          <span>Administradora Oficial</span>
+        `;
+        heroSubtitle.textContent = 'Bienvenida al panel oficial de incidencias. Como administradora puedes revisar reportes de emuladores, atender peticiones de ROMs y responder personalmente a cualquier jugador.';
+        adminStatsGrid.style.display = 'grid';
+        tabAllText.textContent = 'Todas las Incidencias (Admin)';
+      } else {
+        btnUser.classList.add('active');
+        btnAdmin.classList.remove('active');
+        heroRoleBadge.className = 'role-badge user';
+        heroRoleBadge.innerHTML = `
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Jugador / Usuario Normal</span>
+        `;
+        heroSubtitle.textContent = '¿Tienes algún fallo en un emulador, una partida congelada o quieres pedir una nueva ROM? Envíanos tu reporte y el equipo de administración te responderá personalmente.';
+        adminStatsGrid.style.display = 'none';
+        tabAllText.textContent = 'Incidencias Públicas';
+      }
+    }
+
+    /* ========================================================================
+       3. CARGA DE INCIDENCIAS Y ESTADÍSTICAS (API REST)
+       ======================================================================== */
+    async function cargarIncidencias() {
+      try {
+        const res = await fetch('/api/tickets');
+        const data = await res.json();
+        if (data && data.success) {
+          STATE.tickets = data.tickets || [];
+        } else {
+          STATE.tickets = [];
+        }
+      } catch (err) {
+        console.warn('Cargando incidencias offline o fallback:', err);
+      }
+
+      // Cargar estadísticas si es admin
+      if (STATE.role === 'admin') {
+        try {
+          const sRes = await fetch('/api/tickets/stats');
+          const sData = await sRes.json();
+          if (sData && sData.success) {
+            STATE.stats = sData.stats;
+            document.getElementById('statTotal').textContent = STATE.stats.total;
+            document.getElementById('statOpen').textContent = STATE.stats.open;
+            document.getElementById('statInProgress').textContent = STATE.stats.in_progress;
+            document.getElementById('statResolved').textContent = STATE.stats.resolved;
+          }
+        } catch(e) {}
+      }
+
+      // Actualizar contadores de pestañas
+      const allCount = STATE.tickets.length;
+      const myCount = STATE.tickets.filter(t => t.contact_name === STATE.activeUsername || t.user_id === STATE.activeUserId).length;
+      document.getElementById('badgeAllCount').textContent = allCount;
+      document.getElementById('badgeMineCount').textContent = myCount;
+
+      aplicarFiltros();
+    }
+
+    /* ========================================================================
+       4. FILTRADO Y RENDERIZADO DE TARJETAS
+       ======================================================================== */
+    function switchMainTab(tab) {
+      STATE.activeTab = tab;
+      const tabAll = document.getElementById('tabAllTickets');
+      const tabMine = document.getElementById('tabMyTickets');
+      if (tab === 'all') {
+        tabAll.classList.add('active');
+        tabMine.classList.remove('active');
+      } else {
+        tabAll.classList.remove('active');
+        tabMine.classList.add('active');
+      }
+      aplicarFiltros();
+    }
+
+    let searchTimer = null;
+    function handleSearchInput() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        aplicarFiltros();
+      }, 200);
+    }
+
+    function resetearFiltros() {
+      document.getElementById('filterSearch').value = '';
+      document.getElementById('filterStatus').value = 'all';
+      document.getElementById('filterCategory').value = 'all';
+      document.getElementById('filterPriority').value = 'all';
+      aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+      const q = (document.getElementById('filterSearch').value || '').trim().toLowerCase();
+      const st = document.getElementById('filterStatus').value;
+      const cat = document.getElementById('filterCategory').value;
+      const prio = document.getElementById('filterPriority').value;
+
+      let list = STATE.tickets;
+
+      if (STATE.activeTab === 'mine') {
+        list = list.filter(t => t.contact_name === STATE.activeUsername || t.user_id === STATE.activeUserId);
+      }
+
+      if (st !== 'all') {
+        list = list.filter(t => t.status === st);
+      }
+      if (cat !== 'all') {
+        list = list.filter(t => t.category === cat);
+      }
+      if (prio !== 'all') {
+        list = list.filter(t => (t.priority || 'media') === prio);
+      }
+      if (q) {
+        list = list.filter(t =>
+          (t.title && t.title.toLowerCase().includes(q)) ||
+          (t.description && t.description.toLowerCase().includes(q)) ||
+          (t.contact_name && t.contact_name.toLowerCase().includes(q))
+        );
+      }
+
+      STATE.filteredTickets = list;
+      renderTicketsGrid();
+    }
+
+    function formatRelativeDate(isoStr) {
+      if (!isoStr) return 'reciente';
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return 'reciente';
+      const diffMs = Date.now() - d.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return 'hace un instante';
+      if (diffMins < 60) return `hace ${diffMins} min`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `hace ${diffHours} h`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `hace ${diffDays} d`;
+    }
+
+    function renderTicketsGrid() {
+      const container = document.getElementById('ticketsGrid');
+      if (!container) return;
+
+      if (STATE.filteredTickets.length === 0) {
+        container.innerHTML = `
+          <div class="inc-empty-card">
+            <div class="inc-empty-icon-wrap">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path></svg>
+            </div>
+            <h3>No hay incidencias que coincidan</h3>
+            <p>No se han encontrado reportes con los filtros seleccionados o aún no has creado ninguna solicitud de soporte.</p>
+            <button type="button" class="btn-create-ticket" onclick="abrirModalNuevaIncidencia()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Crear Nueva Incidencia</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const statusLabels = {
+        open: 'Abierta',
+        in_progress: 'En Revisión',
+        resolved: 'Resuelta',
+        closed: 'Cerrada'
+      };
+
+      const priorityLabels = {
+        urgente: 'Urgente',
+        alta: 'Alta',
+        media: 'Media',
+        baja: 'Baja'
+      };
+
+      container.innerHTML = STATE.filteredTickets.map(t => {
+        const idStr = String(t.id).padStart(3, '0');
+        const st = t.status || 'open';
+        const prio = t.priority || 'media';
+        const stText = statusLabels[st] || st;
+        const prioText = priorityLabels[prio] || prio;
+        const catText = CATEGORY_NAMES[t.category] || t.category;
+        const timeAgo = formatRelativeDate(t.created_at);
+        const avatar = t.author_avatar || `https://api.dicebear.com/7.x/${t.contact_name === 'Sariwiiwi' ? 'pixel-art' : 'bottts'}/svg?seed=${encodeURIComponent(t.contact_name || 'user')}`;
+        const repliesCount = Number(t.replies_count) || 0;
+        const hasAdminResp = Boolean(t.admin_response);
+
+        return `
+          <article class="inc-card" data-ticket-id="${t.id}">
+            <div>
+              <div class="inc-card-top">
+                <div class="inc-card-chips">
+                  <span class="badge-chip st-${st}">${stText}</span>
+                  <span class="badge-chip prio-${prio}">${prioText}</span>
+                </div>
+                <span class="inc-ticket-id">#INC-${idStr}</span>
+              </div>
+
+              <div class="inc-card-category-row">
+                <span class="category-tag">${escapeHtml(catText)}</span>
+                ${t.system_console ? `<span class="console-tag">${escapeHtml(t.system_console)}</span>` : ''}
+              </div>
+
+              <h3 class="inc-card-title">${escapeHtml(t.title)}</h3>
+              <p class="inc-card-desc">${escapeHtml(t.description || 'Sin descripción detallada.')}</p>
+
+              ${hasAdminResp ? `
+                <div class="inc-admin-reply-box" style="margin-top: 10px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                  <span><strong>${escapeHtml(t.admin_responder_name || 'Sariwiiwi')}:</strong> ${escapeHtml(t.admin_response.substring(0, 75))}${t.admin_response.length > 75 ? '...' : ''}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="inc-card-footer">
+              <div class="inc-author-wrap">
+                <img src="${avatar}" class="inc-author-avatar" alt="${escapeHtml(t.contact_name)}" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'" />
+                <div>
+                  <div class="inc-author-name">@${escapeHtml(t.contact_name)}</div>
+                  <div class="inc-author-time">${timeAgo}</div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 11px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 4px;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                  ${repliesCount}
+                </span>
+                <button type="button" class="btn-view-ticket" onclick="abrirModalDetalle(${t.id})">
+                  ${STATE.role === 'admin' ? 'Gestionar' : 'Ver Detalle'}
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    /* ========================================================================
+       5. MODAL 1: CREAR NUEVA INCIDENCIA
+       ======================================================================== */
+    function abrirModalNuevaIncidencia() {
+      const dialog = document.getElementById('modalNuevaIncidencia');
+      document.getElementById('formNuevaIncidencia').reset();
+      selectModalCategory('emulador');
+      document.getElementById('newTicketCharCount').textContent = '0 / 1500 caracteres';
+      dialog.showModal();
+    }
+
+    function cerrarModalNuevaIncidencia() {
+      const dialog = document.getElementById('modalNuevaIncidencia');
+      dialog.close();
+    }
+
+    function selectModalCategory(cat) {
+      document.getElementById('newTicketCategory').value = cat;
+      const btns = document.querySelectorAll('.cat-btn-option');
+      btns.forEach(b => {
+        if (b.getAttribute('data-cat') === cat) b.classList.add('selected');
+        else b.classList.remove('selected');
+      });
+    }
+
+    function updateCharCount(textarea) {
+      const count = textarea.value.length;
+      document.getElementById('newTicketCharCount').textContent = `${count} / 1500 caracteres`;
+    }
+
+    async function handleCrearIncidencia(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitNewTicket');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      const category = document.getElementById('newTicketCategory').value;
+      const title = document.getElementById('newTicketTitle').value.trim();
+      const system_console = document.getElementById('newTicketConsole').value;
+      const priority = document.getElementById('newTicketPriority').value;
+      const description = document.getElementById('newTicketDesc').value.trim();
+
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: STATE.activeUserId,
+            contact_name: STATE.activeUsername,
+            category,
+            title,
+            description,
+            priority,
+            system_console
+          })
+        });
+
+        const data = await res.json();
+        if (data && data.success) {
+          cerrarModalNuevaIncidencia();
+          await cargarIncidencias();
+        } else {
+          alert(data.message || 'Error al registrar la incidencia.');
+        }
+      } catch (err) {
+        alert('Error al conectar con el servidor.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <span>Registrar Incidencia</span>
+        `;
+      }
+    }
+
+    /* ========================================================================
+       6. MODAL 2: DETALLE, HILO Y GESTIÓN DE INCIDENCIA
+       ======================================================================== */
+    async function abrirModalDetalle(ticketId) {
+      const dialog = document.getElementById('modalDetalleIncidencia');
+      dialog.showModal();
+
+      document.getElementById('dialogDetalleTitle').textContent = 'Cargando información...';
+      document.getElementById('detailRepliesContainer').innerHTML = '<div style="font-size: 13px; color: #94a3b8; padding: 10px 0;">Cargando mensajes del hilo...</div>';
+
+      try {
+        const res = await fetch(`/api/tickets/${ticketId}`);
+        const data = await res.json();
+        if (data && data.success && data.ticket) {
+          STATE.activeTicketDetail = data.ticket;
+          renderDetalleTicket(data.ticket, data.replies || []);
+        }
+      } catch (err) {
+        console.error('Error al cargar detalle:', err);
+      }
+    }
+
+    function cerrarModalDetalle() {
+      const dialog = document.getElementById('modalDetalleIncidencia');
+      dialog.close();
+      STATE.activeTicketDetail = null;
+    }
+
+    function renderDetalleTicket(t, replies) {
+      document.getElementById('detailTicketId').textContent = `#INC-${String(t.id).padStart(3, '0')}`;
+      document.getElementById('dialogDetalleTitle').textContent = t.title;
+      document.getElementById('detailFullDescription').textContent = t.description || 'Sin descripción adicional.';
+      document.getElementById('detailAuthorName').textContent = `@${t.contact_name}`;
+      document.getElementById('detailCreatedTime').textContent = formatRelativeDate(t.created_at);
+
+      const avatar = t.author_avatar || `https://api.dicebear.com/7.x/${t.contact_name === 'Sariwiiwi' ? 'pixel-art' : 'bottts'}/svg?seed=${encodeURIComponent(t.contact_name)}`;
+      document.getElementById('detailAuthorAvatar').src = avatar;
+
+      const stBadge = document.getElementById('detailStatusBadge');
+      stBadge.className = `badge-chip st-${t.status || 'open'}`;
+      const statusMap = { open: 'Abierta', in_progress: 'En Revisión', resolved: 'Resuelta', closed: 'Cerrada' };
+      stBadge.textContent = statusMap[t.status || 'open'] || t.status;
+
+      const prioBadge = document.getElementById('detailPriorityBadge');
+      prioBadge.className = `badge-chip prio-${t.priority || 'media'}`;
+      const prioMap = { urgente: 'Urgente', alta: 'Alta', media: 'Media', baja: 'Baja' };
+      prioBadge.textContent = prioMap[t.priority || 'media'] || t.priority;
+
+      document.getElementById('detailCategoryTag').textContent = CATEGORY_NAMES[t.category] || t.category;
+
+      const conTag = document.getElementById('detailConsoleTag');
+      if (t.system_console) {
+        conTag.style.display = 'inline-flex';
+        conTag.textContent = t.system_console.toUpperCase();
+      } else {
+        conTag.style.display = 'none';
+      }
+
+      // Mostrar barra de control de administración si el usuario activo es admin
+      const adminBlock = document.getElementById('adminControlsBlock');
+      const adminQuickResolve = document.getElementById('adminQuickResolveCheck');
+      const replyLabel = document.getElementById('replyBoxLabel');
+      const btnReplyText = document.getElementById('btnSubmitReplyText');
+
+      if (STATE.role === 'admin') {
+        adminBlock.style.display = 'flex';
+        adminQuickResolve.style.display = 'flex';
+        replyLabel.textContent = 'Escribir Respuesta Oficial de Administradora (Sariwiiwi)';
+        btnReplyText.textContent = 'Enviar Respuesta Oficial';
+      } else {
+        adminBlock.style.display = 'none';
+        adminQuickResolve.style.display = 'none';
+        replyLabel.textContent = 'Responder o aportar más detalles';
+        btnReplyText.textContent = 'Enviar Mensaje';
+      }
+
+      // Renderizar hilo de respuestas
+      document.getElementById('detailRepliesCount').textContent = replies.length;
+      const repliesContainer = document.getElementById('detailRepliesContainer');
+      if (replies.length === 0) {
+        repliesContainer.innerHTML = `
+          <div style="font-size: 13px; color: #94a3b8; padding: 14px 0; text-align: center; background: #f8fafc; border-radius: 14px; border: 1.5px dashed #e2e8f0;">
+            Aún no hay respuestas en este ticket. Sé el primero en contestar.
+          </div>
+        `;
+      } else {
+        repliesContainer.innerHTML = replies.map(r => {
+          const isAdmin = r.user_role === 'admin' || r.user_name === 'Sariwiiwi';
+          const rAvatar = r.avatar_url || `https://api.dicebear.com/7.x/${isAdmin ? 'pixel-art' : 'bottts'}/svg?seed=${encodeURIComponent(r.user_name)}`;
+          const time = formatRelativeDate(r.created_at);
+
+          return `
+            <div class="reply-bubble ${isAdmin ? 'admin-reply' : ''}">
+              <div class="reply-header">
+                <div class="reply-author">
+                  <img src="${rAvatar}" style="width: 24px; height: 24px; border-radius: 50%;" alt="" />
+                  <span>@${escapeHtml(r.user_name)}</span>
+                  ${isAdmin ? `
+                    <span class="role-badge admin" style="font-size: 9.5px; padding: 2px 7px;">
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                      Staff Admin
+                    </span>
+                  ` : ''}
+                </div>
+                <span style="font-size: 11px; color: #94a3b8;">${time}</span>
+              </div>
+              <div class="reply-text">${escapeHtml(r.message)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    async function handleEnviarRespuesta(e) {
+      e.preventDefault();
+      if (!STATE.activeTicketDetail) return;
+      const input = document.getElementById('replyInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const btn = document.getElementById('btnSubmitReply');
+      btn.disabled = true;
+
+      const autoResolve = document.getElementById('checkAutoResolve').checked;
+      const newStatus = autoResolve ? 'resolved' : (STATE.role === 'admin' ? 'in_progress' : undefined);
+
+      try {
+        const res = await fetch(`/api/tickets/${STATE.activeTicketDetail.id}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: STATE.activeUserId,
+            user_name: STATE.activeUsername,
+            user_role: STATE.role,
+            avatar_url: `https://api.dicebear.com/7.x/${STATE.role === 'admin' ? 'pixel-art' : 'bottts'}/svg?seed=${STATE.activeUsername}`,
+            message: msg,
+            new_status: newStatus
+          })
+        });
+
+        const data = await res.json();
+        if (data && data.success) {
+          input.value = '';
+          document.getElementById('checkAutoResolve').checked = false;
+          // Recargar detalle y lista
+          await abrirModalDetalle(STATE.activeTicketDetail.id);
+          cargarIncidencias();
+        } else {
+          alert(data.message || 'Error al enviar la respuesta.');
+        }
+      } catch (err) {
+        alert('Error al conectar con el servidor.');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function adminCambiarEstado(nuevoEstado) {
+      if (!STATE.activeTicketDetail) return;
+      try {
+        const res = await fetch(`/api/tickets/${STATE.activeTicketDetail.id}/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nuevoEstado })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          await abrirModalDetalle(STATE.activeTicketDetail.id);
+          cargarIncidencias();
+        }
+      } catch (err) {
+        alert('Error al actualizar el estado.');
+      }
+    }
+
+    async function adminEliminarTicket() {
+      if (!STATE.activeTicketDetail) return;
+      if (!confirm(`¿Estás segura de eliminar definitivamente la incidencia #INC-${String(STATE.activeTicketDetail.id).padStart(3, '0')}?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/tickets/${STATE.activeTicketDetail.id}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          cerrarModalDetalle();
+          cargarIncidencias();
+        } else {
+          alert(data.message || 'Error al eliminar la incidencia.');
+        }
+      } catch (err) {
+        alert('Error de conexión.');
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* ========================================================================
+       7. FALLBACK ACCESIBLE PARA <dialog closedby="any">
+       (Cumplimiento Guía Light-Dismiss a Dialog de Modern Web Guidance)
+       ======================================================================== */
+    function setupDialogLightDismissFallbacks() {
+      const dialogs = document.querySelectorAll('dialog');
+      dialogs.forEach(dialog => {
+        if (!('closedBy' in HTMLDialogElement.prototype)) {
+          dialog.addEventListener('click', (event) => {
+            if (event.target !== dialog) return;
+            const rect = dialog.getBoundingClientRect();
+            const isDialogContent = (
+              rect.top <= event.clientY &&
+              event.clientY <= rect.top + rect.height &&
+              rect.left <= event.clientX &&
+              event.clientX <= rect.left + rect.width
+            );
+            if (isDialogContent) return;
+            dialog.close();
+          });
+        }
+      });
+    }
+
+    // Arranque al cargar DOM
+    document.addEventListener('DOMContentLoaded', () => {
+      initUserRole();
+      cargarIncidencias();
+      setupDialogLightDismissFallbacks();
+    });
+  </script>
+</body>
+</html>
