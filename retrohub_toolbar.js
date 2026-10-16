@@ -24,7 +24,8 @@
     shieldCheck: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`,
     editPencil: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
     tag: `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
-    check: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+    check: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    trash: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`
   };
 
   function getCurrentPageKey() {
@@ -170,6 +171,10 @@
     const headers = { 'Content-Type': 'application/json' };
     const token = localStorage.getItem('retrohub_jwt_token');
     if (token) headers['Authorization'] = `Bearer ${token}`;
+    const uid = localStorage.getItem('retrohub_user_id');
+    if (uid) headers['X-User-Id'] = String(uid);
+    const uname = getCurrentUsername();
+    if (uname) headers['X-User-Name'] = uname;
     return headers;
   }
 
@@ -187,7 +192,7 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
-          CHAT_STATE.nicknames = Object.assign({}, parsed, CHAT_STATE.nicknames);
+          CHAT_STATE.nicknames = Object.assign({}, parsed);
         }
       }
     } catch (e) {}
@@ -204,8 +209,8 @@
     if (typeof userOrId === 'object' && userOrId !== null) {
       const uid = String(userOrId.id || userOrId.senderId || '');
       if (uid && CHAT_STATE.nicknames[uid]) return CHAT_STATE.nicknames[uid];
-      if (userOrId.customNickname) return userOrId.customNickname;
-      if (userOrId.senderCustomNickname) return userOrId.senderCustomNickname;
+      if (userOrId.customNickname && !CHAT_STATE.nicknames.hasOwnProperty(uid)) return userOrId.customNickname;
+      if (userOrId.senderCustomNickname && !CHAT_STATE.nicknames.hasOwnProperty(uid)) return userOrId.senderCustomNickname;
       return userOrId.displayName || userOrId.senderDisplayName || userOrId.username || userOrId.senderUsername || 'Usuario';
     }
     const uid = String(userOrId || '');
@@ -216,7 +221,9 @@
   function hasCustomNickname(userOrId) {
     if (typeof userOrId === 'object' && userOrId !== null) {
       const uid = String(userOrId.id || userOrId.senderId || '');
-      return Boolean((uid && CHAT_STATE.nicknames[uid]) || userOrId.customNickname || userOrId.senderCustomNickname);
+      if (uid && CHAT_STATE.nicknames[uid]) return true;
+      if (uid && CHAT_STATE.nicknames.hasOwnProperty(uid) && !CHAT_STATE.nicknames[uid]) return false;
+      return Boolean(userOrId.customNickname || userOrId.senderCustomNickname);
     }
     const uid = String(userOrId || '');
     return Boolean(uid && CHAT_STATE.nicknames[uid]);
@@ -225,39 +232,191 @@
   async function setCustomNickname(targetUserId, newNickname) {
     const clean = String(newNickname || '').trim();
     const uidStr = String(targetUserId);
+
+    // 1. Actualización optimista inmediata en memoria local
+    if (clean) {
+      CHAT_STATE.nicknames[uidStr] = clean;
+    } else {
+      delete CHAT_STATE.nicknames[uidStr];
+    }
+    saveLocalNicknames();
+
+    // 2. Actualizar activeDM si está abierto
+    if (CHAT_STATE.activeDM && String(CHAT_STATE.activeDM.id) === uidStr) {
+      CHAT_STATE.activeDM.customNickname = clean || null;
+      CHAT_STATE.activeDM.effectiveDisplayName = clean || CHAT_STATE.activeDM.displayName || CHAT_STATE.activeDM.username;
+    }
+
+    // 3. Actualizar en lista de amigos
+    const fr = CHAT_STATE.friends.find((f) => String(f.id) === uidStr);
+    if (fr) {
+      fr.customNickname = clean || null;
+      fr.effectiveDisplayName = clean || fr.displayName || fr.username;
+    }
+
+    // 4. Actualizar en allUsers
+    const usr = CHAT_STATE.allUsers.find((u) => String(u.id) === uidStr);
+    if (usr) {
+      usr.customNickname = clean || null;
+      usr.effectiveDisplayName = clean || usr.displayName || usr.username;
+    }
+
+    // 5. Actualizar en mensajes activos
+    if (Array.isArray(CHAT_STATE.messages)) {
+      CHAT_STATE.messages.forEach((m) => {
+        if (String(m.senderId) === uidStr) {
+          m.senderCustomNickname = clean || null;
+          m.senderEffectiveName = clean || m.senderDisplayName || m.senderUsername;
+        }
+      });
+    }
+
+    CHAT_STATE.statusBanner = {
+      type: 'success',
+      text: clean ? `Apodo guardado: "${clean}" (solo tú lo verás).` : 'Apodo restablecido correctamente.'
+    };
+
+    // Refrescar UI del chat inmediatamente
+    renderChatSidebarBody();
+
+    // 6. Persistir en el servidor
     try {
       const res = await fetch('/api/chat/nicknames', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
           targetUserId: Number(targetUserId),
-          nickname: clean
+          nickname: clean,
+          username: getCurrentUsername(),
+          userId: localStorage.getItem('retrohub_user_id')
         })
       });
       const data = await res.json();
       if (data && data.success) {
-        if (clean) {
-          CHAT_STATE.nicknames[uidStr] = clean;
-        } else {
-          delete CHAT_STATE.nicknames[uidStr];
+        if (data.nicknames && typeof data.nicknames === 'object') {
+          CHAT_STATE.nicknames = Object.assign({}, data.nicknames);
+          saveLocalNicknames();
         }
-        saveLocalNicknames();
-        CHAT_STATE.editingNicknameUserId = null;
-        CHAT_STATE.statusBanner = {
-          type: 'success',
-          text: clean ? `Apodo guardado: "${clean}" (solo tú lo verás).` : 'Apodo restablecido correctamente.'
-        };
-        await fetchChatOverview();
-        if (CHAT_STATE.activeDM) {
-          await loadDirectMessages(CHAT_STATE.activeDM.id);
-        } else {
-          renderChatSidebarBody();
-        }
+        fetchChatOverview();
       }
     } catch (e) {
-      CHAT_STATE.statusBanner = { type: 'error', text: 'Error al actualizar el apodo.' };
-      renderChatSidebarBody();
+      console.warn('[RetroHub Chat] Error guardando apodo:', e);
     }
+  }
+
+  function openNicknameModal(targetUserId, targetUsername, targetDisplayName, targetAvatarUrl) {
+    if (!targetUserId) return;
+    const uidStr = String(targetUserId);
+    const uname = targetUsername || 'Usuario';
+    const dname = targetDisplayName || uname;
+    const avatar = targetAvatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${uname}`;
+    const currentNick = CHAT_STATE.nicknames[uidStr] || '';
+
+    let modalEl = document.getElementById('rhNicknameModalBackdrop');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'rhNicknameModalBackdrop';
+      modalEl.className = 'rh-nickname-modal-backdrop';
+      document.body.appendChild(modalEl);
+    }
+
+    modalEl.innerHTML = `
+      <div class="rh-nickname-modal-card" role="dialog" aria-modal="true" aria-labelledby="rhNickModalTitle">
+        <div class="rh-nickname-modal-head">
+          <div class="rh-nickname-modal-title" id="rhNickModalTitle">
+            <span class="rh-nickname-icon-wrap">${ICONS.tag}</span>
+            <span>Apodo Personal Privado</span>
+          </div>
+          <button type="button" class="rh-nickname-btn-close" onclick="window.RetroHubChat.closeNicknameModal()" aria-label="Cerrar">
+            ${ICONS.close}
+          </button>
+        </div>
+
+        <div class="rh-nickname-user-preview">
+          <img src="${escapeHtml(avatar)}" class="rh-nickname-preview-avatar" alt="" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'" />
+          <div class="rh-nickname-preview-info">
+            <div class="rh-nickname-preview-display">${escapeHtml(dname)}</div>
+            <div class="rh-nickname-preview-user">@${escapeHtml(uname)}</div>
+          </div>
+        </div>
+
+        <div class="rh-nickname-notice">
+          <span class="rh-notice-icon">${ICONS.shieldCheck}</span>
+          <span><strong>Estrictamente privado:</strong> Este apodo solo lo verás tú en toda la web. Nadie más sabrá qué apodo le pusiste.</span>
+        </div>
+
+        <div class="rh-nickname-input-group">
+          <label for="rhNicknameModalInput" class="rh-nickname-label">Escribe el apodo que prefieras:</label>
+          <div class="rh-nickname-input-wrap">
+            <input type="text" id="rhNicknameModalInput" class="rh-nickname-input" placeholder="Ej: Mejor Amigo, ProGamer, Juan..." value="${escapeHtml(currentNick)}" maxlength="32" autofocus autocomplete="off" />
+            ${currentNick ? `<button type="button" class="rh-nickname-input-clear" onclick="document.getElementById('rhNicknameModalInput').value='';document.getElementById('rhNicknameModalInput').focus();" title="Borrar texto">${ICONS.close}</button>` : ''}
+          </div>
+          <div class="rh-nickname-hint">Pulsa Enter para guardar o Escape para cancelar</div>
+        </div>
+
+        <div class="rh-nickname-actions">
+          <div style="margin-right: auto;">
+            ${currentNick ? `<button type="button" class="rh-chat-btn-secondary danger" id="rhBtnRemoveNick" onclick="window.RetroHubChat.submitNicknameModal(${targetUserId}, '')">${ICONS.trash} Quitar apodo</button>` : ''}
+          </div>
+          <button type="button" class="rh-chat-btn-secondary" onclick="window.RetroHubChat.closeNicknameModal()">Cancelar</button>
+          <button type="button" class="rh-chat-btn-primary" id="rhBtnSaveNick" onclick="const val = document.getElementById('rhNicknameModalInput'); window.RetroHubChat.submitNicknameModal(${targetUserId}, val ? val.value : '');">
+            ${ICONS.check}
+            <span>Guardar apodo</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    modalEl.style.display = 'flex';
+
+    setTimeout(() => {
+      const input = document.getElementById('rhNicknameModalInput');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 40);
+
+    modalEl.onkeydown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeNicknameModal();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const input = document.getElementById('rhNicknameModalInput');
+        if (input) {
+          submitNicknameModal(targetUserId, input.value);
+        }
+      }
+    };
+
+    modalEl.onclick = (e) => {
+      if (e.target === modalEl) {
+        closeNicknameModal();
+      }
+    };
+  }
+
+  function closeNicknameModal() {
+    const modalEl = document.getElementById('rhNicknameModalBackdrop');
+    if (modalEl) {
+      modalEl.style.display = 'none';
+      modalEl.innerHTML = '';
+    }
+  }
+
+  async function submitNicknameModal(targetUserId, newNickname) {
+    const clean = String(newNickname || '').trim();
+    const btnSave = document.getElementById('rhBtnSaveNick');
+    const btnRemove = document.getElementById('rhBtnRemoveNick');
+    if (btnSave) {
+      btnSave.disabled = true;
+      btnSave.innerHTML = `<span>Guardando...</span>`;
+    }
+    if (btnRemove) btnRemove.disabled = true;
+
+    await setCustomNickname(targetUserId, clean);
+    closeNicknameModal();
   }
 
   /* ========================================================================
@@ -390,7 +549,7 @@
       const data = await res.json();
       if (data && data.success) {
         if (data.nicknames && typeof data.nicknames === 'object') {
-          CHAT_STATE.nicknames = Object.assign({}, CHAT_STATE.nicknames, data.nicknames);
+          CHAT_STATE.nicknames = Object.assign({}, data.nicknames);
           saveLocalNicknames();
         }
         CHAT_STATE.friends = data.friends || [];
@@ -583,22 +742,40 @@
 
   async function loadDirectMessages(friendId) {
     try {
-      const res = await fetch(`/api/chat/dm?friendId=${encodeURIComponent(friendId)}`, {
+      const uname = encodeURIComponent(getCurrentUsername());
+      const res = await fetch(`/api/chat/dm?friendId=${encodeURIComponent(friendId)}&username=${uname}`, {
         headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data && data.success) {
         if (data.nicknames && typeof data.nicknames === 'object') {
-          CHAT_STATE.nicknames = Object.assign({}, CHAT_STATE.nicknames, data.nicknames);
+          CHAT_STATE.nicknames = Object.assign({}, data.nicknames);
           saveLocalNicknames();
         }
         if (data.typingUsers) {
           CHAT_STATE.typingUsers = data.typingUsers;
         }
+        const prevCount = CHAT_STATE.messages ? CHAT_STATE.messages.length : 0;
         CHAT_STATE.messages = data.messages || [];
+
+        const composer = document.getElementById('rhChatComposerInput');
+        const hadFocus = composer && document.activeElement === composer;
+        const curVal = composer ? composer.value : '';
+
         renderChatSidebarBody();
         updateTypingUI();
-        scrollToBottomMessages();
+
+        if (hadFocus) {
+          const newComp = document.getElementById('rhChatComposerInput');
+          if (newComp) {
+            newComp.value = curVal;
+            newComp.focus();
+          }
+        }
+
+        if (CHAT_STATE.messages.length !== prevCount) {
+          scrollToBottomMessages();
+        }
       }
     } catch (e) {}
   }
@@ -711,22 +888,40 @@
 
   async function loadGroupMessages(groupId) {
     try {
-      const res = await fetch(`/api/chat/groups/messages?groupId=${encodeURIComponent(groupId)}`, {
+      const uname = encodeURIComponent(getCurrentUsername());
+      const res = await fetch(`/api/chat/groups/messages?groupId=${encodeURIComponent(groupId)}&username=${uname}`, {
         headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data && data.success) {
         if (data.nicknames && typeof data.nicknames === 'object') {
-          CHAT_STATE.nicknames = Object.assign({}, CHAT_STATE.nicknames, data.nicknames);
+          CHAT_STATE.nicknames = Object.assign({}, data.nicknames);
           saveLocalNicknames();
         }
         if (data.typingUsers) {
           CHAT_STATE.typingUsers = data.typingUsers;
         }
+        const prevCount = CHAT_STATE.messages ? CHAT_STATE.messages.length : 0;
         CHAT_STATE.messages = data.messages || [];
+
+        const composer = document.getElementById('rhChatComposerInput');
+        const hadFocus = composer && document.activeElement === composer;
+        const curVal = composer ? composer.value : '';
+
         renderChatSidebarBody();
         updateTypingUI();
-        scrollToBottomMessages();
+
+        if (hadFocus) {
+          const newComp = document.getElementById('rhChatComposerInput');
+          if (newComp) {
+            newComp.value = curVal;
+            newComp.focus();
+          }
+        }
+
+        if (CHAT_STATE.messages.length !== prevCount) {
+          scrollToBottomMessages();
+        }
       }
     } catch (e) {}
   }
@@ -829,27 +1024,6 @@
       const isCustomNick = hasCustomNickname(f);
       const currentNick = CHAT_STATE.nicknames[String(f.id)] || f.customNickname || '';
 
-      const nicknameEditorHtml = CHAT_STATE.editingNicknameUserId === f.id
-        ? `<div class="rh-nickname-card">
-             <div class="rh-nickname-card-header">
-               ${ICONS.tag}
-               <span>Apodo Personal para @${escapeHtml(f.username)}</span>
-             </div>
-             <div class="rh-nickname-card-sub">
-               Este nombre solo lo verás tú en tu cuenta. Nadie más sabrá qué apodo le pusiste.
-             </div>
-             <input type="text" id="rhNicknameInput" class="rh-chat-input" placeholder="Escribe un apodo único..." value="${escapeHtml(currentNick)}" maxlength="32" />
-             <div style="display: flex; justify-content: flex-end; gap: 8px;">
-               ${currentNick ? `<button type="button" class="rh-chat-btn-secondary danger" onclick="window.RetroHubChat.saveNickname(${f.id}, '')">Quitar apodo</button>` : ''}
-               <button type="button" class="rh-chat-btn-secondary" onclick="window.RetroHubChat.closeNicknameEditor()">Cancelar</button>
-               <button type="button" class="rh-chat-btn-primary" onclick="const v=document.getElementById('rhNicknameInput'); if(v) window.RetroHubChat.saveNickname(${f.id}, v.value);">
-                 ${ICONS.check}
-                 <span>Guardar apodo</span>
-               </button>
-             </div>
-           </div>`
-        : '';
-
       const msgsHtml =
         CHAT_STATE.messages.length === 0
           ? `<div style="text-align: center; padding: 36px 16px; color: #64748b; font-size: 12.5px;">
@@ -887,8 +1061,8 @@
               <div style="min-width: 0; flex: 1;">
                 <div class="rh-chat-item-name-wrap">
                   <span class="rh-chat-item-name">${escapeHtml(effectiveFriendName)}</span>
-                  ${isCustomNick ? `<span class="rh-custom-nick-pill" title="Apodo personal asignado por ti (solo tú lo ves)">${ICONS.tag} Apodo</span>` : ''}
-                  <button class="rh-btn-edit-nick" type="button" onclick="window.RetroHubChat.toggleNicknameEditor(${f.id})" title="Poner o editar apodo personal (solo tú lo verás)">
+                  ${isCustomNick ? `<span class="rh-custom-nick-pill" onclick="window.RetroHubChat.openNicknameModal(${f.id}, '${escapeHtml(f.username)}', '${escapeHtml(f.displayName || f.username)}', '${escapeHtml(f.avatarUrl)}')" style="cursor: pointer;" title="Apodo personal asignado por ti (solo tú lo verás)">${ICONS.tag} Apodo</span>` : ''}
+                  <button class="rh-btn-edit-nick" type="button" onclick="window.RetroHubChat.openNicknameModal(${f.id}, '${escapeHtml(f.username)}', '${escapeHtml(f.displayName || f.username)}', '${escapeHtml(f.avatarUrl)}')" title="Poner o editar apodo personal (solo tú lo verás)">
                     ${ICONS.editPencil}
                   </button>
                 </div>
@@ -901,7 +1075,6 @@
           </div>
 
           ${bannerHtml}
-          ${nicknameEditorHtml}
 
           <div class="rh-chat-messages-box" id="rhChatMessagesBox">
             ${msgsHtml}
@@ -1002,9 +1175,16 @@
                     <div class="rh-msg-bubble-wrap">
                       ${
                         !isMine
-                          ? `<span class="rh-msg-sender"><strong>${escapeHtml(senderName)}</strong> ${
-                              isCustom ? `<span class="rh-custom-nick-pill" style="font-size: 8.5px; padding: 1px 4px;">${ICONS.tag}</span>` : ''
-                            } <span style="font-weight: 500; opacity: 0.75;">@${escapeHtml(m.senderUsername)}</span></span>`
+                          ? `<span class="rh-msg-sender" style="display: inline-flex; align-items: center; gap: 5px;">
+                              <strong>${escapeHtml(senderName)}</strong>
+                              ${
+                                isCustom
+                                  ? `<span class="rh-custom-nick-pill" style="font-size: 8.5px; padding: 1px 4px; cursor: pointer;" onclick="window.RetroHubChat.openNicknameModal(${m.senderId}, '${escapeHtml(m.senderUsername)}', '${escapeHtml(m.senderDisplayName || m.senderUsername)}', '${escapeHtml(m.senderAvatar)}')" title="Apodo personal asignado por ti (solo tú lo verás)">${ICONS.tag}</span>`
+                                  : ''
+                              }
+                              <span style="font-weight: 500; opacity: 0.75;">@${escapeHtml(m.senderUsername)}</span>
+                              <button type="button" class="rh-btn-edit-nick" style="width: 18px; height: 18px; padding: 1px; border-radius: 6px;" onclick="window.RetroHubChat.openNicknameModal(${m.senderId}, '${escapeHtml(m.senderUsername)}', '${escapeHtml(m.senderDisplayName || m.senderUsername)}', '${escapeHtml(m.senderAvatar)}')" title="Poner apodo personal a @${escapeHtml(m.senderUsername)}">${ICONS.editPencil}</button>
+                            </span>`
                           : ''
                       }
                       <div class="rh-msg-bubble">${escapeHtml(m.content)}</div>
@@ -1111,7 +1291,7 @@
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                       <div class="rh-chat-item-name-wrap">
                         <span class="rh-chat-item-name">${escapeHtml(effName)}</span>
-                        ${isCust ? `<span class="rh-custom-nick-pill" title="Apodo personal asignado por ti">${ICONS.tag} Apodo</span>` : ''}
+                        ${isCust ? `<span class="rh-custom-nick-pill" onclick="event.stopPropagation(); window.RetroHubChat.openNicknameModal(${f.id}, '${escapeHtml(f.username)}', '${escapeHtml(f.displayName || f.username)}', '${escapeHtml(f.avatarUrl)}');" style="cursor: pointer;" title="Apodo personal asignado por ti (solo tú lo verás)">${ICONS.tag} Apodo</span>` : ''}
                       </div>
                       <span style="font-size: 10.5px; font-weight: 700; color: #0284c7;">@${escapeHtml(f.username)}</span>
                     </div>
@@ -1127,7 +1307,7 @@
                       }
                     </div>
                   </div>
-                  <button type="button" class="rh-btn-edit-nick" onclick="event.stopPropagation(); window.RetroHubChat.openDM(${f.id}); setTimeout(() => window.RetroHubChat.openNicknameEditor(${f.id}), 120);" title="Poner o editar apodo personal">
+                  <button type="button" class="rh-btn-edit-nick" onclick="event.stopPropagation(); window.RetroHubChat.openNicknameModal(${f.id}, '${escapeHtml(f.username)}', '${escapeHtml(f.displayName || f.username)}', '${escapeHtml(f.avatarUrl)}');" title="Poner o editar apodo personal (solo tú lo verás)">
                     ${ICONS.editPencil}
                   </button>
                   ${
@@ -1375,6 +1555,7 @@
       .then((data) => {
         if (data && data.success && data.user) {
           const u = data.user;
+          if (u.id) localStorage.setItem('retrohub_user_id', String(u.id));
           localStorage.setItem('retrohub_user_name', u.username);
           localStorage.setItem('retrohub_display_name', u.displayName || u.username);
           if (u.role) localStorage.setItem('retrohub_user_role', u.role);
@@ -1504,35 +1685,20 @@
       renderChatSidebarBody();
     },
     // Métodos para apodos personalizados (estrictamente privados)
-    openNicknameEditor: (userId) => {
-      CHAT_STATE.editingNicknameUserId = userId;
-      renderChatSidebarBody();
-      setTimeout(() => {
-        const inp = document.getElementById('rhNicknameInput');
-        if (inp) {
-          inp.focus();
-          inp.select();
-        }
-      }, 50);
-    },
-    closeNicknameEditor: () => {
-      CHAT_STATE.editingNicknameUserId = null;
-      renderChatSidebarBody();
-    },
-    toggleNicknameEditor: (userId) => {
-      CHAT_STATE.editingNicknameUserId = (CHAT_STATE.editingNicknameUserId === userId) ? null : userId;
-      renderChatSidebarBody();
-      if (CHAT_STATE.editingNicknameUserId) {
-        setTimeout(() => {
-          const inp = document.getElementById('rhNicknameInput');
-          if (inp) {
-            inp.focus();
-            inp.select();
-          }
-        }, 50);
-      }
-    },
+    openNicknameModal: openNicknameModal,
+    closeNicknameModal: closeNicknameModal,
+    submitNicknameModal: submitNicknameModal,
+    setNickname: setCustomNickname,
     saveNickname: setCustomNickname,
+    openNicknameEditor: (userId) => {
+      const u = CHAT_STATE.friends.find((f) => f.id === userId) || CHAT_STATE.allUsers.find((x) => x.id === userId) || (CHAT_STATE.activeDM && CHAT_STATE.activeDM.id === userId ? CHAT_STATE.activeDM : null);
+      if (u) openNicknameModal(u.id, u.username, u.displayName, u.avatarUrl);
+    },
+    closeNicknameEditor: closeNicknameModal,
+    toggleNicknameEditor: (userId) => {
+      const u = CHAT_STATE.friends.find((f) => f.id === userId) || CHAT_STATE.allUsers.find((x) => x.id === userId) || (CHAT_STATE.activeDM && CHAT_STATE.activeDM.id === userId ? CHAT_STATE.activeDM : null);
+      if (u) openNicknameModal(u.id, u.username, u.displayName, u.avatarUrl);
+    },
     getEffectiveName: getEffectiveName,
     hasCustomNickname: hasCustomNickname,
     getState: () => CHAT_STATE,

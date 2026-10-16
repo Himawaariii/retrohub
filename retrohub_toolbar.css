@@ -995,6 +995,225 @@
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.18);
 }
 
+/* Modal Emergente de Apodo Personal */
+.rh-nickname-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  padding: 16px;
+  animation: rhFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rh-nickname-modal-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid rgba(0, 210, 190, 0.4);
+  border-radius: 22px;
+  width: 100%;
+  max-width: 430px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 10px 30px rgba(0, 210, 190, 0.15);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: rhScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes rhScaleUp {
+  from { opacity: 0; transform: scale(0.93); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.rh-nickname-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rh-nickname-modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.rh-nickname-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(0, 210, 190, 0.15);
+  color: #00a896;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rh-nickname-btn-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: #ffffff;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rh-nickname-btn-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  transform: rotate(90deg);
+}
+
+.rh-nickname-user-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.rh-nickname-preview-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #00d2be;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.rh-nickname-preview-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.rh-nickname-preview-display {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rh-nickname-preview-user {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+}
+
+.rh-nickname-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0369a1;
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  border-radius: 12px;
+  padding: 9px 12px;
+  line-height: 1.35;
+}
+
+.rh-nickname-notice .rh-notice-icon {
+  flex-shrink: 0;
+  color: #0284c7;
+  margin-top: 1px;
+}
+
+.rh-nickname-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rh-nickname-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.rh-nickname-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rh-nickname-input {
+  width: 100%;
+  height: 42px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0 36px 0 14px;
+  font-size: 13.5px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.rh-nickname-input:focus {
+  border-color: #00d2be;
+  box-shadow: 0 0 0 3px rgba(0, 210, 190, 0.22);
+}
+
+.rh-nickname-input-clear {
+  position: absolute;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: none;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rh-nickname-input-clear:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.rh-nickname-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.rh-nickname-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .rh-nickname-card {
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   border: 1.5px solid #00d2be;

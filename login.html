@@ -526,9 +526,13 @@
                 if (!res.ok || !data.token) throw new Error(data.message || 'Credenciales incorrectas');
 
                 localStorage.setItem('retrohub_jwt_token', data.token);
-                if (data.user) localStorage.setItem('retrohub_user_name', data.user.username);
+                if (data.user) {
+                    localStorage.setItem('retrohub_user_id', String(data.user.id));
+                    localStorage.setItem('retrohub_user_name', data.user.username);
+                    if (data.user.role) localStorage.setItem('retrohub_user_role', data.user.role);
+                }
                 if (data.profile) {
-                    localStorage.setItem('retrohub_display_name', data.profile.displayName || data.user.username);
+                    localStorage.setItem('retrohub_display_name', data.profile.displayName || (data.user && data.user.username) || '');
                     localStorage.setItem('retrohub_user_avatar', data.profile.avatarUrl || '');
                 }
 

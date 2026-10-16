@@ -260,6 +260,17 @@ def get_user_from_request(headers, qs=None, body=None):
                 return r[0], r[1]
         except Exception:
             pass
+    x_uname = headers.get('X-User-Name') if headers else None
+    if x_uname:
+        try:
+            uname = str(x_uname).strip().lower()
+            conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+            r = conn.execute("SELECT id, username FROM users WHERE username_clean = ?", (uname,)).fetchone()
+            conn.close()
+            if r:
+                return r[0], r[1]
+        except Exception:
+            pass
     if qs:
         if qs.get('userId'):
             try:
@@ -299,7 +310,23 @@ def get_user_from_request(headers, qs=None, body=None):
                     return r[0], r[1]
             except Exception:
                 pass
+        if body.get('username'):
+            uname = str(body['username']).strip().lower()
+            conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+            r = conn.execute("SELECT id, username FROM users WHERE username_clean = ?", (uname,)).fetchone()
+            conn.close()
+            if r:
+                return r[0], r[1]
         if body.get('senderId'):
+            try:
+                uid = int(body['senderId'])
+                conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+                r = conn.execute("SELECT id, username FROM users WHERE id = ?", (uid,)).fetchone()
+                conn.close()
+                if r:
+                    return r[0], r[1]
+            except Exception:
+                pass
             return int(body['senderId']), body.get('username')
     return 8, 'himawari'
 
@@ -1695,14 +1722,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path == '/api/chat/nicknames':
-            auth_header = self.headers.get('Authorization', '')
-            uid = None
-            if auth_header.startswith('Bearer '):
-                dec = decode_token(auth_header.split(' ', 1)[1])
-                if dec and 'id' in dec:
-                    uid = dec['id']
-            if not uid:
-                uid = int(body.get('userId') or 8)
+            uid, _ = get_user_from_request(self.headers, None, body)
 
             target_uid = int(body.get('targetUserId') or 0)
             raw_nick = body.get('nickname')
@@ -1727,6 +1747,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             else:
                 cur.execute("DELETE FROM user_custom_nicknames WHERE user_id = ? AND target_user_id = ?", (uid, target_uid))
             conn.commit()
+
+            cur.execute("SELECT target_user_id, nickname FROM user_custom_nicknames WHERE user_id = ?", (uid,))
+            all_my_nicks = {str(r[0]): r[1] for r in cur.fetchall()}
             conn.close()
 
             self.send_response(200)
@@ -1736,19 +1759,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 'success': True,
                 'targetUserId': target_uid,
                 'nickname': nickname or None,
+                'nicknames': all_my_nicks,
                 'message': 'Apodo actualizado correctamente.' if nickname else 'Apodo restablecido.'
             }, ensure_ascii=False).encode('utf-8'))
             return
 
         if self.path == '/api/chat/typing':
-            auth_header = self.headers.get('Authorization', '')
-            sender_id = None
-            if auth_header.startswith('Bearer '):
-                dec = decode_token(auth_header.split(' ', 1)[1])
-                if dec and 'id' in dec:
-                    sender_id = dec['id']
-            if not sender_id:
-                sender_id = int(body.get('senderId') or 8)
+            sender_id, _ = get_user_from_request(self.headers, None, body)
 
             conv_type = body.get('conversationType') or 'dm'
             target_id = body.get('targetId') or 0
@@ -1779,14 +1796,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path == '/api/chat/dm':
-            auth_header = self.headers.get('Authorization', '')
-            sender_id = None
-            if auth_header.startswith('Bearer '):
-                dec = decode_token(auth_header.split(' ', 1)[1])
-                if dec and 'id' in dec:
-                    sender_id = dec['id']
-            if not sender_id:
-                sender_id = int(body.get('senderId') or 8)
+            sender_id, _ = get_user_from_request(self.headers, None, body)
 
             receiver_id = int(body.get('receiverId') or body.get('friendId') or 0)
             content = (body.get('content') or '').strip()
@@ -1990,14 +2000,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path == '/api/chat/groups/messages':
-            auth_header = self.headers.get('Authorization', '')
-            sender_id = None
-            if auth_header.startswith('Bearer '):
-                dec = decode_token(auth_header.split(' ', 1)[1])
-                if dec and 'id' in dec:
-                    sender_id = dec['id']
-            if not sender_id:
-                sender_id = int(body.get('senderId') or 8)
+            sender_id, _ = get_user_from_request(self.headers, None, body)
 
             group_id = int(body.get('groupId') or 0)
             content = (body.get('content') or '').strip()
