@@ -26,8 +26,7 @@
 /* 1. BLOQUEO DE SCROLLBAR Y CONTENEDOR PARA EVITAR CUALQUIER MOVIMIENTO */
 html {
   overflow-y: scroll !important;
-  overflow-x: hidden !important;
-  height: 100%;
+  overflow-x: clip !important;
   box-sizing: border-box;
 }
 
@@ -42,7 +41,7 @@ body.profile-body {
   width: 100% !important;
   display: block !important;
   position: relative !important;
-  overflow-x: hidden !important;
+  overflow-x: clip !important;
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   color: var(--rh-ink);
   background-color: var(--rh-bg);

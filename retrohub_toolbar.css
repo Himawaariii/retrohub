@@ -4,15 +4,27 @@
    PROHIBIDO EL USO DE EMOJIS — 100% ICONOS VECTORIALES SVG COLORIDOS
    ============================================================================ */
 
+#retrohubGlobalToolbar {
+  position: relative !important;
+  height: 88px !important;
+  min-height: 88px !important;
+  width: 100% !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  z-index: 1200 !important;
+}
+
 .rh-common-toolbar-wrap {
-  width: 100%;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
   max-width: 1320px;
   margin: 0 auto;
-  padding: 14px 20px 0 20px;
+  padding: 12px 20px 8px 20px;
   box-sizing: border-box;
-  position: sticky;
-  top: 0;
-  z-index: 1200;
+  z-index: 1200 !important;
   pointer-events: none;
 }
 

@@ -209,6 +209,31 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(resultado, ensure_ascii=False).encode('utf-8'))
             return
 
+        if self.path == '/api/audios':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            audios_map = {}
+            audios_dir = os.path.join(DIRECTORY, 'audios')
+            valid_exts = ('.mp3', '.ogg', '.wav', '.m4a', '.flac')
+            if os.path.isdir(audios_dir):
+                for entry in os.listdir(audios_dir):
+                    full_p = os.path.join(audios_dir, entry)
+                    if os.path.isfile(full_p) and entry.lower().endswith(valid_exts):
+                        cid = os.path.splitext(entry)[0].lower()
+                        rel_p = os.path.relpath(full_p, DIRECTORY).replace('\\', '/')
+                        audios_map.setdefault(cid, []).append(rel_p)
+                    elif os.path.isdir(full_p):
+                        cid = entry.lower()
+                        for f in sorted(os.listdir(full_p)):
+                            fp = os.path.join(full_p, f)
+                            if os.path.isfile(fp) and f.lower().endswith(valid_exts):
+                                rel_p = os.path.relpath(fp, DIRECTORY).replace('\\', '/')
+                                audios_map.setdefault(cid, []).append(rel_p)
+            self.wfile.write(json.dumps({'success': True, 'audios': audios_map}, ensure_ascii=False).encode('utf-8'))
+            return
+
         if self.path == '/api/network':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
