@@ -114,7 +114,7 @@
 
     Array.from(track.children).forEach((node, idx) => {
       const offset = getCircularOffset(idx, activeConsoleIndex, total);
-      if (Math.abs(offset) <= 2) {
+      if (Math.abs(offset) <= 3) {
         node.setAttribute('data-ring-pos', String(offset));
       } else {
         node.setAttribute('data-ring-pos', 'hidden');
@@ -369,7 +369,8 @@
   }
 
   function renderInteriorGameDetail(game, consoleObj) {
-    const cartImg = document.getElementById('showcaseCartridgeImg');
+    const holeCoverImg = document.getElementById('cartridgeHoleCoverImg');
+    const shellImg = document.getElementById('showcaseCartridgeShellImg');
     const cartImgBack = document.getElementById('showcaseCartridgeImgBack');
     const genreChip = document.getElementById('showcaseGenreChip');
     const yearChip = document.getElementById('showcaseYearChip');
@@ -380,14 +381,18 @@
     triggerCartridge3DSpin();
 
     if (!game) {
-      const fallbackCart =
-        consoleObj.id === 'n64'
-          ? 'ROMS/cartridges/n64_shell_base.png?v=2'
-          : getDefaultCartridgeForConsole(consoleObj.id);
-      if (cartImg) cartImg.src = fallbackCart;
+      if (holeCoverImg) holeCoverImg.src = '';
+      if (shellImg) {
+        shellImg.src =
+          consoleObj.id === 'n64'
+            ? 'ROMS/cartridges/n64_shell_base.png?v=3'
+            : getDefaultCartridgeForConsole(consoleObj.id);
+      }
       if (cartImgBack) {
         cartImgBack.src =
-          consoleObj.id === 'n64' ? 'ROMS/cartridges/n64_shell_back.png?v=2' : fallbackCart;
+          consoleObj.id === 'n64'
+            ? 'ROMS/cartridges/n64_shell_back.png?v=3'
+            : getDefaultCartridgeForConsole(consoleObj.id);
       }
       if (genreChip) genreChip.textContent = consoleObj.maker || 'Retro';
       if (yearChip) yearChip.textContent = consoleObj.arch || '';
@@ -405,33 +410,28 @@
       playBtn.onclick = () => playSelectedGame(game, consoleObj);
     }
 
+    const coverSrc = game.cover || 'ROMS/covers/papermario.png';
+
     if (consoleObj.id === 'n64') {
-      const isPaperMario = (game.title || '').toLowerCase().includes('paper mario');
-      if (isPaperMario) {
-        if (cartImg) cartImg.src = 'ROMS/cartridges/cart_papermario.png?v=2';
-      } else if (game.cover) {
-        if (cartImg) cartImg.src = 'ROMS/cartridges/n64_shell_base.png?v=2';
-        renderN64CartridgeWithBase(game.cover, cartImg);
-      } else {
-        if (cartImg) cartImg.src = 'ROMS/cartridges/n64_shell_base.png?v=2';
+      if (holeCoverImg) {
+        holeCoverImg.style.display = 'block';
+        holeCoverImg.src = coverSrc;
+      }
+      if (shellImg) {
+        shellImg.src = 'ROMS/cartridges/n64_shell_base.png?v=3';
       }
       if (cartImgBack) {
-        cartImgBack.src = 'ROMS/cartridges/n64_shell_back.png?v=2';
+        cartImgBack.src = 'ROMS/cartridges/n64_shell_back.png?v=3';
       }
     } else {
+      // Para otras consolas, la carátula se adapta o se usa la carcasa de la consola
+      if (holeCoverImg) {
+        holeCoverImg.style.display = 'block';
+        holeCoverImg.src = coverSrc;
+      }
       const cartSrc = game.cartridge || getDefaultCartridgeForConsole(consoleObj.id);
-      if (cartImg) {
-        cartImg.src = cartSrc;
-        cartImg.onerror = () => {
-          cartImg.src = getDefaultCartridgeForConsole(consoleObj.id);
-        };
-      }
-      if (cartImgBack) {
-        cartImgBack.src = cartSrc;
-        cartImgBack.onerror = () => {
-          cartImgBack.src = getDefaultCartridgeForConsole(consoleObj.id);
-        };
-      }
+      if (shellImg) shellImg.src = cartSrc;
+      if (cartImgBack) cartImgBack.src = cartSrc;
     }
 
     if (genreChip) genreChip.textContent = game.genre || 'Aventura';

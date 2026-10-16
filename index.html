@@ -4811,12 +4811,29 @@
                         <!-- Escenario 3D del Cartucho con animación de giro al seleccionar -->
                         <div class="showcase-cartridge-3d-stage" id="showcaseCartridgeStage">
                             <div class="cartridge-3d-rig" id="showcaseCartridgeRig">
-                                <img src="ROMS/cartridges/cart_papermario.png?v=3" id="showcaseCartridgeImg" class="showcase-cartridge-img face-front" alt="">
+                                <!-- Cara frontal: Carcasa base N64 con carátula en el hueco -->
+                                <div class="cartridge-front-assembly face-front" id="cartridgeFrontAssembly">
+                                    <div class="cartridge-hole-window">
+                                        <img src="ROMS/covers/papermario.png" id="cartridgeHoleCoverImg" class="cartridge-hole-cover-img" alt="Carátula en Hueco">
+                                        <div class="cartridge-hole-shadow"></div>
+                                        <div class="cartridge-hole-gloss"></div>
+                                    </div>
+                                    <img src="ROMS/cartridges/n64_shell_base.png" id="showcaseCartridgeShellImg" class="cartridge-shell-base-img" alt="Carcasa N64">
+                                </div>
+
+                                <!-- Capas de espesor 3D -->
                                 <div class="showcase-cartridge-thickness thick-1"></div>
                                 <div class="showcase-cartridge-thickness thick-2"></div>
-                                <img src="ROMS/cartridges/n64_shell_back.png?v=3" id="showcaseCartridgeImgBack" class="showcase-cartridge-img face-back" alt="">
+
+                                <!-- Cara trasera: Reverso de N64 con tornillos y advertencia -->
+                                <div class="cartridge-back-assembly face-back" id="cartridgeBackAssembly">
+                                    <img src="ROMS/cartridges/n64_shell_back.png" id="showcaseCartridgeImgBack" class="cartridge-shell-back-img" alt="Reverso N64">
+                                </div>
+
                                 <div class="cartridge-3d-shine"></div>
                                 <div class="cartridge-3d-glare" id="cartridge3DGlare"></div>
+                                <!-- Elemento invisible para compatibilidad -->
+                                <img src="ROMS/cartridges/cart_papermario.png" id="showcaseCartridgeImg" style="display:none;" alt="">
                             </div>
                             <div class="cartridge-3d-shadow"></div>
                         </div>
