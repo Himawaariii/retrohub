@@ -1448,6 +1448,11 @@
     const bodyEl = document.getElementById('rhChatBody');
     if (!bodyEl) return;
 
+    const sidebarEl = document.getElementById('rhChatSidebar');
+    if (sidebarEl) {
+      sidebarEl.classList.toggle('in-conversation', Boolean(CHAT_STATE.activeDM || CHAT_STATE.activeGroup));
+    }
+
     const myUsername = getCurrentUsername().toLowerCase();
 
     const bannerHtml = CHAT_STATE.statusBanner
@@ -1502,10 +1507,10 @@
         <div class="rh-chat-conversation ${dmThemeClasses}">
           <div class="rh-chat-conv-header">
             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-              <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 6px 9px;">
+              <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 7px 10px; border-radius: 12px;" title="Volver a la lista de amigos">
                 ${ICONS.back}
               </button>
-              <img src="${escapeHtml(f.avatarUrl)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #10b981;" alt="" />
+              <img src="${escapeHtml(f.avatarUrl)}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #10b981; flex-shrink: 0;" alt="" />
               <div style="min-width: 0; flex: 1;">
                 <div class="rh-chat-item-name-wrap">
                   <span class="rh-chat-item-name">${escapeHtml(effectiveFriendName)}</span>
@@ -1520,10 +1525,15 @@
                 </div>
               </div>
             </div>
-            <button class="rh-btn-chat-theme" type="button" onclick="window.RetroHubChat.openThemeModal()" title="Personalizar tema de fondo y formato de burbujas">
-              ${ICONS.palette}
-              <span>Tema</span>
-            </button>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <button class="rh-btn-chat-theme" type="button" onclick="window.RetroHubChat.openThemeModal()" title="Personalizar tema de fondo y formato de burbujas">
+                ${ICONS.palette}
+                <span>Tema</span>
+              </button>
+              <button class="rh-chat-close-btn" type="button" onclick="window.RetroHubChat.close()" title="Cerrar chat lateral">
+                ${ICONS.close}
+              </button>
+            </div>
           </div>
 
           ${bannerHtml}
@@ -1655,10 +1665,10 @@
         <div class="rh-chat-conversation ${groupThemeClasses}">
           <div class="rh-chat-conv-header">
             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-              <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 6px 9px;">
+              <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 7px 10px; border-radius: 12px;" title="Volver a la lista de grupos">
                 ${ICONS.back}
               </button>
-              <div class="rh-chat-group-avatar" style="width: 36px; height: 36px; border-radius: 11px; background: ${escapeHtml(g.iconColor)};">
+              <div class="rh-chat-group-avatar" style="width: 38px; height: 38px; border-radius: 12px; background: ${escapeHtml(g.iconColor)}; flex-shrink: 0;">
                 ${ICONS.users}
               </div>
               <div style="min-width: 0; flex: 1;">
@@ -1669,7 +1679,7 @@
               </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
               <button class="rh-btn-chat-theme" type="button" onclick="window.RetroHubChat.openThemeModal()" title="Personalizar tema de fondo y formato de burbujas">
                 ${ICONS.palette}
                 <span>Tema</span>
@@ -1677,6 +1687,9 @@
               <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.toggleInvitePanel()" title="Cualquier miembro puede invitar jugadores a este grupo">
                 ${ICONS.userPlus}
                 <span>Invitar</span>
+              </button>
+              <button class="rh-chat-close-btn" type="button" onclick="window.RetroHubChat.close()" title="Cerrar chat lateral">
+                ${ICONS.close}
               </button>
             </div>
           </div>
@@ -2117,6 +2130,8 @@
       CHAT_STATE.statusBanner = null;
       CHAT_STATE.editingNicknameUserId = null;
       sendTypingSignal(false);
+      const sb = document.getElementById('rhChatSidebar');
+      if (sb) sb.classList.remove('in-conversation');
       fetchChatOverview().then(renderChatSidebarBody);
     },
     toggleCreateGroup: (force) => {
