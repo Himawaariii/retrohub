@@ -1070,7 +1070,7 @@
         .switch-main-stage {
             position: fixed;
             top: 0;
-            left: 74px;
+            left: 0;
             right: 0;
             bottom: 0;
             height: 100vh;
@@ -4575,11 +4575,602 @@
             border-color: var(--system-accent) !important;
             box-shadow: 0 0 0 3px rgba(0,0,0,0.05), 0 0 14px var(--system-glow) !important;
         }
+
+        /* ==========================================================================
+           ESTILOS OFICIALES DE LA VISTA INTERIOR DE CONSOLA Y ANILLO 3D DE CARTUCHOS
+           Estética RetroHub: Porcelana limpia, Space Grotesk + Outfit, Cero Emojis
+           ========================================================================== */
+        .console-interior-stage {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 16px 36px 28px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 30;
+            height: calc(100vh - 84px);
+            min-height: 580px;
+        }
+        .console-interior-stage.active {
+            display: flex;
+            animation: interiorStageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes interiorStageFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Barra Superior Interior */
+        .interior-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 2px 0 8px;
+            width: 100%;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        }
+        .interior-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .btn-back-to-ring {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 38px;
+            padding: 0 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #0f172a;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-back-to-ring:hover {
+            background: #0f172a;
+            color: #ffffff;
+            transform: translateX(-3px);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+        }
+        .interior-console-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .interior-console-thumb {
+            width: 42px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(15, 23, 42, 0.14));
+        }
+        .interior-console-logo-img {
+            max-height: 32px;
+            max-width: 170px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 6px rgba(15, 23, 42, 0.12));
+        }
+        .interior-console-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.6px;
+            margin: 0;
+        }
+        .interior-game-count-chip {
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.06);
+            color: #475569;
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Logo de la Consola en el Anillo Principal */
+        .ring-console-logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            margin: 6px 0 8px;
+        }
+        .ring-console-hero-logo {
+            max-height: 54px;
+            max-width: 270px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.16));
+        }
+
+        /* Controles de Orden (A-Z / Recientes) y Modos de Vista (Anillo 3D / Mosaico / Lista) */
+        .interior-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .interior-sort-group,
+        .interior-view-mode-group {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(14px);
+            padding: 3px 4px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+        }
+        .interior-sort-btn,
+        .interior-view-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .interior-sort-btn:hover,
+        .interior-view-btn:hover {
+            color: #0f172a;
+            background: rgba(15, 23, 42, 0.04);
+        }
+        .interior-sort-btn.active,
+        .interior-view-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+        }
+        .interior-control-divider {
+            width: 1px;
+            height: 22px;
+            background: rgba(15, 23, 42, 0.1);
+            margin: 0 2px;
+        }
+
+        /* Contenedor Principal de Vistas */
+        .interior-views-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .interior-view-panel {
+            display: none;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            flex-direction: column;
+        }
+        .interior-view-panel.active {
+            display: flex;
+            animation: interiorViewPanelFade 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes interiorViewPanelFade {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 1. VISTA ANILLO 3D DE CARTUCHOS (VISTA HEROICA POR DEFECTO) */
+        .games-cartridge-ring-viewport {
+            position: relative;
+            width: 100%;
+            height: 330px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+            perspective-origin: 50% 50%;
+            overflow: visible;
+        }
+        .games-cartridge-ring-track {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+        }
+        .cart-ring-node {
+            position: absolute;
+            width: 280px;
+            height: 194px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.44s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        /* Posición 0: Cartucho Central Activo (estático, reacciona a navegación y hover) */
+        .cart-ring-node[data-cart-pos="0"] {
+            transform: translate3d(0, 0, 80px) rotateY(0deg) scale(1.08);
+            z-index: 30;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Posiciones -1 y +1: Cartuchos Vecinos */
+        .cart-ring-node[data-cart-pos="-1"] {
+            transform: translate3d(-310px, -6px, -35px) rotateY(20deg) scale(0.82);
+            z-index: 20;
+            opacity: 0.85;
+        }
+        .cart-ring-node[data-cart-pos="1"] {
+            transform: translate3d(310px, -6px, -35px) rotateY(-20deg) scale(0.82);
+            z-index: 20;
+            opacity: 0.85;
+        }
+        .cart-ring-node[data-cart-pos="-1"]:hover,
+        .cart-ring-node[data-cart-pos="1"]:hover {
+            opacity: 1;
+            filter: brightness(1.06);
+            transform: translate3d(var(--hover-x, 0), -12px, -20px) scale(0.86);
+        }
+        /* Posiciones -2 y +2: Cartuchos Exteriores */
+        .cart-ring-node[data-cart-pos="-2"] {
+            transform: translate3d(-550px, -20px, -110px) rotateY(36deg) scale(0.64);
+            z-index: 10;
+            opacity: 0.45;
+        }
+        .cart-ring-node[data-cart-pos="2"] {
+            transform: translate3d(550px, -20px, -110px) rotateY(-36deg) scale(0.64);
+            z-index: 10;
+            opacity: 0.45;
+        }
+        .cart-ring-node[data-cart-pos="hidden"] {
+            transform: translate3d(0, -50px, -320px) scale(0.2);
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Flechas de Navegación del Carrusel en los Flancos */
+        .cartridge-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 40;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cartridge-nav-arrow.arrow-left {
+            left: max(16px, calc(50% - 460px));
+        }
+        .cartridge-nav-arrow.arrow-right {
+            right: max(16px, calc(50% - 460px));
+        }
+        .cartridge-nav-arrow:hover {
+            background: #0f172a;
+            color: #ffffff;
+            transform: translateY(-50%) scale(1.08);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        }
+
+        /* Cartucho 3D Rig y Silueta Limpia (Sin Fondos Ni Bloques Cuadrados Detrás) */
+        .cartridge-3d-rig {
+            position: relative;
+            width: 280px;
+            height: 194px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            cursor: grab;
+            transition: transform 0.15s ease-out;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .cartridge-3d-rig.spin-on-select {
+            animation: none !important;
+        }
+        .showcase-cartridge-img {
+            position: absolute;
+            width: 280px;
+            height: 194px;
+            object-fit: contain;
+            pointer-events: none;
+            background: transparent !important;
+        }
+        .showcase-cartridge-img.face-front {
+            transform: translateZ(2px);
+            filter: drop-shadow(0 16px 24px rgba(15, 23, 42, 0.25));
+            z-index: 5;
+        }
+        .showcase-cartridge-img.face-back {
+            transform: translateZ(-2px) rotateY(180deg);
+            filter: drop-shadow(0 12px 18px rgba(15, 23, 42, 0.2));
+            z-index: 1;
+        }
+        .cartridge-3d-shadow {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 18px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.28) 0%, rgba(15, 23, 42, 0.08) 55%, transparent 75%);
+            filter: blur(5px);
+            pointer-events: none;
+        }
+
+        /* Información del Juego Hero Central */
+        .cartridge-ring-hero-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            margin-top: 14px;
+        }
+        .cartridge-info-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #e60012;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cartridge-info-eyebrow .chip-dot {
+            color: #94a3b8;
+        }
+        .cartridge-hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+        .cartridge-hero-desc {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #475569;
+            max-width: 620px;
+            margin: 0 auto;
+        }
+        .cartridge-hero-actions {
+            margin-top: 6px;
+        }
+        .btn-cartridge-play-now {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            height: 44px;
+            padding: 0 26px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-cartridge-play-now:hover {
+            transform: translateY(-2px) scale(1.03);
+            background: #e60012;
+            box-shadow: 0 10px 28px rgba(230, 0, 18, 0.35);
+        }
+        .btn-cartridge-play-now .enter-keycap-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        /* 2. VISTA MOSAICO (GRID) - SOLO ICONO / CARÁTULA DEL JUEGO */
+        .interior-games-grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 18px;
+            padding: 10px 10px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 180px);
+        }
+        .interior-grid-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        }
+        .interior-grid-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+            border-color: rgba(15, 23, 42, 0.18);
+        }
+        .interior-grid-card.active {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px #0f172a, 0 12px 28px rgba(15, 23, 42, 0.14);
+        }
+        .grid-card-cover-wrap {
+            width: 100%;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .grid-card-cover-img {
+            max-width: 120px;
+            max-height: 135px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+            transition: transform 0.25s ease;
+        }
+        .interior-grid-card:hover .grid-card-cover-img {
+            transform: scale(1.05) translateY(-3px);
+        }
+        .grid-card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        .grid-card-meta {
+            font-family: 'Outfit', sans-serif;
+            font-size: 11.5px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        .grid-card-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .interior-grid-card:hover .grid-card-play-btn {
+            background: #e60012;
+        }
+
+        /* 3. VISTA LISTA - SOLO ICONO / CARÁTULA DEL JUEGO */
+        .interior-games-list-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px 10px 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 180px);
+        }
+        .interior-list-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 14px;
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        }
+        .interior-list-row:hover {
+            transform: translateX(4px);
+            border-color: rgba(15, 23, 42, 0.2);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+        .interior-list-row.active {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px #0f172a, 0 8px 20px rgba(15, 23, 42, 0.1);
+        }
+        .list-row-cover-thumb {
+            width: 44px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+        }
+        .list-row-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .list-row-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .list-row-meta {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .list-row-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 16px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .interior-list-row:hover .list-row-play-btn {
+            background: #e60012;
+        }
     </style>
     <link rel="stylesheet" href="retrohub_toolbar.css">
-    <link rel="stylesheet" href="assets/index_ring_stage.css">
+    <link rel="stylesheet" href="assets/index_ring_stage.css?v=20261016_ring8">
     <script src="retrohub_toolbar.js" defer></script>
-    <script src="assets/index_ring_controller.js" defer></script>
+    <script src="assets/index_ring_controller.js?v=20261016_ring8" defer></script>
 
 </head>
 <body>
@@ -4756,7 +5347,10 @@
                     <span class="ring-roms-pill" id="ringRomsPill">1 Juego</span>
                 </div>
 
-                <h1 class="ring-console-main-title" id="ringConsoleTitle">Nintendo 64</h1>
+                <div class="ring-console-logo-box">
+                    <img src="logos/Platform logo 16842 (Nintendo 64).png" id="ringConsoleLogoImg" class="ring-console-hero-logo" alt="Logo de la Consola">
+                    <h1 class="ring-console-main-title" id="ringConsoleTitle" style="display: none;">Nintendo 64</h1>
+                </div>
                 <p class="ring-console-synopsis" id="ringConsoleDesc">
                     La legendaria consola de 64 bits de Nintendo que revolucionó los mundos 3D.
                 </p>
@@ -4778,95 +5372,139 @@
              Derecha: El Cartucho + Descripción + Pequeño Vídeo a modo de Trailer
              ================================================================== -->
         <section class="console-interior-stage" id="consoleInteriorStage">
-            <!-- Cabecera Limpia: Solo volver y nombre de la consola -->
+            <!-- Barra Superior Interior: Volver a la izquierda • Filtros & Modos de Vista a la derecha -->
             <div class="interior-header-bar">
                 <div class="interior-header-left">
-                    <button class="btn-back-to-ring" onclick="window.exitConsoleInterior()">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="btn-back-to-ring" onclick="window.exitConsoleInterior()" title="Volver al Anillo de Consolas">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="19" y1="12" x2="5" y2="12"></line>
                             <polyline points="12 19 5 12 12 5"></polyline>
                         </svg>
-                        <span>Volver</span>
+                        <span>Consolas</span>
                     </button>
 
                     <div class="interior-console-badge">
-                        <img src="assets/consoles_hires/n64.png" id="interiorConsoleThumb" class="interior-console-thumb" alt="Consola">
-                        <h2 class="interior-console-title" id="interiorConsoleTitle">Nintendo 64</h2>
+                        <img src="logos/Platform logo 16842 (Nintendo 64).png" id="interiorConsoleLogo" class="interior-console-logo-img" alt="Nintendo 64">
+                        <h2 class="interior-console-title" id="interiorConsoleTitle" style="display: none;">Nintendo 64</h2>
+                        <span class="interior-game-count-chip" id="interiorConsoleGameCount">1 Juego</span>
+                    </div>
+                </div>
+
+                <div class="interior-header-controls">
+                    <!-- Selector de Orden / Filtro (Alfabético / Recientes) -->
+                    <div class="interior-sort-group">
+                        <button class="interior-sort-btn active" id="btnSortAlpha" onclick="window.setInteriorGameSort('alpha')" title="Ordenar Alfabéticamente (A-Z)">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18M3 12h12M3 18h6"/>
+                            </svg>
+                            <span>A-Z</span>
+                        </button>
+                        <button class="interior-sort-btn" id="btnSortRecent" onclick="window.setInteriorGameSort('recent')" title="Ordenar por Jugados Recientemente">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span>Recientes</span>
+                        </button>
+                    </div>
+
+                    <div class="interior-control-divider"></div>
+
+                    <!-- Selector de Vista (Anillo 3D / Mosaico / Lista) -->
+                    <div class="interior-view-mode-group">
+                        <button class="interior-view-btn active" id="btnViewRing" onclick="window.setInteriorViewMode('ring')" title="Vista Anillo 3D de Cartuchos">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 3a9 9 0 0 1 9 9"/>
+                                <path d="M3 12a9 9 0 0 1 9-9"/>
+                            </svg>
+                            <span>Anillo 3D</span>
+                        </button>
+                        <button class="interior-view-btn" id="btnViewGrid" onclick="window.setInteriorViewMode('grid')" title="Vista Mosaico (Cuadrícula)">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                            </svg>
+                            <span>Mosaico</span>
+                        </button>
+                        <button class="interior-view-btn" id="btnViewList" onclick="window.setInteriorViewMode('list')" title="Vista Lista">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="8" y1="6" x2="21" y2="6"/>
+                                <line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                            <span>Lista</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Layout Dividido: Izquierda (Lista hacia abajo) | Derecha (Cartucho 3D + Descripción + Pequeño Vídeo) -->
-            <div class="interior-split-grid">
-                <!-- COLUMNA IZQUIERDA: LISTA DE JUEGOS HACIA ABAJO -->
-                <aside class="interior-games-list-panel">
-                    <div class="interior-games-vertical-scroll" id="interiorGamesVerticalList">
-                        <!-- Lista vertical generada por renderConsoleInteriorView() -->
+            <!-- CONTENEDOR DE VISTAS INTERIORES -->
+            <div class="interior-views-container">
+                <!-- 1. VISTA ANILLO 3D DE CARTUCHOS (VISTA PRINCIPAL POR DEFECTO) -->
+                <div class="interior-view-panel view-ring active" id="interiorViewRing">
+                    <div class="games-cartridge-ring-viewport">
+                        <!-- Flecha Izquierda -->
+                        <button class="cartridge-nav-arrow arrow-left" id="btnCartNavLeft" onclick="window.navigateCartridgeRing(-1)" aria-label="Cartucho Anterior">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+
+                        <!-- Escenario 3D donde orbitan los cartuchos de los juegos -->
+                        <div class="games-cartridge-ring-track" id="gamesCartridgeRingTrack">
+                            <!-- Nodos de cartuchos generados dinámicamente con posiciones -2, -1, 0, 1, 2 -->
+                        </div>
+
+                        <!-- Flecha Derecha -->
+                        <button class="cartridge-nav-arrow arrow-right" id="btnCartNavRight" onclick="window.navigateCartridgeRing(1)" aria-label="Cartucho Siguiente">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
                     </div>
-                </aside>
 
-                <!-- COLUMNA DERECHA: CARTUCHO 3D EN GIRO + DESCRIPCIÓN + PEQUEÑO VÍDEO -->
-                <div class="interior-game-showcase-panel">
-                    <div class="showcase-top-hero">
-                        <!-- Escenario 3D del Cartucho con animación de giro al seleccionar -->
-                        <div class="showcase-cartridge-3d-stage" id="showcaseCartridgeStage">
-                            <div class="cartridge-3d-rig" id="showcaseCartridgeRig">
-                                <!-- Cara frontal: Carcasa base N64 con carátula en el hueco -->
-                                <div class="cartridge-front-assembly face-front" id="cartridgeFrontAssembly">
-                                    <div class="cartridge-hole-window">
-                                        <img src="ROMS/covers/papermario.png" id="cartridgeHoleCoverImg" class="cartridge-hole-cover-img" alt="Carátula en Hueco">
-                                        <div class="cartridge-hole-shadow"></div>
-                                        <div class="cartridge-hole-gloss"></div>
-                                    </div>
-                                    <img src="ROMS/cartridges/n64_shell_base.png" id="showcaseCartridgeShellImg" class="cartridge-shell-base-img" alt="Carcasa N64">
-                                </div>
-
-                                <!-- Capas de espesor 3D -->
-                                <div class="showcase-cartridge-thickness thick-1"></div>
-                                <div class="showcase-cartridge-thickness thick-2"></div>
-
-                                <!-- Cara trasera: Reverso de N64 con tornillos y advertencia -->
-                                <div class="cartridge-back-assembly face-back" id="cartridgeBackAssembly">
-                                    <img src="ROMS/cartridges/n64_shell_back.png" id="showcaseCartridgeImgBack" class="cartridge-shell-back-img" alt="Reverso N64">
-                                </div>
-
-                                <div class="cartridge-3d-shine"></div>
-                                <div class="cartridge-3d-glare" id="cartridge3DGlare"></div>
-                                <!-- Elemento invisible para compatibilidad -->
-                                <img src="ROMS/cartridges/cart_papermario.png" id="showcaseCartridgeImg" style="display:none;" alt="">
-                            </div>
-                            <div class="cartridge-3d-shadow"></div>
+                    <!-- Información y Acciones del Juego Central Seleccionado -->
+                    <div class="cartridge-ring-hero-info" id="cartridgeRingHeroInfo">
+                        <div class="cartridge-info-eyebrow">
+                            <span class="cartridge-genre-chip" id="showcaseGenreChip">RPG / Aventura</span>
+                            <span class="chip-dot">•</span>
+                            <span class="cartridge-year-chip" id="showcaseYearChip">2001</span>
+                            <span class="chip-dot">•</span>
+                            <span class="cartridge-counter-chip" id="showcaseCounterChip">1 de 4</span>
                         </div>
-
-                        <!-- Título, Descripción y Botón Jugar + Pequeño Vídeo -->
-                        <div class="showcase-info-column">
-                            <div class="showcase-meta-eyebrow" id="showcaseMetaEyebrow">
-                                <span id="showcaseGenreChip">RPG / Aventura</span>
-                                <span>•</span>
-                                <span id="showcaseYearChip">2001</span>
-                            </div>
-
-                            <h3 class="showcase-game-title" id="showcaseGameTitle">Paper Mario (Europe)</h3>
-
-                            <p class="showcase-description-text" id="showcaseGameDescription">
-                                Una obra maestra del RPG en Nintendo 64 desarrollada por Intelligent Systems. Combina personajes estilo diorama de papel sobre mundos 3D vibrantes y combates por turnos.
-                            </p>
-
-                            <div class="showcase-action-and-video">
-                                <button class="btn-showcase-play-now" id="btnShowcasePlayNow">
-                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
-                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                    </svg>
-                                    <span>Jugar</span>
-                                    <span class="enter-keycap-badge">ENTER</span>
-                                </button>
-
-                                <div class="trailer-stage-box">
-                                    <video id="showcaseTrailerVideo" class="trailer-video-element" muted loop playsinline></video>
-                                    <canvas id="showcaseTrailerCanvas" class="trailer-canvas-preview"></canvas>
-                                </div>
-                            </div>
+                        <h2 class="cartridge-hero-title" id="showcaseGameTitle">Paper Mario (Europe)</h2>
+                        <p class="cartridge-hero-desc" id="showcaseGameDescription">
+                            Una obra maestra del RPG en Nintendo 64...
+                        </p>
+                        <div class="cartridge-hero-actions">
+                            <button class="btn-cartridge-play-now" id="btnShowcasePlayNow">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <span>Jugar</span>
+                                <span class="enter-keycap-badge">ENTER</span>
+                            </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 2. VISTA MOSAICO (GRID) -->
+                <div class="interior-view-panel view-grid" id="interiorViewGrid">
+                    <div class="interior-games-grid-layout" id="interiorGamesGridLayout">
+                        <!-- Tarjetas en cuadrícula generadas dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- 3. VISTA LISTA -->
+                <div class="interior-view-panel view-list" id="interiorViewList">
+                    <div class="interior-games-list-layout" id="interiorGamesListLayout">
+                        <!-- Filas de lista generadas dinámicamente -->
                     </div>
                 </div>
             </div>
@@ -5625,6 +6263,7 @@
                 id: 'n64',
                 name: 'Nintendo 64',
                 img: 'n64.png',
+                logo: 'logos/Platform logo 16842 (Nintendo 64).png',
                 wallpaper: 'assets/wallpapers/n64.svg',
                 era: '64-Bit Reality Immersion (1996)',
                 maker: 'Nintendo',
@@ -5640,6 +6279,7 @@
                 id: 'gba',
                 name: 'Game Boy Advance',
                 img: 'gba.png',
+                logo: 'logos/Platform logo 13558 (Game Boy Advance).png',
                 wallpaper: 'assets/wallpapers/gba.svg',
                 era: '32-Bit Handheld Powerhouse (2001)',
                 maker: 'Nintendo',
@@ -5653,8 +6293,9 @@
             },
             {
                 id: 'snes',
-                name: 'Super Nintendo (SNES)',
+                name: 'Super Nintendo',
                 img: 'snes.png',
+                logo: 'logos/Platform logo 17575 (Super Nintendo Entertainment System).png',
                 wallpaper: 'assets/wallpapers/snes.svg',
                 era: '16-Bit Perfection & Mode 7 (1990)',
                 maker: 'Nintendo',
@@ -5668,8 +6309,9 @@
             },
             {
                 id: 'nes',
-                name: 'Nintendo NES',
+                name: 'Nintendo Entertainment System',
                 img: 'nes.png',
+                logo: 'logos/Platform logo 17465 (Nintendo Entertainment System).png',
                 wallpaper: 'assets/wallpapers/nes.svg',
                 era: '8-Bit Living Room Icon (1983)',
                 maker: 'Nintendo',
@@ -5683,8 +6325,9 @@
             },
             {
                 id: 'genesis',
-                name: 'Sega Genesis / Mega Drive',
+                name: 'Sega Mega Drive',
                 img: 'genesis.png',
+                logo: 'logos/Platform logo 21203 (Sega Mega Drive).png',
                 wallpaper: 'assets/wallpapers/genesis.svg',
                 era: '16-Bit Blast Processing (1988)',
                 maker: 'SEGA',
@@ -5698,8 +6341,9 @@
             },
             {
                 id: 'ps1',
-                name: 'PlayStation 1',
+                name: 'Sony PlayStation',
                 img: 'ps1.png',
+                logo: 'logos/Platform logo 17551 (PlayStation).png',
                 wallpaper: 'assets/wallpapers/ps1.svg',
                 era: '32-Bit CD-ROM Revolution (1994)',
                 maker: 'Sony Computer Ent.',
@@ -5713,8 +6357,9 @@
             },
             {
                 id: 'psp',
-                name: 'PlayStation Portable (PSP)',
+                name: 'PlayStation Portable',
                 img: 'psp.png',
+                logo: 'logos/Platform logo 1164 (PlayStation Portable).png',
                 wallpaper: 'assets/wallpapers/psp.svg',
                 era: '3D High-End Widescreen (2004)',
                 maker: 'Sony Computer Ent.',
@@ -5728,8 +6373,9 @@
             },
             {
                 id: 'arcade',
-                name: 'Arcade MAME',
+                name: 'Arcade (MAME)',
                 img: 'arcade.png',
+                logo: 'logos/Platform logo 20147 (Multiple Arcade Machine Emulator).png',
                 wallpaper: 'assets/wallpapers/arcade.svg',
                 era: 'Coin-Op Masterworks',
                 maker: 'Varios Fabricantes',
@@ -5745,6 +6391,7 @@
                 id: 'gbc',
                 name: 'Game Boy Color',
                 img: 'gbc.png',
+                logo: 'logos/Platform logo 40110 (Game Boy Color).png',
                 wallpaper: 'assets/wallpapers/gbc.svg',
                 era: 'Color Portable Magic (1998)',
                 maker: 'Nintendo',
@@ -5760,6 +6407,7 @@
                 id: 'sms',
                 name: 'Sega Master System',
                 img: 'sms.png',
+                logo: 'logos/Platform logo 21199 (Sega Master System).png',
                 wallpaper: 'assets/wallpapers/sms.svg',
                 era: '8-Bit Arcade Powerhouse (1985)',
                 maker: 'SEGA',
@@ -5775,6 +6423,7 @@
                 id: 'atari',
                 name: 'Atari 2600',
                 img: 'atari.png',
+                logo: 'logos/Platform logo 5088 (Atari 2600).png',
                 wallpaper: 'assets/wallpapers/atari.svg',
                 era: 'Woodgrain Living Room Icon (1977)',
                 maker: 'Atari, Inc.',
@@ -5790,6 +6439,7 @@
                 id: 'pce',
                 name: 'PC Engine / TurboGrafx-16',
                 img: 'pce.png',
+                logo: 'logos/Platform logo 17257 (NEC TurboGrafx-16).png',
                 wallpaper: 'assets/wallpapers/pce.svg',
                 era: 'NEC 16-Bit Ultra-Compact (1987)',
                 maker: 'NEC / Hudson Soft',
@@ -5805,6 +6455,7 @@
                 id: 'nds',
                 name: 'Nintendo DS',
                 img: 'nds.png',
+                logo: 'logos/Platform logo 1161 (Nintendo DS).png',
                 wallpaper: 'assets/wallpapers/nds.svg',
                 era: 'Dual Screen Touch Sensation (2004)',
                 maker: 'Nintendo',
@@ -5820,6 +6471,7 @@
                 id: 'virtualboy',
                 name: 'Virtual Boy',
                 img: 'virtualboy.png',
+                logo: 'logos/Platform logo 27680 (Virtual Boy).webp',
                 wallpaper: 'assets/wallpapers/virtualboy.svg',
                 era: '3D Monochromatic VR (1995)',
                 maker: 'Nintendo',
@@ -5843,6 +6495,7 @@
                     cartridge: 'ROMS/cartridges/cart_papermario.png',
                     genre: 'RPG / Mario Aventura',
                     year: '2001',
+                    lastPlayed: 1729080000000,
                     core: 'n64',
                     n64core: 'parallel'
                 }
@@ -5962,6 +6615,7 @@
         };
 
         let activeConsoleIndex = 0;
+        window.activeConsoleIndex = 0;
         let activeBgLayer = 'A';
         let favoriteConsoles = JSON.parse(localStorage.getItem('retrohub_fav_consoles') || '["n64", "gba"]');
         let bgCarouselTimer = null;
@@ -6217,6 +6871,7 @@
                         cartridge: g.cartucho || g.cartridge || '',
                         genre: g.genero || g.genre || 'Clásico Retro',
                         year: g.year || 'Retro',
+                        lastPlayed: g.lastPlayed || 0,
                         core: g.core || (consoleId === 'genesis' ? 'segaMD' : (consoleId === 'ps1' ? 'psx' : consoleId)),
                         n64core: g.n64core || 'parallel',
                         isPlayable: true
@@ -6226,6 +6881,7 @@
 
             return list;
         }
+        window.getGamesForConsole = getGamesForConsole;
 
         // ========================================================
         // 2. RENDERIZAR ANILLO 3D Y VISTA INTERIOR
@@ -6457,7 +7113,7 @@
 
         function playActiveShelfGame() {
             const c = CONSOLES[activeConsoleIndex];
-            const games = getGamesForConsole(c.id);
+            const games = typeof window.getSortedInteriorGames === 'function' ? window.getSortedInteriorGames(c.id) : getGamesForConsole(c.id);
             const g = games[activeGameIndex] || games[0];
             if (g) {
                 playSelectedGame(g, c);
@@ -6470,6 +7126,10 @@
         // 4. NAVEGACIÓN ENTRE JUEGOS Y ENTRE CONSOLAS
         // ========================================================
         function passGameRight() {
+            if (window.isConsoleInteriorOpen && typeof window.navigateCartridgeRing === 'function') {
+                window.navigateCartridgeRing(1);
+                return;
+            }
             const c = CONSOLES[activeConsoleIndex];
             const games = getGamesForConsole(c.id);
             if (games.length <= 1) return;
@@ -6482,6 +7142,10 @@
         }
 
         function passGameLeft() {
+            if (window.isConsoleInteriorOpen && typeof window.navigateCartridgeRing === 'function') {
+                window.navigateCartridgeRing(-1);
+                return;
+            }
             const c = CONSOLES[activeConsoleIndex];
             const games = getGamesForConsole(c.id);
             if (games.length <= 1) return;
@@ -6507,6 +7171,7 @@
 
         function updateFocusedConsole(index, playMusic, direction = 'right') {
             activeConsoleIndex = index;
+            window.activeConsoleIndex = index;
             activeGameIndex = 0;
             const c = CONSOLES[index];
 
@@ -6568,6 +7233,11 @@
 
             // 9. Renderizar y actualizar la repisa Switch mostrando ÚNICAMENTE los juegos de esta consola
             renderSwitchShelf(null, true);
+
+            // 10. Actualizar sincronizado el Anillo 3D panorámico de consolas
+            if (typeof window.renderConsoleRing3D === 'function') {
+                window.renderConsoleRing3D();
+            }
         }
 
         // ========================================================
@@ -7496,7 +8166,9 @@
                 return 0;
             });
             activeConsoleIndex = 0;
-            renderHorizontalTrack();
+            const ringTrack = document.getElementById('ringConsolesTrack');
+            if (ringTrack) ringTrack.innerHTML = '';
+            if (typeof renderHorizontalTrack === 'function') renderHorizontalTrack();
             updateFocusedConsole(0, false, 'right');
         };
 

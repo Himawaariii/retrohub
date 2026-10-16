@@ -73,6 +73,29 @@
     return fallbacks[consoleId] || `assets/consoles/${consoleId}.png`;
   }
 
+  const CONSOLE_LOGOS = {
+    n64: 'logos/Platform logo 16842 (Nintendo 64).png',
+    gba: 'logos/Platform logo 13558 (Game Boy Advance).png',
+    snes: 'logos/Platform logo 17575 (Super Nintendo Entertainment System).png',
+    nes: 'logos/Platform logo 17465 (Nintendo Entertainment System).png',
+    genesis: 'logos/Platform logo 21203 (Sega Mega Drive).png',
+    ps1: 'logos/Platform logo 17551 (PlayStation).png',
+    psp: 'logos/Platform logo 1164 (PlayStation Portable).png',
+    arcade: 'logos/Platform logo 20147 (Multiple Arcade Machine Emulator).png',
+    gbc: 'logos/Platform logo 40110 (Game Boy Color).png',
+    sms: 'logos/Platform logo 21199 (Sega Master System).png',
+    atari: 'logos/Platform logo 5088 (Atari 2600).png',
+    pce: 'logos/Platform logo 17257 (NEC TurboGrafx-16).png',
+    nds: 'logos/Platform logo 1161 (Nintendo DS).png',
+    virtualboy: 'logos/Platform logo 27680 (Virtual Boy).webp'
+  };
+
+  function getActiveConsoleIdx() {
+    return typeof window.activeConsoleIndex === 'number'
+      ? window.activeConsoleIndex
+      : (typeof activeConsoleIndex === 'number' ? activeConsoleIndex : 0);
+  }
+
   /* ==========================================================================
      1. RENDERIZADO DEL ANILLO 3D DE CONSOLAS (VISTA 1)
      ========================================================================== */
@@ -81,15 +104,21 @@
     const dotsWrap = document.getElementById('ringPaginationDots');
     if (!track || typeof CONSOLES === 'undefined') return;
 
+    const curIdx = getActiveConsoleIdx();
     const total = CONSOLES.length;
 
-    if (track.children.length !== total) {
+    const needsRebuild =
+      track.children.length !== total ||
+      Array.from(track.children).some((n, i) => n.dataset.consoleId !== CONSOLES[i]?.id);
+
+    if (needsRebuild) {
       track.innerHTML = '';
       CONSOLES.forEach((c, idx) => {
         const node = document.createElement('div');
         node.className = 'ring-console-node';
         node.id = `ring-node-${c.id}`;
         node.dataset.index = String(idx);
+        node.dataset.consoleId = c.id;
 
         node.innerHTML = `
           <div class="ring-node-hardware-card">
@@ -100,10 +129,11 @@
 
         node.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (idx === activeConsoleIndex) {
+          const currentIdx = getActiveConsoleIdx();
+          if (idx === currentIdx) {
             window.enterSelectedConsole();
           } else {
-            const diff = getCircularOffset(idx, activeConsoleIndex, total);
+            const diff = getCircularOffset(idx, currentIdx, total);
             updateFocusedConsole(idx, true, diff > 0 ? 'right' : 'left');
           }
         });
@@ -113,7 +143,7 @@
     }
 
     Array.from(track.children).forEach((node, idx) => {
-      const offset = getCircularOffset(idx, activeConsoleIndex, total);
+      const offset = getCircularOffset(idx, curIdx, total);
       if (Math.abs(offset) <= 3) {
         node.setAttribute('data-ring-pos', String(offset));
       } else {
@@ -121,12 +151,13 @@
       }
     });
 
-    const activeConsole = CONSOLES[activeConsoleIndex];
+    const activeConsole = CONSOLES[curIdx];
     if (activeConsole) {
       const games = typeof getGamesForConsole === 'function' ? getGamesForConsole(activeConsole.id) : [];
       const makerEl = document.getElementById('ringMakerPill');
       const eraEl = document.getElementById('ringEraPill');
       const romsEl = document.getElementById('ringRomsPill');
+      const logoEl = document.getElementById('ringConsoleLogoImg');
       const titleEl = document.getElementById('ringConsoleTitle');
       const descEl = document.getElementById('ringConsoleDesc');
 
@@ -136,7 +167,26 @@
       if (romsEl) {
         romsEl.textContent = `${games.length} ${games.length === 1 ? 'Juego' : 'Juegos'}`;
       }
-      if (titleEl) titleEl.textContent = activeConsole.name;
+
+      const logoUrl = activeConsole.logo || CONSOLE_LOGOS[activeConsole.id];
+      if (logoEl) {
+        if (logoUrl) {
+          logoEl.src = logoUrl;
+          logoEl.alt = activeConsole.name;
+          logoEl.style.display = 'block';
+          if (titleEl) titleEl.style.display = 'none';
+        } else {
+          logoEl.style.display = 'none';
+          if (titleEl) {
+            titleEl.textContent = activeConsole.name;
+            titleEl.style.display = 'block';
+          }
+        }
+      } else if (titleEl) {
+        titleEl.textContent = activeConsole.name;
+        titleEl.style.display = 'block';
+      }
+
       if (descEl) descEl.textContent = activeConsole.synopsis || '';
     }
 
@@ -145,14 +195,14 @@
         dotsWrap.innerHTML = '';
         CONSOLES.forEach((c, i) => {
           const dot = document.createElement('span');
-          dot.className = `ring-page-dot ${i === activeConsoleIndex ? 'active' : ''}`;
+          dot.className = `ring-page-dot ${i === curIdx ? 'active' : ''}`;
           dot.title = c.name;
-          dot.onclick = () => updateFocusedConsole(i, true, i > activeConsoleIndex ? 'right' : 'left');
+          dot.onclick = () => updateFocusedConsole(i, true, i > curIdx ? 'right' : 'left');
           dotsWrap.appendChild(dot);
         });
       } else {
         Array.from(dotsWrap.children).forEach((dot, i) => {
-          dot.classList.toggle('active', i === activeConsoleIndex);
+          dot.classList.toggle('active', i === curIdx);
         });
       }
     }
@@ -209,108 +259,79 @@
   /* ==========================================================================
      3. RENDERIZADO DE LA VISTA INTERIOR Y GIRO 3D DEL CARTUCHO
      ========================================================================== */
-  function triggerCartridge3DSpin() {
-    const rig = document.getElementById('showcaseCartridgeRig');
-    if (!rig) return;
-    rig.classList.remove('spin-on-select');
-    // Forzar reflow para reiniciar la animación 3D de giro en cada selección
-    void rig.offsetWidth;
-    rig.classList.add('spin-on-select');
-  }
+  let interiorViewMode = 'ring'; // 'ring' | 'grid' | 'list'
+  let interiorSortMode = 'alpha'; // 'alpha' | 'recent'
 
-  window.renderConsoleInteriorView = function () {
-    const c = CONSOLES[activeConsoleIndex];
-    if (!c) return;
-
-    const thumbEl = document.getElementById('interiorConsoleThumb');
-    const titleEl = document.getElementById('interiorConsoleTitle');
-
-    if (thumbEl) {
-      thumbEl.src = `assets/consoles_hires/${c.img}`;
-      thumbEl.onerror = () => {
-        thumbEl.src = `assets/consoles/${c.img}`;
-      };
-    }
-    if (titleEl) titleEl.textContent = c.name;
-
-    const allGames = typeof getGamesForConsole === 'function' ? getGamesForConsole(c.id) : [];
-    const filteredGames = interiorSearchQuery
-      ? allGames.filter(
-          (g) =>
-            (g.title && g.title.toLowerCase().includes(interiorSearchQuery)) ||
-            (g.genre && g.genre.toLowerCase().includes(interiorSearchQuery))
-        )
-      : allGames;
-
-    const listEl = document.getElementById('interiorGamesVerticalList');
-    if (!listEl) return;
-    listEl.innerHTML = '';
-
-    if (filteredGames.length === 0) {
-      listEl.innerHTML = `
-        <div style="padding: 24px 18px; border-radius: 20px; background: rgba(255,255,255,0.58); border: 1px solid rgba(255,255,255,0.82); text-align: center; color: #64748b; font-size: 13.5px; font-weight: 600;">
-          Sin juegos disponibles en ${c.name}
-        </div>
-      `;
-      renderInteriorGameDetail(null, c);
-      return;
-    }
-
-    if (activeGameIndex >= filteredGames.length) {
-      activeGameIndex = 0;
-    }
-
-    filteredGames.forEach((g, idx) => {
-      const isActive = idx === activeGameIndex;
-      const row = document.createElement('div');
-      row.className = `interior-game-row ${isActive ? 'active' : ''}`;
-      row.id = `interior-game-row-${idx}`;
-
-      const rawCover = g.cover || `assets/consoles/${c.img}`;
-      const coverSrc = rawCover.includes('papermario') ? `${rawCover}?v=2` : rawCover;
-
-      row.innerHTML = `
-        <img src="${coverSrc}" class="game-row-thumb" alt="${g.title}" onerror="this.src='assets/consoles/${c.img}'">
-        <div class="game-row-info">
-          <div class="game-row-title">${g.title}</div>
-          <div class="game-row-meta">${g.genre || 'Clásico'} • ${g.year || ''}</div>
-        </div>
-        <div class="game-row-arrow">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </div>
-      `;
-
-      row.addEventListener('click', () => {
-        if (activeGameIndex === idx) {
-          playSelectedGame(g, c);
-        } else {
-          activeGameIndex = idx;
-          if (window.n3dsAudio) window.n3dsAudio.play('move');
-          window.renderConsoleInteriorView();
-        }
-      });
-
-      listEl.appendChild(row);
+  window.setInteriorViewMode = function (mode) {
+    interiorViewMode = mode;
+    ['ring', 'grid', 'list'].forEach((m) => {
+      const btn = document.getElementById(`btnView${m.charAt(0).toUpperCase() + m.slice(1)}`);
+      const panel = document.getElementById(`interiorView${m.charAt(0).toUpperCase() + m.slice(1)}`);
+      if (btn) btn.classList.toggle('active', m === mode);
+      if (panel) panel.classList.toggle('active', m === mode);
     });
+    if (window.n3dsAudio) window.n3dsAudio.play('move');
+    window.renderConsoleInteriorView();
+  };
 
-    const activeRowEl = document.getElementById(`interior-game-row-${activeGameIndex}`);
-    if (activeRowEl) {
-      activeRowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  window.setInteriorGameSort = function (sort) {
+    interiorSortMode = sort;
+    const btnAlpha = document.getElementById('btnSortAlpha');
+    const btnRecent = document.getElementById('btnSortRecent');
+    if (btnAlpha) btnAlpha.classList.toggle('active', sort === 'alpha');
+    if (btnRecent) btnRecent.classList.toggle('active', sort === 'recent');
+    if (window.n3dsAudio) window.n3dsAudio.play('move');
+    activeGameIndex = 0;
+    window.renderConsoleInteriorView();
+  };
+
+  window.navigateCartridgeRing = function (dir) {
+    const curIdx = getActiveConsoleIdx();
+    const c = CONSOLES[curIdx];
+    if (!c) return;
+    const games = getSortedInteriorGames(c.id);
+    if (games.length <= 1) return;
+
+    activeGameIndex = (activeGameIndex + dir + games.length) % games.length;
+    if (window.n3dsAudio) window.n3dsAudio.play('move');
+    window.renderConsoleInteriorView();
+  };
+
+  function getSortedInteriorGames(consoleId) {
+    const raw = typeof getGamesForConsole === 'function' ? getGamesForConsole(consoleId) : [];
+    let list = [...raw];
+
+    if (interiorSortMode === 'alpha') {
+      list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    } else if (interiorSortMode === 'recent') {
+      list.sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0));
     }
 
-    renderInteriorGameDetail(filteredGames[activeGameIndex], c);
-  };
+    if (interiorSearchQuery) {
+      const q = interiorSearchQuery.toLowerCase();
+      list = list.filter(
+        (g) =>
+          (g.title && g.title.toLowerCase().includes(q)) ||
+          (g.genre && g.genre.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }
+  window.getSortedInteriorGames = getSortedInteriorGames;
 
   // Compositor dinámico de cartuchos N64 usando n64_shell_base.png como carcasa base
   const n64CartCache = {};
   let n64ShellBaseImg = null;
 
-  function renderN64CartridgeWithBase(artUrl, targetImgEl) {
-    if (!targetImgEl || !artUrl) return;
+  function renderN64CartridgeWithBase(artUrl, target) {
+    if (!target || !artUrl) return;
+    const deliver = (url) => {
+      if (typeof target === 'function') target(url);
+      else if (target && typeof target === 'object') target.src = url;
+    };
+
     if (n64CartCache[artUrl]) {
-      targetImgEl.src = n64CartCache[artUrl];
+      deliver(n64CartCache[artUrl]);
       return;
     }
 
@@ -321,7 +342,7 @@
         n64ShellBaseImg = new Image();
         n64ShellBaseImg.crossOrigin = 'anonymous';
         n64ShellBaseImg.onload = () => cb(n64ShellBaseImg);
-        n64ShellBaseImg.src = 'ROMS/cartridges/n64_shell_base.png?v=2';
+        n64ShellBaseImg.src = 'ROMS/cartridges/n64_shell_base.png';
       }
     };
 
@@ -329,117 +350,357 @@
       const artImg = new Image();
       artImg.crossOrigin = 'anonymous';
       artImg.onload = () => {
-        const w = shellImg.naturalWidth || 599;
-        const h = shellImg.naturalHeight || 416;
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-
-        // Coordenadas exactas de la ventana central del cartucho N64
-        const winX = 160;
-        const winY = 56;
-        const winW = 285;
-        const winH = 326;
-
-        const scale = Math.max(winW / artImg.naturalWidth, winH / artImg.naturalHeight);
-        const drawW = artImg.naturalWidth * scale;
-        const drawH = artImg.naturalHeight * scale;
-        const drawX = winX + (winW - drawW) / 2;
-        const drawY = winY + (winH - drawH) / 2;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(winX, winY, winW, winH);
-        ctx.clip();
-        ctx.drawImage(artImg, drawX, drawY, drawW, drawH);
-        ctx.restore();
-
-        // Superponer la carcasa N64 original encima
-        ctx.drawImage(shellImg, 0, 0, w, h);
-
         try {
+          const w = shellImg.naturalWidth || 599;
+          const h = shellImg.naturalHeight || 416;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+
+          // Coordenadas y curvatura exactas de la ventana del cartucho N64
+          const winX = 166;
+          const winY = 60;
+          const winW = 274;
+          const winH = 316;
+          const radius = 6;
+
+          // 1. Fondo oscuro neutral en la cavidad de la etiqueta
+          ctx.save();
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(winX, winY, winW, winH, radius);
+          } else {
+            ctx.rect(winX, winY, winW, winH);
+          }
+          ctx.fillStyle = '#14161a';
+          ctx.fill();
+          ctx.clip();
+
+          // 2. Dibujar carátula con ajuste cover (aspect-fill) centrado
+          const scale = Math.max(winW / artImg.naturalWidth, winH / artImg.naturalHeight);
+          const drawW = artImg.naturalWidth * scale;
+          const drawH = artImg.naturalHeight * scale;
+          const drawX = winX + (winW - drawW) / 2;
+          const drawY = winY + (winH - drawH) / 2;
+          ctx.drawImage(artImg, drawX, drawY, drawW, drawH);
+
+          // 3. Sutil reflejo diagonal de pegatina para hiperrealismo
+          const grad = ctx.createLinearGradient(winX, winY, winX + winW, winY + winH);
+          grad.addColorStop(0, 'rgba(255, 255, 255, 0.24)');
+          grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.04)');
+          grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.0)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0.32)');
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          ctx.restore();
+
+          // 4. Superponer la carcasa física N64 encima
+          ctx.drawImage(shellImg, 0, 0, w, h);
+
           const dataUrl = canvas.toDataURL('image/png');
           n64CartCache[artUrl] = dataUrl;
-          targetImgEl.src = dataUrl;
-        } catch (e) {}
+          deliver(dataUrl);
+        } catch (e) {
+          console.warn('[Cartridge] Error componiendo cartucho:', e);
+        }
       };
       artImg.src = artUrl;
     });
   }
 
-  function renderInteriorGameDetail(game, consoleObj) {
-    const holeCoverImg = document.getElementById('cartridgeHoleCoverImg');
-    const shellImg = document.getElementById('showcaseCartridgeShellImg');
-    const cartImgBack = document.getElementById('showcaseCartridgeImgBack');
-    const genreChip = document.getElementById('showcaseGenreChip');
-    const yearChip = document.getElementById('showcaseYearChip');
-    const titleEl = document.getElementById('showcaseGameTitle');
-    const descEl = document.getElementById('showcaseGameDescription');
-    const playBtn = document.getElementById('btnShowcasePlayNow');
+  function setupCartridgeNodeTilt(node, idx) {
+    const rig = document.getElementById(`cart-rig-${idx}`);
+    const glare = document.getElementById(`cart-glare-${idx}`);
+    if (!node || !rig) return;
 
-    triggerCartridge3DSpin();
+    let isHovered = false;
 
-    if (!game) {
-      if (holeCoverImg) holeCoverImg.src = '';
-      if (shellImg) {
-        shellImg.src =
-          consoleObj.id === 'n64'
-            ? 'ROMS/cartridges/n64_shell_base.png?v=3'
-            : getDefaultCartridgeForConsole(consoleObj.id);
+    node.addEventListener('mouseenter', () => {
+      isHovered = true;
+      if (glare) glare.style.opacity = '0.65';
+    });
+
+    node.addEventListener('mousemove', (e) => {
+      if (!isHovered) return;
+      const rect = node.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+
+      const rotY = nx * 22;
+      const rotX = -ny * 16;
+      const lift = -ny * 8;
+
+      rig.style.transform = `translate3d(0, ${lift}px, 75px) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(1.08)`;
+
+      if (glare) {
+        const gx = nx * 50;
+        const gy = ny * 40;
+        glare.style.transform = `translate(${gx}px, ${gy}px) translateZ(14px)`;
       }
-      if (cartImgBack) {
-        cartImgBack.src =
-          consoleObj.id === 'n64'
-            ? 'ROMS/cartridges/n64_shell_back.png?v=3'
-            : getDefaultCartridgeForConsole(consoleObj.id);
+    });
+
+    node.addEventListener('mouseleave', () => {
+      isHovered = false;
+      rig.style.transform = '';
+      if (glare) glare.style.opacity = '0';
+    });
+  }
+
+  window.renderConsoleInteriorView = function () {
+    const curIdx = getActiveConsoleIdx();
+    const c = CONSOLES[curIdx];
+    if (!c) return;
+
+    const logoEl = document.getElementById('interiorConsoleLogo');
+    const titleEl = document.getElementById('interiorConsoleTitle');
+    const countEl = document.getElementById('interiorConsoleGameCount');
+    const thumbEl = document.getElementById('interiorConsoleThumb');
+    if (thumbEl) {
+      thumbEl.style.display = 'none';
+    }
+
+    const logoUrl = c.logo || CONSOLE_LOGOS[c.id];
+    if (logoEl) {
+      if (logoUrl) {
+        logoEl.src = logoUrl;
+        logoEl.alt = c.name;
+        logoEl.style.display = 'block';
+        if (titleEl) titleEl.style.display = 'none';
+      } else {
+        logoEl.style.display = 'none';
+        if (titleEl) {
+          titleEl.textContent = c.name;
+          titleEl.style.display = 'block';
+        }
       }
-      if (genreChip) genreChip.textContent = consoleObj.maker || 'Retro';
-      if (yearChip) yearChip.textContent = consoleObj.arch || '';
-      if (titleEl) titleEl.textContent = consoleObj.name;
-      if (descEl) descEl.textContent = consoleObj.synopsis;
-      if (playBtn) {
-        playBtn.style.display = 'none';
+    } else if (titleEl) {
+      titleEl.textContent = c.name;
+      titleEl.style.display = 'block';
+    }
+
+    const games = getSortedInteriorGames(c.id);
+    if (countEl) {
+      countEl.textContent = `${games.length} Juego${games.length !== 1 ? 's' : ''}`;
+    }
+
+    if (games.length === 0) {
+      const track = document.getElementById('gamesCartridgeRingTrack');
+      if (track) {
+        track.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: #64748b; font-size: 15px; font-weight: 700; background: rgba(255,255,255,0.7); border-radius: 20px;">
+            Sin juegos disponibles para ${c.name}
+          </div>`;
       }
-      setupGameTrailerPlayer(null, consoleObj);
+      const showTitle = document.getElementById('showcaseGameTitle');
+      const showDesc = document.getElementById('showcaseGameDescription');
+      const showCounter = document.getElementById('showcaseCounterChip');
+      const showGenre = document.getElementById('showcaseGenreChip');
+      const showYear = document.getElementById('showcaseYearChip');
+      if (showTitle) showTitle.textContent = 'Sin juegos';
+      if (showDesc) showDesc.textContent = `Aún no se han añadido ROMs para ${c.name}.`;
+      if (showCounter) showCounter.textContent = '0 de 0';
+      if (showGenre) showGenre.textContent = c.name;
+      if (showYear) showYear.textContent = c.era || '';
+
+      const grid = document.getElementById('interiorGamesGridLayout');
+      if (grid) grid.innerHTML = '<div style="grid-column: 1/-1; padding: 32px; text-align: center; color: #64748b; font-weight: 600;">No hay juegos disponibles para esta consola.</div>';
+      const list = document.getElementById('interiorGamesListLayout');
+      if (list) list.innerHTML = '<div style="padding: 32px; text-align: center; color: #64748b; font-weight: 600;">No hay juegos disponibles para esta consola.</div>';
       return;
     }
 
-    if (playBtn) {
-      playBtn.style.display = 'inline-flex';
-      playBtn.onclick = () => playSelectedGame(game, consoleObj);
+    if (activeGameIndex >= games.length) {
+      activeGameIndex = 0;
     }
 
-    const coverSrc = game.cover || 'ROMS/covers/papermario.png';
+    // 1. RENDERIZADO DEL ANILLO 3D DE CARTUCHOS
+    renderCartridgeRingView(games, c);
 
-    if (consoleObj.id === 'n64') {
-      if (holeCoverImg) {
-        holeCoverImg.style.display = 'block';
-        holeCoverImg.src = coverSrc;
-      }
-      if (shellImg) {
-        shellImg.src = 'ROMS/cartridges/n64_shell_base.png?v=3';
-      }
-      if (cartImgBack) {
-        cartImgBack.src = 'ROMS/cartridges/n64_shell_back.png?v=3';
-      }
-    } else {
-      // Para otras consolas, la carátula se adapta o se usa la carcasa de la consola
-      if (holeCoverImg) {
-        holeCoverImg.style.display = 'block';
-        holeCoverImg.src = coverSrc;
-      }
-      const cartSrc = game.cartridge || getDefaultCartridgeForConsole(consoleObj.id);
-      if (shellImg) shellImg.src = cartSrc;
-      if (cartImgBack) cartImgBack.src = cartSrc;
+    // 2. RENDERIZADO DE LA VISTA MOSAICO (GRID)
+    renderInteriorGridView(games, c);
+
+    // 3. RENDERIZADO DE LA VISTA LISTA
+    renderInteriorListView(games, c);
+  };
+
+  function renderCartridgeRingView(games, c) {
+    const track = document.getElementById('gamesCartridgeRingTrack');
+    if (!track) return;
+
+    const total = games.length;
+    const needsBuild =
+      track.children.length !== total || track.dataset.consoleId !== c.id;
+
+    if (needsBuild) {
+      track.innerHTML = '';
+      track.dataset.consoleId = c.id;
+
+      games.forEach((g, idx) => {
+        const node = document.createElement('div');
+        node.className = 'cart-ring-node';
+        node.id = `cart-ring-node-${idx}`;
+        node.dataset.gameIdx = String(idx);
+
+        const coverSrc = g.cover || `assets/consoles/${c.img}`;
+        const defaultCart = getDefaultCartridgeForConsole(c.id);
+        const isN64 = c.id === 'n64';
+
+        let initialFrontSrc = defaultCart;
+        if (isN64) {
+          if (n64CartCache[coverSrc]) {
+            initialFrontSrc = n64CartCache[coverSrc];
+          } else if (g.cartridge && g.cartridge.includes('cart_')) {
+            initialFrontSrc = g.cartridge;
+          } else {
+            initialFrontSrc = 'ROMS/cartridges/cart_papermario.png';
+          }
+        } else {
+          initialFrontSrc = g.cartridge || defaultCart;
+        }
+
+        const backSrc = isN64 ? 'ROMS/cartridges/n64_shell_back.png' : initialFrontSrc;
+
+        // Cartucho limpio transparente sin bloques ni fondos rectangulares detrás
+        node.innerHTML = `
+          <div class="cartridge-3d-rig" id="cart-rig-${idx}">
+            <img src="${initialFrontSrc}" class="showcase-cartridge-img face-front" id="cart-front-${idx}" alt="${g.title}" onerror="this.src='ROMS/cartridges/n64_shell_base.png'">
+            <img src="${backSrc}" class="showcase-cartridge-img face-back" alt="Reverso" onerror="this.src='ROMS/cartridges/n64_shell_base.png'">
+            <div class="cartridge-3d-shine"></div>
+            <div class="cartridge-3d-glare" id="cart-glare-${idx}"></div>
+          </div>
+          <div class="cartridge-3d-shadow"></div>
+        `;
+
+        if (isN64 && !n64CartCache[coverSrc]) {
+          renderN64CartridgeWithBase(coverSrc, (dataUrl) => {
+            const frontImg = document.getElementById(`cart-front-${idx}`);
+            if (frontImg) frontImg.src = dataUrl;
+          });
+        }
+
+        setupCartridgeNodeTilt(node, idx);
+
+        node.addEventListener('click', () => {
+          if (activeGameIndex === idx) {
+            playSelectedGame(g, c);
+          } else {
+            activeGameIndex = idx;
+            if (window.n3dsAudio) window.n3dsAudio.play('move');
+            window.renderConsoleInteriorView();
+          }
+        });
+
+        track.appendChild(node);
+      });
     }
 
-    if (genreChip) genreChip.textContent = game.genre || 'Aventura';
-    if (yearChip) yearChip.textContent = game.year || '';
-    if (titleEl) titleEl.textContent = game.title;
-    if (descEl) descEl.textContent = getGameRichDescription(game, consoleObj);
+    // Actualizar las posiciones 3D para una transición suave en arco sin recrear DOM
+    games.forEach((g, idx) => {
+      let diff = idx - activeGameIndex;
+      if (diff > total / 2) diff -= total;
+      if (diff < -total / 2) diff += total;
 
-    setupGameTrailerPlayer(game, consoleObj);
+      let posStr = 'hidden';
+      if (diff === 0) posStr = '0';
+      else if (diff === -1) posStr = '-1';
+      else if (diff === 1) posStr = '1';
+      else if (diff === -2) posStr = '-2';
+      else if (diff === 2) posStr = '2';
+
+      const node = track.children[idx];
+      if (node) {
+        node.className = `cart-ring-node ${diff === 0 ? 'active-center' : ''}`;
+        node.dataset.cartPos = posStr;
+        const rig = document.getElementById(`cart-rig-${idx}`);
+        if (rig && diff !== 0) {
+          rig.style.transform = '';
+        }
+      }
+    });
+
+    // Actualizar Información del Juego Hero Central
+    const activeGame = games[activeGameIndex];
+    if (activeGame) {
+      const genreChip = document.getElementById('showcaseGenreChip');
+      const yearChip = document.getElementById('showcaseYearChip');
+      const counterChip = document.getElementById('showcaseCounterChip');
+      const titleEl = document.getElementById('showcaseGameTitle');
+      const descEl = document.getElementById('showcaseGameDescription');
+      const playBtn = document.getElementById('btnShowcasePlayNow');
+
+      if (genreChip) genreChip.textContent = activeGame.genre || 'Aventura';
+      if (yearChip) yearChip.textContent = activeGame.year || '';
+      if (counterChip) counterChip.textContent = `${activeGameIndex + 1} de ${games.length}`;
+      if (titleEl) titleEl.textContent = activeGame.title;
+      if (descEl) descEl.textContent = getGameRichDescription(activeGame, c);
+      if (playBtn) {
+        playBtn.onclick = () => playSelectedGame(activeGame, c);
+      }
+    }
+  }
+
+  function renderInteriorGridView(games, c) {
+    const grid = document.getElementById('interiorGamesGridLayout');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    games.forEach((g, idx) => {
+      const card = document.createElement('div');
+      card.className = `interior-grid-card ${idx === activeGameIndex ? 'active' : ''}`;
+      const coverSrc = g.cover || `assets/consoles/${c.img}`;
+
+      card.innerHTML = `
+        <div class="grid-card-cover-wrap">
+          <img src="${coverSrc}" id="grid-cover-${idx}" class="grid-card-cover-img" alt="${g.title}" onerror="this.src='assets/consoles/${c.img}'">
+        </div>
+        <div class="grid-card-title" title="${g.title}">${g.title}</div>
+        <div class="grid-card-meta">${g.genre || 'Clásico'} • ${g.year || ''}</div>
+        <button class="grid-card-play-btn">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <span>Jugar</span>
+        </button>
+      `;
+
+      card.addEventListener('click', () => {
+        activeGameIndex = idx;
+        playSelectedGame(g, c);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function renderInteriorListView(games, c) {
+    const list = document.getElementById('interiorGamesListLayout');
+    if (!list) return;
+    list.innerHTML = '';
+
+    games.forEach((g, idx) => {
+      const row = document.createElement('div');
+      row.className = `interior-list-row ${idx === activeGameIndex ? 'active' : ''}`;
+      const coverSrc = g.cover || `assets/consoles/${c.img}`;
+
+      row.innerHTML = `
+        <img src="${coverSrc}" id="list-cover-${idx}" class="list-row-cover-thumb" alt="${g.title}" onerror="this.src='assets/consoles/${c.img}'">
+        <div class="list-row-info">
+          <div class="list-row-title">${g.title}</div>
+          <div class="list-row-meta">${g.genre || 'Clásico'} • ${g.year || ''}</div>
+        </div>
+        <button class="list-row-play-btn">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <span>Jugar</span>
+        </button>
+      `;
+
+      row.addEventListener('click', () => {
+        activeGameIndex = idx;
+        playSelectedGame(g, c);
+      });
+
+      list.appendChild(row);
+    });
   }
 
   /* ==========================================================================
@@ -564,6 +825,7 @@
      ========================================================================== */
   function playSelectedGame(game, consoleObj) {
     if (!game) return;
+    game.lastPlayed = Date.now();
     if (typeof handleGameClick === 'function') {
       handleGameClick(game, consoleObj, activeGameIndex);
     }
@@ -571,7 +833,8 @@
 
   window.handlePrimaryFooterAction = function () {
     if (window.isConsoleInteriorOpen) {
-      const c = CONSOLES[activeConsoleIndex];
+      const curIdx = getActiveConsoleIdx();
+      const c = CONSOLES[curIdx];
       const games = typeof getGamesForConsole === 'function' ? getGamesForConsole(c.id) : [];
       if (games[activeGameIndex]) {
         playSelectedGame(games[activeGameIndex], c);
@@ -592,7 +855,8 @@
     const label = document.getElementById('topAudioPillText');
     if (!pill || !label || typeof RetroConsoleMusic === 'undefined') return;
 
-    const c = typeof CONSOLES !== 'undefined' ? CONSOLES[activeConsoleIndex] : null;
+    const curIdx = getActiveConsoleIdx();
+    const c = typeof CONSOLES !== 'undefined' ? CONSOLES[curIdx] : null;
     const isMuted = RetroConsoleMusic.isMuted;
     pill.classList.toggle('muted', isMuted);
 
@@ -644,10 +908,77 @@
     });
   }
 
+  function initCartridgeRingViewportTilt() {
+    const viewport = document.querySelector('.games-cartridge-ring-viewport');
+    const track = document.getElementById('gamesCartridgeRingTrack');
+    if (!viewport || !track) return;
+
+    let isHovered = false;
+
+    viewport.addEventListener('mouseenter', () => {
+      isHovered = true;
+    });
+
+    viewport.addEventListener('mousemove', (e) => {
+      if (!isHovered) return;
+      const rect = viewport.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to 1
+      const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2; // -1 to 1
+
+      // Rotación e inclinación tridimensional reactiva del carrusel en anillo
+      track.style.transform = `rotateY(${nx * 10}deg) rotateX(${-ny * 8}deg)`;
+
+      // Iluminación dinámica y relieve en el cartucho central activo
+      const centerRig = document.querySelector('.cart-ring-node[data-cart-pos="0"] .cartridge-3d-rig');
+      const centerGlare = document.querySelector('.cart-ring-node[data-cart-pos="0"] .cartridge-3d-glare');
+      if (centerRig) {
+        centerRig.style.transform = `translate3d(0, ${-ny * 10}px, 20px) rotateY(${nx * 16}deg) rotateX(${-ny * 14}deg) scale(1.04)`;
+      }
+      if (centerGlare) {
+        centerGlare.style.opacity = '0.55';
+        centerGlare.style.transform = `translate(${nx * 60}px, ${ny * 40}px) translateZ(14px)`;
+      }
+    });
+
+    viewport.addEventListener('mouseleave', () => {
+      isHovered = false;
+      track.style.transform = '';
+      const centerRig = document.querySelector('.cart-ring-node[data-cart-pos="0"] .cartridge-3d-rig');
+      const centerGlare = document.querySelector('.cart-ring-node[data-cart-pos="0"] .cartridge-3d-glare');
+      if (centerRig) centerRig.style.transform = '';
+      if (centerGlare) {
+        centerGlare.style.opacity = '0';
+        centerGlare.style.transform = '';
+      }
+    });
+  }
+
+  // El anillo de consolas se mantiene perfectamente estático y nítido sin animación de ratón
+  function initConsoleRingArenaTilt() {
+    // Desactivado: el usuario prefiere que el anillo de consolas no reaccione al ratón
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const autoConsole = params.get('console');
+        if (autoConsole && Array.isArray(CONSOLES)) {
+          const foundIdx = CONSOLES.findIndex((c) => c.id === autoConsole);
+          if (foundIdx >= 0) {
+            window.activeConsoleIndex = foundIdx;
+            if (typeof updateFocusedConsole === 'function') {
+              updateFocusedConsole(foundIdx, false);
+            }
+            window.enterSelectedConsole();
+            return;
+          }
+        }
+      } catch (e) {}
+
       window.renderConsoleRing3D();
       initCartridge3DInteractiveTilt();
+      initCartridgeRingViewportTilt();
     }, 60);
   });
 })();

@@ -31,6 +31,11 @@
   ) !important;
 }
 
+/* Asegurar pantalla completa sin hueco izquierdo */
+.switch-main-stage {
+  left: 0 !important;
+}
+
 /* 1. Barra Superior Transparente y Sticky */
 .switch-top-bar {
   position: sticky !important;
@@ -157,6 +162,8 @@
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
   z-index: 5;
 }
 
@@ -510,13 +517,14 @@
   }
 }
 
-/* Cabecera Interior Minimalista */
+/* Cabecera Interior Minimalista con Controles de Vista y Filtro */
 .interior-header-bar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 16px;
-  padding: 2px 0;
+  padding: 2px 0 8px;
+  width: 100%;
 }
 
 .interior-header-left {
@@ -556,10 +564,14 @@
 }
 
 .interior-console-thumb {
-  width: 40px;
-  height: 30px;
+  display: none !important;
+}
+
+.interior-console-logo-img {
+  max-height: 32px;
+  max-width: 170px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(15, 23, 42, 0.14));
+  filter: drop-shadow(0 2px 6px rgba(15, 23, 42, 0.12));
 }
 
 .interior-console-title {
@@ -571,152 +583,509 @@
   margin: 0;
 }
 
-/* Layout Principal Interior: Izquierda Lista Limpia | Derecha Escaparate 3D */
-.interior-split-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 40px;
-  min-height: 0;
+.ring-console-logo-box {
+  display: flex;
   align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin: 6px 0 8px;
 }
 
-/* COLUMNA IZQUIERDA: Lista de Juegos hacia abajo */
-.interior-games-list-panel {
+.ring-console-hero-logo {
+  max-height: 54px;
+  max-width: 270px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.16));
+}
+
+.interior-game-count-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Controles de Orden (A-Z, Recientes) y Modos de Vista (Anillo 3D, Mosaico, Lista) */
+.interior-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.interior-sort-group,
+.interior-view-mode-group {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.interior-sort-btn,
+.interior-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.interior-sort-btn:hover,
+.interior-view-btn:hover {
+  color: #0f172a;
+}
+
+.interior-sort-btn.active,
+.interior-view-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+}
+
+.interior-control-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.1);
+  margin: 0 4px;
+}
+
+/* Contenedor Principal de Vistas */
+.interior-views-container {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.interior-view-panel {
+  display: none;
+  width: 100%;
   height: 100%;
   min-height: 0;
-  justify-content: center;
 }
 
-.interior-games-vertical-scroll {
-  max-height: 100%;
-  overflow-y: auto;
-  padding: 8px 10px 8px 2px;
+.interior-view-panel.active {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  animation: interiorViewFade 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.interior-games-vertical-scroll::-webkit-scrollbar {
-  width: 5px;
-}
-.interior-games-vertical-scroll::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.14);
-  border-radius: 999px;
+@keyframes interiorViewFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Filas de juegos estilizadas tipo cápsula táctil */
-.interior-game-row {
+/* ============================================================================
+   1. VISTA ANILLO 3D DE CARTUCHOS (VISTA PRINCIPAL POR DEFECTO - TIPO IMAGEN 2)
+   - Cartucho central grande al frente + cartuchos vecinos en perspectiva 3D
+   ============================================================================ */
+.games-cartridge-ring-viewport {
   position: relative;
+  width: 100%;
+  height: 340px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.58);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
-  cursor: pointer;
-  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  justify-content: center;
+  perspective: 1200px;
 }
 
-.interior-game-row:hover {
-  background: rgba(255, 255, 255, 0.88);
-  transform: translateX(4px);
+.games-cartridge-ring-track {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
-.interior-game-row.active {
-  background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.08);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  transform: translateX(8px);
-}
-
-.interior-game-row.active::before {
-  content: "";
+/* Nodos individuales de cartuchos en el anillo 3D */
+.cart-ring-node {
   position: absolute;
-  left: 0;
-  top: 14px;
-  bottom: 14px;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-  background: var(--system-accent, #0284c7);
+  width: 280px;
+  height: 194px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.4s ease, filter 0.4s ease;
+  will-change: transform, opacity;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-.game-row-thumb {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  object-fit: cover;
-  background: #f8fafc;
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
-  flex-shrink: 0;
+/* Posición 0: Cartucho Central Activo */
+.cart-ring-node[data-cart-pos="0"] {
+  transform: translate3d(0, 0, 90px) rotateY(0deg) scale(1.12);
+  z-index: 30;
+  opacity: 1;
+  pointer-events: auto;
+  filter: drop-shadow(0 26px 36px rgba(15, 23, 42, 0.26));
 }
 
-.game-row-info {
-  flex: 1;
-  min-width: 0;
+/* Posiciones -1 y +1: Cartuchos Vecinos Inmediatos */
+.cart-ring-node[data-cart-pos="-1"] {
+  transform: translate3d(-340px, -8px, -40px) rotateY(24deg) scale(0.82);
+  z-index: 20;
+  opacity: 0.85;
+  filter: drop-shadow(0 14px 20px rgba(15, 23, 42, 0.16));
 }
 
-.game-row-title {
+.cart-ring-node[data-cart-pos="1"] {
+  transform: translate3d(340px, -8px, -40px) rotateY(-24deg) scale(0.82);
+  z-index: 20;
+  opacity: 0.85;
+  filter: drop-shadow(0 14px 20px rgba(15, 23, 42, 0.16));
+}
+
+.cart-ring-node[data-cart-pos="-1"]:hover,
+.cart-ring-node[data-cart-pos="1"]:hover {
+  opacity: 1;
+  filter: brightness(1.08) drop-shadow(0 18px 24px rgba(15, 23, 42, 0.22));
+}
+
+/* Posiciones -2 y +2: Cartuchos Exteriores en el Arco 3D */
+.cart-ring-node[data-cart-pos="-2"] {
+  transform: translate3d(-600px, -24px, -140px) rotateY(40deg) scale(0.62);
+  z-index: 10;
+  opacity: 0.45;
+  filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.12));
+}
+
+.cart-ring-node[data-cart-pos="2"] {
+  transform: translate3d(600px, -24px, -140px) rotateY(-40deg) scale(0.62);
+  z-index: 10;
+  opacity: 0.45;
+  filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.12));
+}
+
+.cart-ring-node[data-cart-pos="hidden"] {
+  transform: translate3d(0, -60px, -360px) scale(0.2);
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Flechas de Navegación del Carrusel de Cartuchos */
+.cartridge-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 40;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cartridge-nav-arrow.arrow-left {
+  left: max(16px, calc(50% - 460px));
+}
+
+.cartridge-nav-arrow.arrow-right {
+  right: max(16px, calc(50% - 460px));
+}
+
+.cartridge-nav-arrow:hover {
+  background: #0f172a;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+/* Información del Juego Central en el Anillo */
+.cartridge-ring-hero-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cartridge-info-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #e60012;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cartridge-info-eyebrow .chip-dot {
+  color: #94a3b8;
+}
+
+.cartridge-hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.6px;
+  margin: 0;
+}
+
+.cartridge-hero-desc {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #475569;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.cartridge-hero-actions {
+  margin-top: 6px;
+}
+
+.btn-cartridge-play-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 800;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22), 0 2px 6px rgba(15, 23, 42, 0.12);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-cartridge-play-now:hover {
+  transform: translateY(-2px) scale(1.02);
+  background: linear-gradient(135deg, #e60012 0%, #dc2626 100%);
+  box-shadow: 0 14px 30px rgba(230, 0, 18, 0.32);
+}
+
+/* ============================================================================
+   2. VISTA MOSAICO (GRID)
+   ============================================================================ */
+.interior-games-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  padding: 10px 4px 30px;
+}
+
+.interior-grid-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 14px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.interior-grid-card:hover {
+  transform: translateY(-6px);
+  background: #ffffff;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.grid-card-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-card-cover-img {
+  max-width: 120px;
+  max-height: 135px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+  transition: transform 0.25s ease;
+}
+
+.interior-grid-card:hover .grid-card-cover-img {
+  transform: scale(1.05) translateY(-3px);
+}
+
+.grid-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14.5px;
+  font-weight: 800;
   color: #0f172a;
+  margin-top: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.3px;
 }
 
-.game-row-meta {
+.grid-card-meta {
   font-size: 12px;
   font-weight: 600;
   color: #64748b;
   margin-top: 2px;
 }
 
-.game-row-arrow {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+.grid-card-play-btn {
+  margin-top: 10px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  gap: 6px;
   transition: all 0.2s ease;
 }
 
-.interior-game-row.active .game-row-arrow {
+.interior-grid-card:hover .grid-card-play-btn {
   background: #0f172a;
   color: #ffffff;
 }
 
 /* ============================================================================
-   COLUMNA DERECHA: CARTUCHO 3D EN GIRO + DESCRIPCIÓN + PEQUEÑO VÍDEO
-   (Sin cajas innecesarias ni textos sobreexplicativos)
+   3. VISTA LISTA
    ============================================================================ */
-.interior-game-showcase-panel {
+.interior-games-list-layout {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 16px 8px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  padding: 10px 4px 30px;
 }
 
-.showcase-top-hero {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 44px;
+.interior-list-row {
+  display: flex;
   align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ESCENARIO 3D DEL CARTUCHO CON GIRO Y LEVITACIÓN */
+.interior-list-row:hover {
+  background: #ffffff;
+  transform: translateX(4px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.interior-list-row.active {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.09);
+}
+
+.list-row-cover-thumb {
+  width: 44px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+}
+
+.list-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-row-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.list-row-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.list-row-play-btn {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: #0f172a;
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.list-row-play-btn:hover {
+  background: #e60012;
+  transform: scale(1.04);
+}
+
+/* ESCENARIO 3D DEL CARTUCHO CON SILUETA TRANSPARENTE LIMPIA */
 .showcase-cartridge-3d-stage {
   position: relative;
   width: 300px;
@@ -730,155 +1099,61 @@
 
 .cartridge-3d-rig {
   position: relative;
-  width: 250px;
-  height: 250px;
+  width: 280px;
+  height: 194px;
   display: flex;
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
-  animation: cartridge3DContinuousFloat 5.5s ease-in-out infinite;
   cursor: grab;
   transition: transform 0.15s ease-out;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-/* Animación de giro 3D completo al seleccionar un juego */
+/* Animación de entrada de giro 3D desactivada (se desliza suavemente en el anillo) */
 .cartridge-3d-rig.spin-on-select {
-  animation:
-    cartridge3DSpinEntrance 0.95s cubic-bezier(0.18, 0.95, 0.24, 1.05) forwards,
-    cartridge3DContinuousFloat 5.5s ease-in-out 0.95s infinite;
+  animation: none !important;
 }
 
-@keyframes cartridge3DSpinEntrance {
-  0% {
-    opacity: 0;
-    transform: translateY(32px) scale(0.62) rotateY(-540deg) rotateX(18deg) rotateZ(-10deg);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-10px) scale(1.08) rotateY(18deg) rotateX(-4deg) rotateZ(2deg);
-  }
-  85% {
-    transform: translateY(2px) scale(0.98) rotateY(-20deg) rotateX(8deg) rotateZ(-1.5deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0px) scale(1) rotateY(-16deg) rotateX(7deg) rotateZ(-1deg);
-  }
-}
-
-@keyframes cartridge3DContinuousFloat {
-  0%, 100% {
-    transform: translateY(0px) rotateY(-16deg) rotateX(7deg) rotateZ(-1deg);
-  }
-  50% {
-    transform: translateY(-15px) rotateY(16deg) rotateX(-5deg) rotateZ(1.5deg);
-  }
-}
-
-.cartridge-front-assembly {
+/* Cartucho 3D: Silueta transparente limpia */
+.showcase-cartridge-img {
   position: absolute;
-  width: 242px;
-  height: 220px;
-  transform: translateZ(9px);
-  pointer-events: none;
-}
-
-/* Hueco central del cartucho donde se aloja la carátula */
-.cartridge-hole-window {
-  position: absolute;
-  left: 27.5%;
-  top: 13.8%;
-  width: 45.9%;
-  height: 76.5%;
-  border-radius: 6px 6px 4px 4px;
-  overflow: hidden;
-  z-index: 1;
-  background: #1e293b;
-}
-
-.cartridge-hole-cover-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transform: scale(1.02);
-}
-
-.cartridge-hole-shadow {
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6), inset 0 -2px 6px rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.cartridge-hole-gloss {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.1) 45%,
-    transparent 65%
-  );
-  mix-blend-mode: overlay;
-  pointer-events: none;
-  z-index: 3;
-}
-
-/* Carcasa plástica N64 que enmarca el cartucho con la ventana transparente */
-.cartridge-shell-base-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 280px;
+  height: 194px;
   object-fit: contain;
-  z-index: 4;
-  filter: drop-shadow(0 20px 28px rgba(15, 23, 42, 0.25));
+  pointer-events: none;
+  background: transparent !important;
 }
 
-/* Capas intermedias que dan grosor físico volumétrico (20px de espesor) */
+.showcase-cartridge-img.face-front {
+  transform: translateZ(2px);
+  filter: drop-shadow(0 16px 24px rgba(15, 23, 42, 0.25));
+  z-index: 5;
+}
+
+.showcase-cartridge-img.face-back {
+  transform: translateZ(-2px) rotateY(180deg);
+  filter: drop-shadow(0 12px 18px rgba(15, 23, 42, 0.2));
+  z-index: 1;
+}
+
 .showcase-cartridge-thickness {
-  position: absolute;
-  width: 236px;
-  height: 216px;
-  border-radius: 18px 18px 8px 8px;
-  background: #505459;
-  border: 1px solid #3d4044;
-  pointer-events: none;
+  display: none !important;
 }
 
 .showcase-cartridge-thickness.thick-1 {
   transform: translateZ(4px);
-  opacity: 0.92;
+  opacity: 0.95;
   box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
 }
 
 .showcase-cartridge-thickness.thick-2 {
   transform: translateZ(-4px);
-  opacity: 0.95;
-  background: #46494e;
+  opacity: 0.98;
+  background: #3e4146;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-/* Cara trasera auténtica de N64 con etiqueta de precaución y tornillos */
-.cartridge-back-assembly {
-  position: absolute;
-  width: 242px;
-  height: 220px;
-  transform: translateZ(-9px) rotateY(180deg);
-  pointer-events: none;
-}
-
-.cartridge-shell-back-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 14px 22px rgba(15, 23, 42, 0.22));
-}
-
-.showcase-cartridge-img {
-  display: none;
 }
 
 .cartridge-3d-shine {
