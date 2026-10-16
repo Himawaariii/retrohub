@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import crypto from 'node:crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -595,7 +596,18 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Credenciales inválidas.' } });
   }
 
-  const passwordValid = bcrypt.compareSync(password, user.password_hash);
+  let passwordValid = false;
+  if (user.password_hash && user.password_hash.startsWith('sha256:')) {
+    const sha = crypto.createHash('sha256').update(password).digest('hex');
+    passwordValid = (user.password_hash === `sha256:${sha}`);
+  } else {
+    try {
+      passwordValid = bcrypt.compareSync(password, user.password_hash);
+    } catch {
+      passwordValid = false;
+    }
+  }
+
   if (!passwordValid) {
     return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Credenciales inválidas.' } });
   }
