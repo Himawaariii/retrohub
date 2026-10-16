@@ -1,8 +1,9 @@
 @echo off
-title Servidor EmulatorJS
+title Servidor RetroHub
 cd /d "%~dp0"
 echo ===================================================
-echo     Iniciando Servidor Local para EmulatorJS...
+echo     Iniciando Servidor Local RetroHub...
+echo     Red de companeros: http://retrohub.local
 echo ===================================================
 echo.
 python server.py
