@@ -419,7 +419,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'success': False, 'available': False, 'code': 'INVALID_LENGTH', 'message': 'El nombre debe tener entre 3 y 24 caracteres.'}).encode('utf-8'))
                 return
 
-            import re
             if not re.match(r'^[a-zA-Z0-9_-]{3,24}$', uname):
                 self.wfile.write(json.dumps({'success': False, 'available': False, 'code': 'INVALID_CHARACTERS', 'message': 'Solo se permiten letras, números, guiones (-) y guión bajo (_).'}).encode('utf-8'))
                 return
@@ -1131,7 +1130,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             elif 'gif' in header: ext = 'gif'
             elif 'svg' in header: ext = 'svg'
 
-            import base64, time, random
             up_dir = os.path.join(DIRECTORY, 'assets', 'uploads')
             os.makedirs(up_dir, exist_ok=True)
             fname = f"{img_type}_{int(time.time()*1000)}_{random.randint(1000, 9999)}.{ext}"
@@ -1202,7 +1200,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({'success': False, 'error': {'code': 'INVALID_LENGTH', 'message': 'El nombre debe tener entre 3 y 24 caracteres.'}}).encode('utf-8'))
                     return
 
-                import re
                 if not re.match(r'^[a-zA-Z0-9_-]{3,24}$', clean_username):
                     conn.close()
                     self.send_response(400)
