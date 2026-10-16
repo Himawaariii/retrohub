@@ -1378,9 +1378,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
             u_id, u_email, u_name, stored_hash, u_onboard, u_role = user_row
             valid = False
-            if stored_hash == 'hash_seed_123' or stored_hash.startswith('$2'):
-                valid = True
-            elif stored_hash.startswith('sha256:'):
+            if stored_hash.startswith('sha256:'):
                 valid = (stored_hash == 'sha256:' + hashlib.sha256(password.encode()).hexdigest())
             else:
                 valid = (stored_hash == password)
