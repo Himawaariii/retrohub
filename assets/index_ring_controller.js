@@ -1,7 +1,7 @@
 /**
- * RetroHub • Controlador Minimalista y Estilizado del Anillo 3D y Selector de Juegos
+ * RetroHub • Controlador Minimalista y Estilizado del Anillo 3D y Cartucho 3D
  * - Vista 1: Anillo 3D de Consolas flotantes con título, breve descripción y flechas laterales.
- * - Vista 2: Lista estilizada hacia abajo a la izquierda | Cartucho + Descripción + Pequeño Vídeo Trailer a la derecha.
+ * - Vista 2: Lista estilizada hacia abajo a la izquierda | Cartucho 3D con giro + Descripción + Pequeño Vídeo a la derecha.
  * REGLA INQUEBRANTABLE: CERO EMOJIS — 100% ICONOS VECTORIALES SVG
  */
 (function () {
@@ -31,7 +31,6 @@
   let trailerAnimFrame = null;
   let trailerPosterImg = null;
   let trailerSecondaryImg = null;
-  let customUploadedTrailers = {};
 
   function getGameRichDescription(game, consoleObj) {
     if (!game) return consoleObj ? consoleObj.synopsis : '';
@@ -42,12 +41,11 @@
         return GAME_DESCRIPTIONS[key];
       }
     }
-    return `Edición original para ${consoleObj ? consoleObj.name : 'consola retro'} (${game.genre || 'Aventura'} • ${game.year || consoleObj?.era || 'Clásico'}). Ejecución directa con soporte para guardado rápido SRAM y controles configurables.`;
+    return `Edición original para ${consoleObj ? consoleObj.name : 'consola retro'} (${game.genre || 'Aventura'} • ${game.year || consoleObj?.era || 'Clásico'}).`;
   }
 
   function getGameTrailerPath(game) {
     if (!game) return '';
-    if (customUploadedTrailers[game.title]) return customUploadedTrailers[game.title];
     if (game.trailer) return game.trailer;
     const lowerTitle = (game.title || '').toLowerCase();
     for (const key of Object.keys(GAME_TRAILERS)) {
@@ -114,7 +112,6 @@
       });
     }
 
-    // Mostrar 5 consolas bien espaciadas en el anillo (-2, -1, 0, 1, 2)
     Array.from(track.children).forEach((node, idx) => {
       const offset = getCircularOffset(idx, activeConsoleIndex, total);
       if (Math.abs(offset) <= 2) {
@@ -124,7 +121,6 @@
       }
     });
 
-    // Actualizar textos minimalistas bajo la consola central
     const activeConsole = CONSOLES[activeConsoleIndex];
     if (activeConsole) {
       const games = typeof getGamesForConsole === 'function' ? getGamesForConsole(activeConsole.id) : [];
@@ -144,7 +140,6 @@
       if (descEl) descEl.textContent = activeConsole.synopsis || '';
     }
 
-    // Actualizar puntos minimalistas
     if (dotsWrap) {
       if (dotsWrap.children.length !== total) {
         dotsWrap.innerHTML = '';
@@ -212,8 +207,17 @@
   };
 
   /* ==========================================================================
-     3. RENDERIZADO DE LA VISTA INTERIOR ESTILIZADA
+     3. RENDERIZADO DE LA VISTA INTERIOR Y GIRO 3D DEL CARTUCHO
      ========================================================================== */
+  function triggerCartridge3DSpin() {
+    const rig = document.getElementById('showcaseCartridgeRig');
+    if (!rig) return;
+    rig.classList.remove('spin-on-select');
+    // Forzar reflow para reiniciar la animación 3D de giro en cada selección
+    void rig.offsetWidth;
+    rig.classList.add('spin-on-select');
+  }
+
   window.renderConsoleInteriorView = function () {
     const c = CONSOLES[activeConsoleIndex];
     if (!c) return;
@@ -238,27 +242,14 @@
         )
       : allGames;
 
-    const countBadge = document.getElementById('interiorGamesCountBadge');
-    if (countBadge) {
-      countBadge.textContent = `${filteredGames.length}`;
-    }
-
     const listEl = document.getElementById('interiorGamesVerticalList');
     if (!listEl) return;
     listEl.innerHTML = '';
 
     if (filteredGames.length === 0) {
       listEl.innerHTML = `
-        <div style="padding: 28px 18px; border-radius: 22px; background: rgba(255,255,255,0.62); border: 1px solid rgba(255,255,255,0.85); text-align: center; color: #64748b; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 800; color: #0f172a;">
-            Sin juegos en ${c.name}
-          </div>
-          <p style="font-size: 12.5px; line-height: 1.45; margin: 0;">
-            Añade archivos en <code>ROMS/${c.id}/</code> o selecciona una ROM local.
-          </p>
-          <button class="btn-interior-action" onclick="document.getElementById('quickInteriorRomInput').click()" style="margin-top: 4px;">
-            <span>Añadir ROM</span>
-          </button>
+        <div style="padding: 24px 18px; border-radius: 20px; background: rgba(255,255,255,0.58); border: 1px solid rgba(255,255,255,0.82); text-align: center; color: #64748b; font-size: 13.5px; font-weight: 600;">
+          Sin juegos disponibles en ${c.name}
         </div>
       `;
       renderInteriorGameDetail(null, c);
@@ -313,31 +304,33 @@
 
   function renderInteriorGameDetail(game, consoleObj) {
     const cartImg = document.getElementById('showcaseCartridgeImg');
-    const sysChip = document.getElementById('showcaseSystemChip');
+    const cartImgBack = document.getElementById('showcaseCartridgeImgBack');
     const genreChip = document.getElementById('showcaseGenreChip');
     const yearChip = document.getElementById('showcaseYearChip');
     const titleEl = document.getElementById('showcaseGameTitle');
     const descEl = document.getElementById('showcaseGameDescription');
     const playBtn = document.getElementById('btnShowcasePlayNow');
-    const trailerCaption = document.getElementById('trailerCaptionText');
+
+    triggerCartridge3DSpin();
 
     if (!game) {
-      if (cartImg) cartImg.src = getDefaultCartridgeForConsole(consoleObj.id);
-      if (sysChip) sysChip.textContent = consoleObj.name;
+      const fallbackCart = getDefaultCartridgeForConsole(consoleObj.id);
+      if (cartImg) cartImg.src = fallbackCart;
+      if (cartImgBack) cartImgBack.src = fallbackCart;
       if (genreChip) genreChip.textContent = consoleObj.maker || 'Retro';
       if (yearChip) yearChip.textContent = consoleObj.arch || '';
       if (titleEl) titleEl.textContent = consoleObj.name;
       if (descEl) descEl.textContent = consoleObj.synopsis;
       if (playBtn) {
-        playBtn.onclick = () => document.getElementById('quickInteriorRomInput').click();
-        const spanEl = playBtn.querySelector('span');
-        if (spanEl) spanEl.textContent = 'Añadir ROM';
-      }
-      if (trailerCaption) {
-        trailerCaption.textContent = `Coloca un vídeo MP4 en ROMS/trailers/ para previsualizar.`;
+        playBtn.style.display = 'none';
       }
       setupGameTrailerPlayer(null, consoleObj);
       return;
+    }
+
+    if (playBtn) {
+      playBtn.style.display = 'inline-flex';
+      playBtn.onclick = () => playSelectedGame(game, consoleObj);
     }
 
     const cartSrc = game.cartridge || getDefaultCartridgeForConsole(consoleObj.id);
@@ -348,31 +341,27 @@
         cartImg.src = getDefaultCartridgeForConsole(consoleObj.id);
       };
     }
-    if (sysChip) sysChip.textContent = consoleObj.name;
+    if (cartImgBack) {
+      cartImgBack.src = cartSrc;
+      cartImgBack.onerror = () => {
+        cartImgBack.src = getDefaultCartridgeForConsole(consoleObj.id);
+      };
+    }
+
     if (genreChip) genreChip.textContent = game.genre || 'Aventura';
     if (yearChip) yearChip.textContent = game.year || '';
     if (titleEl) titleEl.textContent = game.title;
     if (descEl) descEl.textContent = getGameRichDescription(game, consoleObj);
 
-    if (playBtn) {
-      playBtn.onclick = () => playSelectedGame(game, consoleObj);
-      const spanEl = playBtn.querySelector('span');
-      if (spanEl) spanEl.textContent = 'Jugar';
-    }
-    if (trailerCaption) {
-      trailerCaption.textContent = `${game.title} (${consoleObj.name})`;
-    }
-
     setupGameTrailerPlayer(game, consoleObj);
   }
 
   /* ==========================================================================
-     4. REPRODUCTOR DE PEQUEÑO VÍDEO TRAILER (MP4 REAL + PREVIEW CINEMÁTICO LIMPIO)
+     4. PEQUEÑO VÍDEO A MODO DE TRAILER (SIN ETIQUETAS SOBREEXPLICATIVAS)
      ========================================================================== */
   function setupGameTrailerPlayer(game, consoleObj) {
     const videoEl = document.getElementById('showcaseTrailerVideo');
     const canvasEl = document.getElementById('showcaseTrailerCanvas');
-    const statusPill = document.getElementById('trailerLiveStatusText');
     if (!videoEl || !canvasEl) return;
 
     stopTrailerPreviewLoop();
@@ -389,20 +378,17 @@
         stopTrailerPreviewLoop();
         canvasEl.style.display = 'none';
         videoEl.style.display = 'block';
-        if (statusPill) statusPill.textContent = 'TRAILER MP4';
         videoEl.play().catch(() => {});
       };
 
       videoEl.onerror = () => {
         videoEl.style.display = 'none';
         canvasEl.style.display = 'block';
-        if (statusPill) statusPill.textContent = 'TRAILER';
         startTrailerCanvasPreview(game, consoleObj, canvasEl);
       };
     } else {
       videoEl.style.display = 'none';
       canvasEl.style.display = 'block';
-      if (statusPill) statusPill.textContent = 'TRAILER';
       startTrailerCanvasPreview(game, consoleObj, canvasEl);
     }
   }
@@ -425,7 +411,7 @@
     if (!ctx) return;
 
     canvas.width = 480;
-    canvas.height = 248;
+    canvas.height = 260;
 
     const wpList =
       typeof CONSOLE_GAME_WALLPAPERS !== 'undefined' && CONSOLE_GAME_WALLPAPERS[consoleObj.id]
@@ -449,30 +435,27 @@
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, w, h);
 
-      // Paneo cinematográfico suave (Ken Burns) sin barras ni texto superpuesto
       if (trailerSecondaryImg && trailerSecondaryImg.complete && trailerSecondaryImg.naturalWidth > 0) {
         ctx.save();
-        const scale = 1.14 + Math.sin(t * 0.6) * 0.05;
+        const scale = 1.15 + Math.sin(t * 0.6) * 0.05;
         const offsetX = Math.cos(t * 0.45) * 18;
         const offsetY = Math.sin(t * 0.35) * 10;
         ctx.translate(w / 2 + offsetX, h / 2 + offsetY);
         ctx.scale(scale, scale);
-        ctx.globalAlpha = 0.65;
+        ctx.globalAlpha = 0.72;
         ctx.drawImage(trailerSecondaryImg, -w / 2, -h / 2, w, h);
         ctx.restore();
       }
 
-      // Viñeta oscura elegante
       const vig = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, w * 0.65);
-      vig.addColorStop(0, 'rgba(15, 23, 42, 0.05)');
-      vig.addColorStop(1, 'rgba(15, 23, 42, 0.72)');
+      vig.addColorStop(0, 'rgba(15, 23, 42, 0.04)');
+      vig.addColorStop(1, 'rgba(15, 23, 42, 0.68)');
       ctx.fillStyle = vig;
       ctx.fillRect(0, 0, w, h);
 
-      // Arte central limpio con levitación sutil
       if (trailerPosterImg && trailerPosterImg.complete && trailerPosterImg.naturalWidth > 0) {
         ctx.save();
-        const targetH = 148;
+        const targetH = 152;
         const ratio = trailerPosterImg.naturalWidth / Math.max(1, trailerPosterImg.naturalHeight);
         const targetW = Math.min(260, targetH * ratio);
         const x = (w - targetW) / 2;
@@ -490,24 +473,8 @@
     renderFrame();
   }
 
-  window.handleCustomTrailerUpload = function (event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-
-    const c = CONSOLES[activeConsoleIndex];
-    const games = typeof getGamesForConsole === 'function' ? getGamesForConsole(c.id) : [];
-    const currentGame = games[activeGameIndex];
-    const blobUrl = URL.createObjectURL(file);
-
-    if (currentGame) {
-      customUploadedTrailers[currentGame.title] = blobUrl;
-    }
-
-    setupGameTrailerPlayer(currentGame || { title: c.name, trailer: blobUrl }, c);
-  };
-
   /* ==========================================================================
-     5. LANZAR JUEGO SELECCIONADO Y NAVEGACIÓN DE TECLADO
+     5. LANZAR JUEGO SELECCIONADO Y CONTROL DE AUDIO
      ========================================================================== */
   function playSelectedGame(game, consoleObj) {
     if (!game) return;
@@ -516,29 +483,18 @@
     }
   }
 
-  window.handleInteriorSearch = function (event) {
-    interiorSearchQuery = (event.target.value || '').trim().toLowerCase();
-    activeGameIndex = 0;
-    window.renderConsoleInteriorView();
-  };
-
   window.handlePrimaryFooterAction = function () {
     if (window.isConsoleInteriorOpen) {
       const c = CONSOLES[activeConsoleIndex];
       const games = typeof getGamesForConsole === 'function' ? getGamesForConsole(c.id) : [];
       if (games[activeGameIndex]) {
         playSelectedGame(games[activeGameIndex], c);
-      } else {
-        document.getElementById('quickInteriorRomInput')?.click();
       }
     } else {
       window.enterSelectedConsole();
     }
   };
 
-  /* ==========================================================================
-     6. CONTROL DEL BOTÓN DE AUDIO MP3 EN LA BARRA SUPERIOR
-     ========================================================================== */
   window.toggleTopBarAudioMute = function () {
     if (typeof RetroConsoleMusic === 'undefined') return;
     const isMuted = RetroConsoleMusic.toggleMute();

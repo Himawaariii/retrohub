@@ -1,8 +1,8 @@
 /* ============================================================================
-   RETROHUB • MINIMAL & STYLIZED 3D RING + GAME SHOWCASE
-   - Sin elementos distractores: solo la barra superior transparente y el selector.
+   RETROHUB • MINIMAL & STYLIZED 3D RING + 3D CARTRIDGE SHOWCASE
+   - Sin elementos distractores ni textos sobreexplicativos.
    - Vista 1: Anillo 3D limpio de consolas flotantes + nombre, breve descripción y flechas.
-   - Vista 2: Lista estilizada hacia abajo a la izquierda | Cartucho + Descripción + Pequeño Trailer a la derecha.
+   - Vista 2: Lista estilizada hacia abajo a la izquierda | Cartucho 3D con giro + Descripción + Pequeño Vídeo a la derecha.
    ============================================================================ */
 
 /* Ocultar cualquier elemento distractor del fondo o barras secundarias */
@@ -14,7 +14,7 @@
   display: none !important;
 }
 
-/* Fondo atmosférico limpio y suave para que las consolas sean las protagonistas */
+/* Fondo atmosférico limpio y suave */
 .bg-crossfade-stage {
   opacity: 0.14 !important;
   filter: blur(48px) saturate(130%) !important;
@@ -110,7 +110,7 @@
   perspective: 1600px;
 }
 
-/* Anillo elíptico sutil y elegante en perspectiva */
+/* Anillo elíptico sutil en perspectiva */
 .ring-orbit-ellipse {
   position: absolute;
   width: min(1080px, 84vw);
@@ -157,7 +157,7 @@
   z-index: 5;
 }
 
-/* Cada consola flota libremente en el espacio 3D (sin cajas cuadradas pesadas) */
+/* Cada consola flota libremente en el espacio 3D */
 .ring-console-node {
   position: absolute;
   width: 330px;
@@ -196,7 +196,6 @@
   pointer-events: none;
 }
 
-/* Etiqueta flotante minimalista solo para las consolas laterales */
 .ring-node-label-pill {
   margin-top: 10px;
   padding: 4px 12px;
@@ -213,7 +212,7 @@
   white-space: nowrap;
 }
 
-/* POSICIÓN 0: Consola Central Protagonista */
+/* POSICIÓN 0: Consola Central */
 .ring-console-node[data-ring-pos="0"] {
   transform: translate3d(0, 4px, 160px) scale(1.12);
   opacity: 1;
@@ -232,7 +231,7 @@
   filter: drop-shadow(0 32px 36px rgba(15, 23, 42, 0.26));
 }
 
-/* POSICIÓN -1 y +1: Consolas Vecinas Inmediatas en el Anillo */
+/* POSICIÓN -1 y +1: Consolas Vecinas */
 .ring-console-node[data-ring-pos="-1"] {
   transform: translate3d(-350px, -26px, 0px) rotateY(22deg) scale(0.68);
   opacity: 0.72;
@@ -253,7 +252,7 @@
   filter: none;
 }
 
-/* POSICIÓN -2 y +2: Consolas Exteriores de Fondo del Anillo (Sin solaparse) */
+/* POSICIÓN -2 y +2: Consolas Exteriores */
 .ring-console-node[data-ring-pos="-2"] {
   transform: translate3d(-610px, -68px, -160px) rotateY(36deg) scale(0.44);
   opacity: 0.32;
@@ -268,7 +267,7 @@
   filter: blur(1.8px);
 }
 
-/* Ocultar el resto para mantener el anillo limpio y sin solapamientos */
+/* Ocultar el resto */
 .ring-console-node[data-ring-pos="-3"],
 .ring-console-node[data-ring-pos="3"],
 .ring-console-node[data-ring-pos="hidden"] {
@@ -278,7 +277,7 @@
   z-index: 1;
 }
 
-/* Flechas Laterales Estilizadas flanqueando la consola central */
+/* Flechas Laterales Estilizadas */
 .ring-nav-arrow {
   position: absolute;
   top: 50%;
@@ -320,7 +319,7 @@
   transform: translateY(-50%) scale(0.95);
 }
 
-/* Bloque Tipográfico Frontal Minimalista (Sin caja blanca pesada) */
+/* Bloque Tipográfico Frontal Minimalista */
 .ring-front-info-card {
   position: relative;
   z-index: 35;
@@ -431,7 +430,6 @@
   letter-spacing: 0.6px;
 }
 
-/* Indicador de posición minimalista */
 .ring-pagination-dots {
   display: flex;
   align-items: center;
@@ -457,7 +455,7 @@
 /* ============================================================================
    3. VISTA 2: SELECTOR DE JUEGOS ESTILIZADO (#consoleInteriorStage)
    - Izquierda: Lista limpia hacia abajo
-   - Derecha: Cartucho + Descripción + Pequeño Vídeo a modo de Trailer
+   - Derecha: Cartucho 3D con animación de giro + Descripción + Pequeño Vídeo
    ============================================================================ */
 .console-interior-stage {
   position: relative;
@@ -465,10 +463,10 @@
   width: 100%;
   max-width: 1320px;
   margin: 0 auto;
-  padding: 12px 36px 28px;
+  padding: 16px 36px 28px;
   display: none;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   z-index: 30;
   height: calc(100vh - 88px);
   max-height: 820px;
@@ -490,16 +488,13 @@
   }
 }
 
-/* Cabecera Interior Minimalista (Sin barra pesada ni botones innecesarios) */
+/* Cabecera Interior Minimalista */
 .interior-header-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
-  padding: 4px 2px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  padding: 2px 0;
 }
 
 .interior-header-left {
@@ -515,7 +510,7 @@
   height: 38px;
   padding: 0 16px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(15, 23, 42, 0.08);
   color: #0f172a;
@@ -554,88 +549,29 @@
   margin: 0;
 }
 
-.interior-console-sub {
-  display: none;
-}
-
-.interior-header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.btn-interior-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  color: #334155;
-  font-family: 'Outfit', sans-serif;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-interior-action:hover {
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
-}
-
-/* Layout Principal Interior: Izquierda Lista Limpia | Derecha Escaparate Unificado */
+/* Layout Principal Interior: Izquierda Lista Limpia | Derecha Escaparate 3D */
 .interior-split-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 32px;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
   min-height: 0;
-  align-items: stretch;
+  align-items: center;
 }
 
-/* COLUMNA IZQUIERDA: Lista de Juegos hacia abajo (Sin marco pesado exterior) */
+/* COLUMNA IZQUIERDA: Lista de Juegos hacia abajo */
 .interior-games-list-panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-.interior-list-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 6px 10px;
-}
-
-.interior-list-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.interior-list-count-badge {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #64748b;
+  justify-content: center;
 }
 
 .interior-games-vertical-scroll {
-  flex: 1;
+  max-height: 100%;
   overflow-y: auto;
-  padding: 4px 6px 12px 2px;
+  padding: 8px 10px 8px 2px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -657,9 +593,9 @@
   gap: 14px;
   padding: 12px 16px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.58);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.82);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
   cursor: pointer;
   transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
@@ -672,7 +608,7 @@
 
 .interior-game-row.active {
   background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.1);
+  border-color: rgba(15, 23, 42, 0.08);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
   transform: translateX(8px);
 }
@@ -738,80 +674,151 @@
 }
 
 /* ============================================================================
-   COLUMNA DERECHA: ESCAPARATE UNIFICADO Y ESTILIZADO
-   (Cartucho + Descripción + Pequeño Vídeo Trailer en una sola composición limpia)
+   COLUMNA DERECHA: CARTUCHO 3D EN GIRO + DESCRIPCIÓN + PEQUEÑO VÍDEO
+   (Sin cajas innecesarias ni textos sobreexplicativos)
    ============================================================================ */
 .interior-game-showcase-panel {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
-  padding: 32px 38px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: 0;
-  overflow: hidden;
+  justify-content: center;
+  padding: 16px 8px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-/* Fila Superior: El Cartucho a la izquierda + Título, Descripción y Botón Jugar a la derecha */
 .showcase-top-hero {
   display: grid;
-  grid-template-columns: 210px 1fr;
-  gap: 32px;
+  grid-template-columns: 300px 1fr;
+  gap: 44px;
   align-items: center;
 }
 
-/* Pedestal estilizado para el Cartucho físico */
-.showcase-cartridge-stage {
+/* ESCENARIO 3D DEL CARTUCHO CON GIRO Y LEVITACIÓN */
+.showcase-cartridge-3d-stage {
   position: relative;
-  width: 210px;
-  height: 210px;
-  border-radius: 28px;
-  background: radial-gradient(
-    circle at 50% 42%,
-    #ffffff 0%,
-    #f1f5f9 100%
-  );
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.9), 0 12px 28px rgba(15, 23, 42, 0.05);
+  width: 300px;
+  height: 320px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  perspective: 1100px;
+}
+
+.cartridge-3d-rig {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  animation: cartridge3DContinuousFloat 5.5s ease-in-out infinite;
+  cursor: grab;
+}
+
+/* Animación de giro 3D completo al seleccionar un juego */
+.cartridge-3d-rig.spin-on-select {
+  animation:
+    cartridge3DSpinEntrance 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    cartridge3DContinuousFloat 5.5s ease-in-out 0.85s infinite;
+}
+
+@keyframes cartridge3DSpinEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.68) rotateY(-380deg) rotateX(16deg) rotateZ(-6deg);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.05) rotateY(14deg) rotateX(6deg) rotateZ(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1) rotateY(-16deg) rotateX(7deg) rotateZ(-1deg);
+  }
+}
+
+@keyframes cartridge3DContinuousFloat {
+  0%, 100% {
+    transform: translateY(0px) rotateY(-16deg) rotateX(7deg) rotateZ(-1deg);
+  }
+  50% {
+    transform: translateY(-14px) rotateY(18deg) rotateX(-5deg) rotateZ(1.5deg);
+  }
 }
 
 .showcase-cartridge-img {
-  width: 164px;
-  height: 146px;
+  position: absolute;
+  width: 225px;
+  height: 210px;
   object-fit: contain;
-  filter: drop-shadow(0 16px 22px rgba(15, 23, 42, 0.22));
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  backface-visibility: visible;
+  pointer-events: none;
 }
 
-.showcase-cartridge-stage:hover .showcase-cartridge-img {
-  transform: translateY(-6px) rotate(-2deg) scale(1.05);
+.showcase-cartridge-img.face-front {
+  transform: translateZ(7px);
+  filter: drop-shadow(0 22px 30px rgba(15, 23, 42, 0.28));
 }
 
-.showcase-cartridge-caption {
-  margin-top: 8px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #94a3b8;
+/* Cara trasera simulada para dar grosor/volumen durante el giro 3D */
+.showcase-cartridge-img.face-back {
+  transform: translateZ(-7px) rotateY(180deg);
+  filter: brightness(0.38) contrast(1.25) saturate(0.2) drop-shadow(0 14px 20px rgba(15, 23, 42, 0.2));
+  opacity: 0.92;
 }
 
-/* Información Principal + Descripción integrada sin cajas extra */
+.cartridge-3d-shine {
+  position: absolute;
+  inset: 10%;
+  border-radius: 24px;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.45) 48%,
+    rgba(255, 255, 255, 0) 75%
+  );
+  transform: translateZ(12px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* Sombra elíptica en el suelo sincronizada con la levitación 3D */
+.cartridge-3d-shadow {
+  width: 170px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(15, 23, 42, 0.22) 0%,
+    rgba(15, 23, 42, 0.06) 55%,
+    transparent 76%
+  );
+  filter: blur(5px);
+  margin-top: 12px;
+  animation: cartridgeShadowPulse 5.5s ease-in-out infinite;
+}
+
+@keyframes cartridgeShadowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(0.82);
+    opacity: 0.5;
+  }
+}
+
+/* Columna de Información: Título, Descripción, Botón Jugar y Pequeño Vídeo */
 .showcase-info-column {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -822,133 +829,73 @@
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.9px;
+  letter-spacing: 1px;
   color: var(--system-accent, #0284c7);
 }
 
 .showcase-game-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -1px;
-  line-height: 1.1;
+  letter-spacing: -1.1px;
+  line-height: 1.08;
   margin: 0;
 }
 
 .showcase-description-text {
   font-family: 'Outfit', sans-serif;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 500;
   color: #475569;
-  line-height: 1.58;
-  margin: 2px 0 6px;
-  max-width: 580px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 1.6;
+  margin: 2px 0 8px;
+  max-width: 540px;
+}
+
+/* Contenedor con Botón Jugar y el Pequeño Vídeo a modo de Trailer */
+.showcase-action-and-video {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
 }
 
 .btn-showcase-play-now {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 44px;
-  padding: 0 24px;
+  height: 46px;
+  padding: 0 28px;
   border-radius: 999px;
   background: #0f172a;
   color: #ffffff;
   border: none;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.18);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-showcase-play-now:hover {
   transform: translateY(-2px);
   background: var(--system-accent, #0284c7);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.24);
 }
 
-/* Fila Inferior: Pequeño Vídeo a modo de Trailer (Compacto y Estilizado 16:9) */
-.showcase-bottom-trailer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
-}
-
-.trailer-compact-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 220px;
-}
-
-.trailer-compact-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.9px;
-  color: #0f172a;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.trailer-label-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--system-accent, #e60012);
-}
-
-.trailer-compact-sub {
-  font-size: 12.5px;
-  color: #64748b;
-  line-height: 1.45;
-}
-
-.btn-trailer-upload-minimal {
-  margin-top: 6px;
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.05);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  color: #475569;
-  font-family: 'Outfit', sans-serif;
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-trailer-upload-minimal:hover {
-  background: #0f172a;
-  color: #ffffff;
-}
-
-/* Ventana compacta 16:9 para el pequeño vídeo trailer */
+/* Pequeño vídeo limpio sin etiquetas ni textos encima */
 .trailer-stage-box {
   position: relative;
-  width: 380px;
-  height: 196px;
-  border-radius: 20px;
+  width: 340px;
+  height: 186px;
+  border-radius: 22px;
   overflow: hidden;
   background: #0f172a;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+  border: 2px solid rgba(255, 255, 255, 0.85);
   flex-shrink: 0;
 }
 
@@ -960,68 +907,19 @@
   display: block;
 }
 
-.trailer-overlay-hud {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(15, 23, 42, 0.28) 0%,
-    transparent 40%,
-    rgba(15, 23, 42, 0.65) 100%
-  );
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 10px 14px;
-  pointer-events: none;
-}
-
-.trailer-live-pill {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(8px);
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-}
-
-.trailer-rec-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #10b981;
-}
-
-.trailer-caption-text {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
-}
-
 /* Responsividad */
 @media (max-width: 1100px) {
   .interior-split-grid {
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
+    grid-template-columns: 290px 1fr;
+    gap: 24px;
   }
   .showcase-top-hero {
-    grid-template-columns: 160px 1fr;
-    gap: 20px;
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
   }
-  .showcase-cartridge-stage {
-    width: 160px;
-    height: 160px;
-  }
-  .trailer-stage-box {
-    width: 300px;
-    height: 168px;
+  .showcase-cartridge-3d-stage {
+    width: 220px;
+    height: 240px;
   }
 }
 
@@ -1044,12 +942,8 @@
     justify-items: center;
     text-align: center;
   }
-  .showcase-info-column {
+  .showcase-info-column,
+  .showcase-action-and-video {
     align-items: center;
-  }
-  .showcase-bottom-trailer-row {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
   }
 }
