@@ -1,359 +1,923 @@
-/* ========================================================
-   RetroHub • Barra de Herramientas Común (Common Web Toolbar)
-   Estética: Nintendo Wii Porcelain + Modern Frutiger Aero Glass
-   - Logo oficial de RetroHub a la izquierda
-   - Navegación central en cápsulas de cristal líquido (Gel Pills)
-   - Reloj en tiempo real y Perfil de Usuario autenticado a la derecha
-   ======================================================== */
+/* ============================================================================
+   RETROHUB • BARRA SUPERIOR COMÚN Y MENÚ LATERAL DE CHAT (AMIGOS & GRUPOS)
+   Estética consistente con index.html (Nintendo Clean + Cristal Porcelana + Iconos SVG Coloridos)
+   PROHIBIDO EL USO DE EMOJIS — 100% ICONOS VECTORIALES SVG COLORIDOS
+   ============================================================================ */
 
 .rh-common-toolbar-wrap {
   width: 100%;
-  padding: 14px 28px 0 28px;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 14px 20px 0 20px;
+  box-sizing: border-box;
   position: sticky;
   top: 0;
-  z-index: 999;
-  box-sizing: border-box;
+  z-index: 1200;
   pointer-events: none;
 }
 
 .rh-common-toolbar {
   pointer-events: auto;
   width: 100%;
-  max-width: 1320px;
   height: 68px;
-  margin: 0 auto;
-  padding: 0 22px;
+  padding: 0 20px;
   box-sizing: border-box;
-  border-radius: 9999px;
-  /* Frutiger Aero Multi-Layer Acrylic Glass + Wii Porcelain */
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(246, 252, 255, 0.84) 50%,
-    rgba(235, 248, 255, 0.88) 100%
-  );
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1.5px solid rgba(255, 255, 255, 0.96);
-  box-shadow:
-    0 12px 34px rgba(0, 140, 215, 0.11),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(0, 162, 237, 0.16),
-    inset 0 2px 2px rgba(255, 255, 255, 1),
-    inset 0 -2px 5px rgba(0, 162, 237, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 2px 2px #ffffff;
   position: relative;
   overflow: hidden;
   user-select: none;
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
 }
 
-/* Reflejo especular superior Frutiger Aero (mitad superior brillante) */
-.rh-common-toolbar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 2%;
-  right: 2%;
-  height: 46%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.12) 100%
-  );
-  border-radius: 9999px 9999px 40% 40%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ========================================================
-   1. IZQUIERDA: LOGO DEL SITIO (RETROHUB)
-   ======================================================== */
+/* 1. IZQUIERDA: LOGO DEL SITIO + CÍRCULOS DE ACCESO ESTILO INDEX.HTML */
 .rh-toolbar-left {
-  position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
 }
 
 .rh-brand-link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   text-decoration: none;
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 5px 12px 5px 6px;
+  border-radius: 9999px;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
 }
+
 .rh-brand-link:hover {
-  transform: scale(1.03);
+  background: rgba(230, 0, 18, 0.06);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .rh-brand-orb {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #6ae2ff 0%, #00a2ed 52%, #0077b6 100%);
+  background: linear-gradient(145deg, #ff3c28 0%, #e60012 60%, #b8000e 100%);
+  border: 2px solid #ffffff;
   box-shadow:
-    0 5px 16px rgba(0, 162, 237, 0.4),
-    inset 0 2px 3px rgba(255, 255, 255, 0.9),
-    inset 0 -3px 6px rgba(0, 60, 110, 0.35);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
+    0 4px 14px rgba(230, 0, 18, 0.35),
+    inset 0 2px 4px rgba(255, 255, 255, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   position: relative;
   overflow: hidden;
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
 }
-/* Gota de brillo cristalino sobre el orbe del logo */
-.rh-brand-orb::before {
+
+.rh-brand-orb::after {
   content: '';
   position: absolute;
   top: 2px;
-  left: 16%;
-  width: 68%;
-  height: 44%;
-  border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.05) 100%);
+  left: 15%;
+  width: 70%;
+  height: 40%;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
-}
-.rh-brand-link:hover .rh-brand-orb {
-  transform: rotate(-6deg) scale(1.06);
 }
 
 .rh-brand-text {
   display: flex;
   flex-direction: column;
-}
-.rh-brand-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.5px;
   line-height: 1.05;
 }
-.rh-brand-sub {
-  font-family: 'Outfit', sans-serif;
-  font-size: 10.5px;
+
+.rh-brand-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px;
   font-weight: 800;
-  color: #0088cc;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+}
+
+.rh-brand-sub {
+  font-size: 9.5px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.9px;
+  letter-spacing: 1px;
+  color: #e60012;
   margin-top: 2px;
 }
 
-/* ========================================================
-   2. CENTRO: PÍLDORAS DE NAVEGACIÓN WII / FRUTIGER AERO
-   ======================================================== */
+/* 2. CENTRO: NAVEGACIÓN ESTILO PÍLDORAS SWITCH / INDEX.HTML CON ICONOS COLORIDOS */
 .rh-toolbar-nav {
-  position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(226, 240, 250, 0.55);
-  padding: 5px;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+  background: #f8fafc;
+  padding: 5px 7px;
   border-radius: 9999px;
-  border: 1px solid rgba(0, 162, 237, 0.14);
-  box-shadow: inset 0 1.5px 3px rgba(0, 100, 160, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .rh-nav-pill {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 9px;
+  padding: 7px 16px 7px 10px;
   border-radius: 9999px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 13.5px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   font-weight: 700;
   color: #334155;
   text-decoration: none;
-  transition: all 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: 1px solid transparent;
-  overflow: hidden;
-}
-.rh-nav-pill:hover {
-  color: #0284c7;
-  background: rgba(255, 255, 255, 0.85);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 162, 237, 0.12);
-}
-.rh-nav-pill.active {
-  background: linear-gradient(180deg, #56ccf2 0%, #00a2ed 54%, #0082c8 100%);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 5px 16px rgba(0, 162, 237, 0.35),
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 2px rgba(0, 60, 110, 0.25);
-}
-.rh-nav-pill.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 6%;
-  right: 6%;
-  height: 46%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border-radius: 9999px;
-  pointer-events: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ========================================================
-   3. DERECHA: RELOJ + PERFIL DE USUARIO A LA DERECHA
-   ======================================================== */
+.rh-nav-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+
+.rh-nav-icon-circle.icon-consoles {
+  background: rgba(230, 0, 18, 0.12);
+  color: #e60012;
+}
+.rh-nav-icon-circle.icon-community {
+  background: rgba(0, 210, 190, 0.14);
+  color: #00a896;
+}
+.rh-nav-icon-circle.icon-profile {
+  background: rgba(0, 162, 237, 0.14);
+  color: #0284c7;
+}
+
+.rh-nav-pill:hover {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.rh-nav-pill:hover .rh-nav-icon-circle {
+  transform: scale(1.1);
+}
+
+.rh-nav-pill.active {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(0, 162, 237, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 162, 237, 0.14), inset 0 1px 1px #ffffff;
+}
+
+.rh-nav-pill.active .rh-nav-icon-circle.icon-consoles {
+  background: linear-gradient(135deg, #ff3c28, #e60012);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(230, 0, 18, 0.35);
+}
+.rh-nav-pill.active .rh-nav-icon-circle.icon-community {
+  background: linear-gradient(135deg, #00d2be, #00a896);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(0, 210, 190, 0.35);
+}
+.rh-nav-pill.active .rh-nav-icon-circle.icon-profile {
+  background: linear-gradient(135deg, #00b4ff, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.35);
+}
+
+/* 3. DERECHA: BOTÓN CHAT LATERAL + RELOJ + PERFIL DE USUARIO */
 .rh-toolbar-right {
-  position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
 }
 
-.rh-status-clock-pill {
+/* Botón táctil para abrir el Chat Lateral (Amigos y Grupos) */
+.rh-chat-toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  background: linear-gradient(135deg, #00d2be 0%, #00b4d8 100%);
+  color: #ffffff;
+  border: none;
+  padding: 8px 15px 8px 11px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #ffffff 0%, #f1f8fe 100%);
-  border: 1px solid rgba(0, 162, 237, 0.18);
-  box-shadow: 0 2px 8px rgba(0, 120, 190, 0.06), inset 0 1.5px 1px #ffffff;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 210, 190, 0.32), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.rh-chat-toggle-btn:hover {
+  background: linear-gradient(135deg, #00e2cc 0%, #00c2ea 100%);
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 6px 20px rgba(0, 210, 190, 0.46), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+}
+
+.rh-chat-toggle-icon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rh-chat-unread-badge {
+  background: #e60012;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(230, 0, 18, 0.4);
+}
+
+.rh-status-clock-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 9999px;
+  background: #f8fafc;
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
   font-weight: 800;
   color: #1e293b;
+  font-variant-numeric: tabular-nums;
 }
 
 .rh-aero-pearl-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #6ee7b7 0%, #10b981 60%, #047857 100%);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.65);
-  flex-shrink: 0;
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
 }
 
-/* Cápsula del Perfil de Usuario (Derecha) */
+/* Píldora del Perfil a la Derecha */
 .rh-user-profile-pill {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 16px 4px 5px;
+  padding: 4px 14px 4px 5px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
-  border: 1.5px solid rgba(0, 162, 237, 0.28);
-  box-shadow:
-    0 4px 14px rgba(0, 162, 237, 0.12),
-    inset 0 2px 2px #ffffff;
+  background: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff;
   text-decoration: none;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: #0f172a;
   cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .rh-user-profile-pill:hover {
-  transform: translateY(-1.5px) scale(1.02);
-  border-color: #00a2ed;
-  box-shadow:
-    0 8px 22px rgba(0, 162, 237, 0.24),
-    inset 0 2px 2px #ffffff;
+  transform: translateY(-1px) scale(1.02);
+  border-color: rgba(0, 162, 237, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 162, 237, 0.15);
 }
+
 .rh-user-profile-pill.active-page {
   border-color: #00a2ed;
-  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
-  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.18), 0 6px 18px rgba(0, 162, 237, 0.18);
+  box-shadow: 0 0 0 2px rgba(0, 162, 237, 0.15), 0 4px 14px rgba(0, 162, 237, 0.14);
 }
 
 .rh-user-avatar-wrap {
   position: relative;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
 }
+
 .rh-user-avatar-img {
-  width: 100%;
-  height: 100%;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  background: #ffffff;
-  border: 2px solid var(--system-aura-color, #00a2ed);
-  box-shadow: 0 2px 8px rgba(0, 162, 237, 0.25);
+  border: 2px solid #00a2ed;
+  background: #f1f5f9;
+  display: block;
 }
+
 .rh-user-online-badge {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  bottom: -1px;
+  right: -1px;
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #6ee7b7 0%, #10b981 70%);
+  background: #10b981;
   border: 2px solid #ffffff;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
 .rh-user-meta {
   display: flex;
   flex-direction: column;
-  line-height: 1.15;
+  line-height: 1.1;
   text-align: left;
 }
+
 .rh-user-name {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 800;
   color: #0f172a;
-  max-width: 130px;
+  max-width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .rh-user-handle {
-  font-family: 'Outfit', sans-serif;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #0284c7;
 }
 
 .rh-btn-logout {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-  border: 1.5px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1.5px 1px #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  background: #ffffff;
   color: #64748b;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.rh-btn-logout:hover {
-  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
-  border-color: rgba(230, 0, 18, 0.3);
-  color: #e60012;
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.15);
+  transition: all 0.2s ease;
 }
 
-@media (max-width: 900px) {
-  .rh-common-toolbar-wrap {
-    padding: 10px 12px 0 12px;
-  }
+.rh-btn-logout:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+  transform: scale(1.06);
+}
+
+/* ============================================================================
+   4. SISTEMA DE CHAT COMO MENÚ LATERAL (AMIGOS & GRUPOS CON INVITACIÓN ABIERTA)
+   ============================================================================ */
+.rh-chat-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(4px);
+  z-index: 2800;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.rh-chat-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rh-chat-sidebar {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: 400px;
+  max-width: calc(100vw - 24px);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1.5px solid rgba(226, 232, 240, 0.98);
+  border-radius: 26px;
+  box-shadow:
+    -16px 0 50px rgba(15, 23, 42, 0.14),
+    0 8px 28px rgba(0, 162, 237, 0.1),
+    inset 0 2px 2px #ffffff;
+  z-index: 2900;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(calc(100% + 28px));
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+}
+
+.rh-chat-sidebar.open {
+  transform: translateX(0);
+}
+
+/* Pestaña lateral flotante cuando el chat está plegado */
+.rh-chat-edge-launcher {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2750;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  border-right: none;
+  border-radius: 18px 0 0 18px;
+  padding: 12px 10px 12px 12px;
+  box-shadow: -6px 6px 24px rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.rh-chat-edge-launcher:hover {
+  padding-right: 16px;
+  border-color: #00d2be;
+  box-shadow: -8px 8px 28px rgba(0, 210, 190, 0.22);
+}
+
+.rh-chat-edge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #00d2be 0%, #00a2ed 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 210, 190, 0.35);
+}
+
+.rh-chat-edge-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+/* Cabecera del Menú Lateral de Chat */
+.rh-chat-header {
+  padding: 18px 20px 14px 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.rh-chat-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rh-chat-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.rh-chat-brand-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #00d2be 0%, #00a2ed 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 162, 237, 0.28);
+}
+
+.rh-chat-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.rh-chat-subtitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.rh-chat-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: #f8fafc;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rh-chat-close-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+/* Selector de Pestañas del Chat (Amigos vs Grupos) */
+.rh-chat-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 14px;
+}
+
+.rh-chat-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rh-chat-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.rh-chat-tab-count {
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  background: rgba(0, 162, 237, 0.14);
+  color: #0284c7;
+}
+
+/* Cuerpo desplazable del Chat Lateral */
+.rh-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* Barra rápida de acción dentro del chat (Añadir amigo / Crear grupo) */
+.rh-chat-quick-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.rh-chat-input {
+  flex: 1;
+  padding: 9px 13px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.rh-chat-input:focus {
+  background: #ffffff;
+  border-color: #00a2ed;
+  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.14);
+}
+
+.rh-chat-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #00a2ed 0%, #0284c7 100%);
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.rh-chat-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.38);
+}
+
+.rh-chat-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rh-chat-btn-secondary:hover {
+  border-color: #00a2ed;
+  color: #0284c7;
+  background: #f0f9ff;
+}
+
+/* Tarjeta de Amigo o Grupo en la lista */
+.rh-chat-item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1.5px solid #f1f5f9;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rh-chat-item-card:hover {
+  border-color: rgba(0, 162, 237, 0.35);
+  background: #f8fbff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 162, 237, 0.09);
+}
+
+.rh-chat-item-avatar-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.rh-chat-item-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.rh-chat-item-status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #ffffff;
+}
+
+.rh-chat-item-status.offline {
+  background: #94a3b8;
+}
+
+.rh-chat-group-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.rh-chat-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rh-chat-item-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rh-chat-item-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* Vista de Conversación Activa (1 a 1 o Grupo) */
+.rh-chat-conversation {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.rh-chat-conv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.rh-chat-messages-box {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.rh-msg-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.rh-msg-row.mine {
+  flex-direction: row-reverse;
+}
+
+.rh-msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid #e2e8f0;
+}
+
+.rh-msg-bubble-wrap {
+  max-width: 78%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rh-msg-row.mine .rh-msg-bubble-wrap {
+  align-items: flex-end;
+}
+
+.rh-msg-sender {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #64748b;
+  padding: 0 4px;
+}
+
+.rh-msg-bubble {
+  padding: 9px 13px;
+  border-radius: 16px 16px 16px 4px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.rh-msg-row.mine .rh-msg-bubble {
+  border-radius: 16px 16px 4px 16px;
+  background: linear-gradient(135deg, #00a2ed 0%, #0284c7 100%);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.22);
+}
+
+.rh-msg-time {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 0 4px;
+}
+
+.rh-chat-composer {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+/* Panel desplegable de Invitar a Grupo / Crear Grupo */
+.rh-chat-drawer-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rh-color-swatches {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rh-color-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+
+.rh-color-swatch.active {
+  transform: scale(1.2);
+  outline: 2px solid #0f172a;
+}
+
+@media (max-width: 820px) {
   .rh-common-toolbar {
     height: auto;
-    padding: 10px 16px;
+    padding: 10px 14px;
     border-radius: 24px;
     flex-wrap: wrap;
+    justify-content: center;
+  }
+  .rh-brand-sub {
+    display: none;
   }
   .rh-status-clock-pill {
     display: none;

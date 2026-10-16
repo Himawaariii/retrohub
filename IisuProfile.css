@@ -1,342 +1,206 @@
-/* ========================================================
-   RetroHub • Sistema de Perfil de Usuario
-   Estética: Nintendo Wii Porcelain + Modern Frutiger Aero Glass
-   - Layout de ancho fijo (1280px) anclado arriba: CERO desplazamientos al cambiar de pestaña
-   - Cristal acrílico multicapa con reflejos especulares superiores (Glossy Gel & Glass)
-   - Textura sutil de matriz Wii y burbujas acuáticas luminosas Frutiger Aero
-   - Sin elementos ni botones redundantes
-   ======================================================== */
+/* ============================================================================
+   RETROHUB • PERFIL DE USUARIO (ESTÉTICA CONSISTENTE CON INDEX.HTML)
+   Nintendo Switch Clean + Cristal Porcelana + Iconos SVG Coloridos (CERO EMOJIS)
+   Layout 100% Fijo y Estable (Sin saltos ni redimensionado al cambiar de pestaña)
+   ============================================================================ */
 
 :root {
-  /* Paleta Frutiger Aero & Nintendo Wii Porcelain */
-  --aero-sky-light: #e6f4ff;
-  --aero-aqua-bg: #f2f9ff;
-  --aero-mint-tint: #ecfdf5;
-
-  /* Superficies Glassmorphism & Acrílico Brillante */
-  --aero-glass-surface: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(245, 251, 255, 0.82) 55%,
-    rgba(238, 248, 255, 0.88) 100%
-  );
-  --aero-glass-card: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(248, 252, 255, 0.86) 100%
-  );
-  --aero-glass-subtle: linear-gradient(
-    180deg,
-    rgba(244, 250, 255, 0.9) 0%,
-    rgba(234, 245, 255, 0.72) 100%
-  );
-  --aero-border-white: rgba(255, 255, 255, 0.96);
-  --aero-border-cyan: rgba(0, 162, 237, 0.22);
-
-  /* Sombras y Brillos Especulares Frutiger Aero */
-  --aero-shadow-lg:
-    0 18px 45px rgba(0, 130, 200, 0.09),
-    0 4px 12px rgba(0, 0, 0, 0.03),
-    0 0 0 1px rgba(0, 162, 237, 0.14),
-    inset 0 2px 3px rgba(255, 255, 255, 1),
-    inset 0 -2px 6px rgba(0, 162, 237, 0.06);
-
-  --aero-shadow-sm:
-    0 8px 22px rgba(0, 130, 200, 0.07),
-    0 2px 6px rgba(0, 0, 0, 0.02),
-    0 0 0 1px rgba(0, 162, 237, 0.12),
-    inset 0 1.5px 2px rgba(255, 255, 255, 1);
-
-  /* Acentos Wii & Frutiger Aero */
-  --wii-cyan: #00a2ed;
-  --wii-cyan-bright: #56ccf2;
-  --wii-cyan-deep: #0077b6;
-  --aero-emerald: #10b981;
-  --aero-emerald-bright: #34d399;
-  --aero-gold: #f59e0b;
-  --aero-scarlet: #ff3c28;
-
-  /* Aura Dinámica del Usuario */
-  --system-aura-color: #00a2ed;
-  --system-aura-glow: rgba(0, 162, 237, 0.38);
-
-  /* Tipografías */
-  --text-pure: #0f172a;
-  --text-main: #1e293b;
-  --text-muted: #475569;
-  --text-dim: #64748b;
-
-  --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-
-  /* Bordes Redondeados Wii / Aero */
-  --radius-xl: 30px;
-  --radius-lg: 24px;
-  --radius-md: 18px;
-  --radius-pill: 9999px;
+  --rh-bg: #f6f8fa;
+  --rh-card-bg: #ffffff;
+  --rh-card-border: rgba(226, 232, 240, 0.95);
+  --rh-card-shadow: 0 12px 32px rgba(15, 23, 42, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --rh-scarlet: #e60012;
+  --rh-teal: #00d2be;
+  --rh-sky: #00a2ed;
+  --rh-orange: #ff7300;
+  --rh-gold: #f59e0b;
+  --rh-violet: #8b5cf6;
+  --rh-emerald: #10b981;
+  --rh-ink: #0f172a;
+  --rh-ink-mid: #334155;
+  --rh-ink-muted: #64748b;
+  --system-accent: #00a2ed;
+  --system-glow: rgba(0, 162, 237, 0.24);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: var(--font-body);
-  -webkit-tap-highlight-color: transparent;
-}
-
+/* 1. BLOQUEO DE SCROLLBAR Y CONTENEDOR PARA EVITAR CUALQUIER MOVIMIENTO */
 html {
-  overflow-y: scroll; /* Evita saltos de ancho por la barra de scroll */
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body.profile-body {
-  min-height: 100vh;
-  width: 100%;
-  background-color: var(--aero-aqua-bg);
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  display: block !important;
+  position: relative !important;
+  overflow-x: hidden !important;
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  color: var(--rh-ink);
+  background-color: var(--rh-bg);
   background-image:
-    radial-gradient(rgba(0, 145, 220, 0.09) 1px, transparent 1px),
-    linear-gradient(155deg, #dff1ff 0%, #effaf5 38%, #f5faff 72%, #d8f3ff 100%);
-  background-size: 24px 24px, 100% 100%;
+    radial-gradient(circle at 12% 18%, rgba(230, 0, 18, 0.045) 0%, transparent 42%),
+    radial-gradient(circle at 88% 22%, rgba(0, 162, 237, 0.06) 0%, transparent 46%),
+    radial-gradient(circle at 50% 85%, rgba(0, 210, 190, 0.05) 0%, transparent 50%);
   background-attachment: fixed;
-  color: var(--text-pure);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  position: relative;
-  overflow-x: hidden;
 }
 
 #profileRoot {
   width: 100%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  z-index: 10;
+  display: block;
 }
 
-/* ========================================================
-   1. BURBUJAS Y AURORAS ACUÁTICAS DE FONDO (FRUTIGER AERO)
-   ======================================================== */
-.aero-ambient-orb {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(85px);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.35;
-  transition: background 0.6s ease;
-}
-.aero-orb-1 {
-  width: 540px;
-  height: 540px;
-  background: radial-gradient(circle, var(--system-aura-glow) 0%, rgba(0, 210, 255, 0) 70%);
-  top: -120px;
-  left: -80px;
-}
-.aero-orb-2 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0) 70%);
-  bottom: -160px;
-  right: -100px;
-}
-.aero-orb-3 {
-  width: 440px;
-  height: 440px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(56, 189, 248, 0) 70%);
-  top: 32%;
-  right: 18%;
-}
-
-/* ========================================================
-   2. CONTENEDOR MAESTRO DE ANCHO FIJO (CERO SALTOS DE TAMAÑO)
-   ======================================================== */
+/* 2. ESCENARIO PRINCIPAL DE ANCHO FIJO (1280px) */
 .aero-profile-stage {
   width: 100%;
   max-width: 1280px;
-  margin: 22px auto 56px auto;
-  padding: 0 28px;
-  box-sizing: border-box;
+  margin: 18px auto 56px auto;
+  padding: 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   position: relative;
-  z-index: 10;
+  z-index: 5;
 }
 
-/* ========================================================
-   3. TARJETA HERO DE IDENTIDAD (WII PLAZA + AERO GLASS)
-   ======================================================== */
+/* 3. TARJETA HERO DE IDENTIDAD (TEXTO 100% EN ZONA BLANCA, SIN SOLAPAR EL BANNER) */
 .aero-hero-card {
   width: 100%;
-  background: var(--aero-glass-surface);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1.5px solid var(--aero-border-white);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--aero-shadow-lg);
+  border-radius: 28px;
+  background: var(--rh-card-bg);
+  border: 1.5px solid var(--rh-card-border);
+  box-shadow: var(--rh-card-shadow);
   overflow: hidden;
   position: relative;
 }
 
-/* Banner Panorámico con Reflejo Cristalino Diagonal */
-.aero-banner-frame {
+.aero-hero-banner {
+  width: 100%;
+  height: 205px;
+  background-size: cover;
+  background-position: center;
   position: relative;
-  width: 100%;
-  height: 185px;
-  background: linear-gradient(135deg, #0077b6 0%, #00a2ed 50%, #10b981 100%);
   overflow: hidden;
-  cursor: pointer;
-}
-.aero-banner-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.aero-banner-frame:hover .aero-banner-img {
-  transform: scale(1.02);
 }
 
-/* Brillo especular Frutiger Aero sobre el banner */
-.aero-banner-gloss {
+/* Sombra sutil inferior en el banner para dar contraste al aro blanco del avatar */
+.aero-hero-banner::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 38%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0) 35%, rgba(15, 23, 42, 0.55) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.05) 0%,
+    rgba(15, 23, 42, 0.12) 65%,
+    rgba(15, 23, 42, 0.38) 100%
+  );
   pointer-events: none;
 }
 
-.aero-banner-hint {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  padding: 5px 14px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  color: #0f172a;
-  font-size: 11.5px;
-  font-weight: 800;
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: all 0.22s ease;
-  pointer-events: none;
-}
-.aero-banner-frame:hover .aero-banner-hint {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Cuerpo de Identidad del Jugador */
-.aero-hero-body {
-  padding: 0 30px 24px 30px;
+/* Cubierta inferior blanca donde vive toda la información de identidad */
+.aero-hero-deck {
+  padding: 20px 28px 24px 28px;
+  background: #ffffff;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
-  margin-top: -46px;
   position: relative;
-  z-index: 4;
+  z-index: 2;
 }
 
-.aero-identity-left {
+.aero-identity-cluster {
   display: flex;
-  align-items: flex-end;
-  gap: 20px;
+  align-items: center;
+  gap: 22px;
+  flex: 1;
+  min-width: 300px;
 }
 
-/* Orbe de Cristal del Avatar */
-.aero-avatar-bubble {
+/* Solo el Avatar sobresale ligeramente hacia el banner con un grueso borde blanco */
+.aero-avatar-pedestal {
   position: relative;
-  width: 102px;
-  height: 102px;
+  width: 112px;
+  height: 112px;
+  margin-top: -58px;
   border-radius: 50%;
   padding: 4px;
-  background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 100%);
-  border: 2px solid #ffffff;
+  background: #ffffff;
   box-shadow:
-    0 10px 28px rgba(0, 120, 190, 0.22),
-    0 0 22px var(--system-aura-glow),
-    inset 0 2px 3px #ffffff;
-  cursor: pointer;
+    0 10px 26px rgba(15, 23, 42, 0.16),
+    0 0 0 3px #ffffff;
   flex-shrink: 0;
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 3;
 }
-.aero-avatar-bubble:hover {
-  transform: scale(1.04) translateY(-2px);
-}
-.aero-avatar-img {
+
+.aero-avatar-pedestal img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  background: #ffffff;
-  border: 2.5px solid var(--system-aura-color);
-}
-/* Reflejo superior tipo burbuja de cristal sobre el avatar */
-.aero-avatar-bubble::after {
-  content: '';
-  position: absolute;
-  top: 5px;
-  left: 16%;
-  width: 68%;
-  height: 36%;
-  border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0) 100%);
-  pointer-events: none;
+  background: #f8fafc;
+  display: block;
+  border: 2px solid rgba(0, 162, 237, 0.25);
 }
 
-.aero-online-orb {
+.aero-presence-gem {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 20px;
-  height: 20px;
+  bottom: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #a7f3d0 0%, #10b981 65%, #047857 100%);
-  border: 3px solid #ffffff;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
-  z-index: 3;
+  background: #10b981;
+  border: 3.5px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
 }
 
-.aero-identity-meta {
+/* Bloque de Nombre, @handle e Insignias (100% dentro de la franja blanca) */
+.aero-identity-text {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding-bottom: 2px;
+  gap: 9px;
+  min-width: 0;
 }
 
 .aero-name-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
 .aero-display-name {
-  font-family: var(--font-display);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 800;
-  color: var(--text-pure);
   letter-spacing: -0.6px;
+  color: #0f172a;
+  margin: 0;
   line-height: 1.1;
 }
 
-.aero-handle-tag {
-  font-size: 14px;
-  font-weight: 800;
-  color: #0284c7;
+.aero-handle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 9999px;
   background: rgba(0, 162, 237, 0.1);
-  border: 1px solid rgba(0, 162, 237, 0.22);
-  padding: 2px 10px;
-  border-radius: var(--radius-pill);
+  border: 1px solid rgba(0, 162, 237, 0.25);
+  color: #0284c7;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .aero-badges-row {
@@ -344,79 +208,105 @@ body.profile-body {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 4px;
 }
 
-.aero-pill-badge {
+.aero-gel-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 13px;
-  border-radius: var(--radius-pill);
+  gap: 7px;
+  padding: 5px 13px 5px 9px;
+  border-radius: 9999px;
   font-size: 12px;
-  font-weight: 700;
-  background: linear-gradient(180deg, #ffffff 0%, #f1f8fe 100%);
-  border: 1px solid rgba(0, 162, 237, 0.22);
-  box-shadow: 0 2px 6px rgba(0, 120, 190, 0.06), inset 0 1px 1px #ffffff;
-  color: var(--text-main);
+  font-weight: 800;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  color: #334155;
 }
-.aero-pill-badge.honor {
-  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+
+.aero-gel-tag-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.aero-gel-tag.honor {
+  background: #fffbeb;
   border-color: rgba(245, 158, 11, 0.35);
   color: #b45309;
 }
-.aero-pill-badge.status-online {
-  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: rgba(16, 185, 129, 0.35);
-  color: #047857;
-}
-.aero-pill-badge.status-playing {
-  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
-  border-color: rgba(255, 60, 40, 0.35);
-  color: #e11d48;
+.aero-gel-tag.honor .aero-gel-tag-icon {
+  background: rgba(245, 158, 11, 0.2);
+  color: #d97706;
 }
 
-/* Cápsula Única de Clave de Amigo (Sin Duplicados) */
+.aero-gel-tag.console {
+  background: #fff1f2;
+  border-color: rgba(230, 0, 18, 0.25);
+  color: #be123c;
+}
+.aero-gel-tag.console .aero-gel-tag-icon {
+  background: rgba(230, 0, 18, 0.14);
+  color: #e60012;
+}
+
+.aero-gel-tag.online {
+  background: #ecfdf5;
+  border-color: rgba(16, 185, 129, 0.32);
+  color: #047857;
+}
+.aero-gel-tag.online .aero-gel-tag-icon {
+  background: rgba(16, 185, 129, 0.2);
+  color: #059669;
+}
+
+/* Cápsula Derecha: Clave de Amigo + Acciones Rápidas (Copiar, QR, Abrir Chat) */
 .aero-friendcode-capsule {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 16px;
+  gap: 12px;
+  padding: 10px 14px;
   border-radius: 20px;
-  background: var(--aero-glass-subtle);
-  border: 1.5px solid var(--aero-border-white);
-  box-shadow: var(--aero-shadow-sm);
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: inset 0 1px 2px #ffffff;
 }
 
 .aero-fc-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #62d8ff 0%, #00a2ed 100%);
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #00d2be 0%, #00a2ed 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 162, 237, 0.3), inset 0 1.5px 2px rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 162, 237, 0.25);
+  flex-shrink: 0;
 }
 
 .aero-fc-info {
   display: flex;
   flex-direction: column;
 }
+
 .aero-fc-label {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: var(--text-dim);
+  letter-spacing: 0.9px;
+  color: #64748b;
 }
-.aero-fc-code {
-  font-family: var(--font-display);
-  font-size: 15px;
+
+.aero-fc-value {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 14.5px;
   font-weight: 800;
-  color: var(--text-pure);
-  letter-spacing: 0.5px;
+  color: #0f172a;
+  letter-spacing: 0.4px;
 }
 
 .aero-fc-actions {
@@ -425,86 +315,44 @@ body.profile-body {
   gap: 6px;
 }
 
-/* ========================================================
-   4. BOTONES GEL FRUTIGER AERO & WII PORCELAIN
-   ======================================================== */
-.btn-aero-gel {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 8px 18px;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-display);
-  font-size: 12.5px;
-  font-weight: 800;
-  cursor: pointer;
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
-  background: linear-gradient(180deg, #62d8ff 0%, #00a2ed 52%, #0082c8 100%);
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 60, 110, 0.3);
-  box-shadow:
-    0 6px 18px rgba(0, 162, 237, 0.32),
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.9);
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  text-decoration: none;
-  overflow: hidden;
-}
-.btn-aero-gel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 6%;
-  right: 6%;
-  height: 46%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border-radius: var(--radius-pill);
-  pointer-events: none;
-}
-.btn-aero-gel:hover {
-  transform: translateY(-1.5px) scale(1.02);
-  filter: brightness(1.06);
-  box-shadow:
-    0 8px 24px rgba(0, 162, 237, 0.44),
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.95);
-}
-.btn-aero-gel:active {
-  transform: scale(0.97);
-}
-
-.btn-wii-porcelain {
+.aero-gel-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-display);
+  padding: 8px 13px;
+  border-radius: 9999px;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
-  border: 1px solid rgba(0, 162, 237, 0.25);
-  color: var(--text-main);
-  box-shadow:
-    0 2px 6px rgba(0, 120, 190, 0.07),
-    inset 0 1.5px 1px #ffffff;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  text-decoration: none;
-}
-.btn-wii-porcelain:hover {
-  border-color: var(--wii-cyan);
-  color: var(--wii-cyan);
+  font-weight: 800;
+  color: #334155;
   background: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(0, 162, 237, 0.18), inset 0 1.5px 1px #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ========================================================
-   5. DOCK DE PESTAÑAS ESTILO CANALES WII / FRUTIGER AERO
-   ======================================================== */
+.aero-gel-btn:hover {
+  transform: translateY(-1px);
+  color: #0284c7;
+  border-color: rgba(0, 162, 237, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 162, 237, 0.12);
+}
+
+.aero-gel-btn.primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, #00d2be 0%, #00a2ed 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(0, 162, 237, 0.3);
+}
+
+.aero-gel-btn.primary:hover {
+  box-shadow: 0 6px 18px rgba(0, 162, 237, 0.42);
+}
+
+/* 4. DOCK DE PESTAÑAS CON ICONOS CIRCULARES COLORIDOS ESTILO INDEX.HTML */
 .aero-channel-dock {
   width: 100%;
   display: grid;
@@ -512,126 +360,141 @@ body.profile-body {
   gap: 10px;
   padding: 8px;
   border-radius: 22px;
-  background: var(--aero-glass-surface);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1.5px solid var(--aero-border-white);
-  box-shadow: var(--aero-shadow-sm);
+  background: #ffffff;
+  border: 1.5px solid var(--rh-card-border);
+  box-shadow: var(--rh-card-shadow);
 }
 
-.aero-tab-btn {
+.aero-channel-tab {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 16px;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-display);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 13.5px;
   font-weight: 800;
+  color: #475569;
   cursor: pointer;
-  transition: all 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
 }
-.aero-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.85);
-  color: #0284c7;
-  border-color: rgba(0, 162, 237, 0.2);
-}
-.aero-tab-btn.active {
-  background: linear-gradient(180deg, #56ccf2 0%, #00a2ed 54%, #0082c8 100%);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.85);
-  box-shadow:
-    0 6px 18px rgba(0, 162, 237, 0.32),
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 2px rgba(0, 60, 110, 0.25);
-}
-.aero-tab-btn.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 5%;
-  right: 5%;
-  height: 45%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.04) 100%);
-  border-radius: 16px;
-  pointer-events: none;
+
+.aero-tab-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
 }
 
-.aero-tab-count {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
+.aero-tab-icon-badge.scarlet {
+  background: rgba(230, 0, 18, 0.1);
+  color: #e60012;
+}
+.aero-tab-icon-badge.teal {
+  background: rgba(0, 210, 190, 0.14);
+  color: #00a896;
+}
+.aero-tab-icon-badge.gold {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.aero-tab-icon-badge.sky {
   background: rgba(0, 162, 237, 0.12);
   color: #0284c7;
 }
-.aero-tab-btn.active .aero-tab-count {
-  background: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
+
+.aero-channel-tab:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
 }
 
-/* ========================================================
-   6. VIEWPORT DE CONTENIDO DE PESTAÑAS (ESTABLE Y SIN SALTOS)
-   ======================================================== */
+.aero-channel-tab:hover .aero-tab-icon-badge {
+  transform: scale(1.1);
+}
+
+.aero-channel-tab.active {
+  background: #f0f9ff;
+  color: #0f172a;
+  border-color: rgba(0, 162, 237, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 162, 237, 0.1);
+}
+
+.aero-channel-tab.active .aero-tab-icon-badge.scarlet {
+  background: linear-gradient(135deg, #ff3c28, #e60012);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(230, 0, 18, 0.3);
+}
+.aero-channel-tab.active .aero-tab-icon-badge.teal {
+  background: linear-gradient(135deg, #00d2be, #00a896);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 210, 190, 0.3);
+}
+.aero-channel-tab.active .aero-tab-icon-badge.gold {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+}
+.aero-channel-tab.active .aero-tab-icon-badge.sky {
+  background: linear-gradient(135deg, #00b4ff, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+}
+
+.aero-tab-counter {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(0, 162, 237, 0.12);
+  color: #0284c7;
+}
+
+/* 5. VIEWPORT ESTABLE DE PANELES (ALTURA MÍNIMA FIJA) */
 .aero-tab-viewport {
   width: 100%;
-  min-height: 460px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  min-height: 500px;
+  display: block;
 }
 
-/* Grid de 2 Columnas en Pestaña Resumen (Bio a la izquierda, Actividad a la derecha) */
-.aero-overview-grid {
+.aero-bento-grid {
   width: 100%;
   display: grid;
-  grid-template-columns: 380px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 380px 1fr;
+  gap: 18px;
   align-items: stretch;
 }
 
-/* Tarjeta Cristal Universal */
 .aero-glass-card {
-  width: 100%;
-  background: var(--aero-glass-card);
-  backdrop-filter: blur(26px) saturate(185%);
-  -webkit-backdrop-filter: blur(26px) saturate(185%);
-  border: 1.5px solid var(--aero-border-white);
-  border-radius: var(--radius-lg);
-  padding: 24px 26px;
-  box-shadow: var(--aero-shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  border-radius: 24px;
+  padding: 24px;
+  background: var(--rh-card-bg);
+  border: 1.5px solid var(--rh-card-border);
+  box-shadow: var(--rh-card-shadow);
   position: relative;
   overflow: hidden;
-}
-
-/* Brillo superior sutil en cada tarjeta */
-.aero-glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 162, 237, 0.45) 50%, transparent 100%);
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .aero-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0, 162, 237, 0.12);
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .aero-card-title-group {
@@ -640,504 +503,329 @@ body.profile-body {
   gap: 12px;
 }
 
-.aero-icon-orb {
-  width: 38px;
-  height: 38px;
+.aero-card-icon {
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
-  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 3px 10px rgba(0, 162, 237, 0.14), inset 0 1.5px 1px #ffffff;
-  color: #0284c7;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+.aero-card-icon.sky {
+  background: rgba(0, 162, 237, 0.12);
+  color: #0284c7;
+}
+.aero-card-icon.scarlet {
+  background: rgba(230, 0, 18, 0.1);
+  color: #e60012;
+}
+.aero-card-icon.teal {
+  background: rgba(0, 210, 190, 0.14);
+  color: #00a896;
+}
+.aero-card-icon.gold {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.aero-card-icon.violet {
+  background: rgba(139, 92, 246, 0.14);
+  color: #7c3aed;
+}
+
 .aero-card-title {
-  font-family: var(--font-display);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 17px;
   font-weight: 800;
-  color: var(--text-pure);
-  letter-spacing: -0.3px;
+  color: #0f172a;
+  margin: 0;
 }
 
 .aero-card-subtitle {
   font-size: 12px;
-  color: var(--text-dim);
-  margin-top: 1px;
+  color: #64748b;
+  font-weight: 600;
+  margin: 2px 0 0 0;
 }
 
-/* Biografía y Enlaces Sociales */
-.aero-bio-box {
-  background: var(--aero-glass-subtle);
-  border: 1px solid rgba(0, 162, 237, 0.14);
+.aero-bio-well {
+  padding: 16px 18px;
   border-radius: 16px;
-  padding: 16px;
-  color: var(--text-main);
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
   font-size: 14px;
-  line-height: 1.65;
-  box-shadow: inset 0 1.5px 2px #ffffff;
+  line-height: 1.6;
+  color: #334155;
   flex: 1;
 }
 
-.aero-social-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* ========================================================
-   7. CANALES DE ACTIVIDAD DE JUEGO (ESTILO WII CHANNELS)
-   ======================================================== */
-.wii-channels-grid {
+/* Canales de Juego (Actividad) */
+.wii-channel-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
 }
 
 .wii-channel-tile {
-  background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
-  border: 2px solid rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   overflow: hidden;
-  cursor: pointer;
-  box-shadow:
-    0 6px 18px rgba(0, 130, 200, 0.08),
-    0 0 0 1px rgba(0, 162, 237, 0.2);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
+  transition: all 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .wii-channel-tile:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow:
-    0 14px 28px rgba(0, 162, 237, 0.22),
-    0 0 0 2px #00a2ed;
+  transform: translateY(-3px);
+  border-color: #00a2ed;
+  box-shadow: 0 12px 26px rgba(0, 162, 237, 0.14);
 }
 
 .wii-channel-screen {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  background: #0f172a;
-  overflow: hidden;
-}
-.wii-channel-ambient {
-  position: absolute;
-  inset: 0;
+  height: 118px;
   background-size: cover;
   background-position: center;
-  filter: blur(12px) opacity(0.4);
-  transform: scale(1.1);
-}
-.wii-channel-art {
   position: relative;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 6px;
 }
-.wii-channel-sys-tag {
+
+.wii-channel-badge {
   position: absolute;
   top: 8px;
   left: 8px;
-  z-index: 3;
-  background: rgba(0, 162, 237, 0.88);
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(6px);
   color: #ffffff;
-  font-size: 9.5px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
 }
 
-.wii-channel-meta {
+.wii-channel-footer {
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
-.wii-channel-title {
-  font-family: var(--font-display);
-  font-size: 13.5px;
+
+.wii-channel-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
   font-weight: 800;
-  color: var(--text-pure);
+  color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .wii-channel-time {
   font-size: 11.5px;
   font-weight: 700;
   color: #0284c7;
-}
-.wii-channel-date {
-  font-size: 10.5px;
-  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* Estado Vacío Frutiger Aero */
-.aero-empty-channel {
-  width: 100%;
-  min-height: 240px;
-  padding: 36px 24px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(240, 249, 255, 0.75) 0%, rgba(255, 255, 255, 0.85) 100%);
-  border: 1.5px dashed rgba(0, 162, 237, 0.3);
-  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.9);
+/* Estado vacío limpio */
+.wii-empty-plaza {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 10px;
+  padding: 44px 24px;
+  border-radius: 20px;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  flex: 1;
 }
 
-.aero-empty-orb {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 100%);
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 6px 18px rgba(0, 162, 237, 0.16), inset 0 2px 2px #ffffff;
+.wii-empty-orb {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: rgba(0, 162, 237, 0.1);
+  color: #0284c7;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 
-.aero-empty-title {
-  font-family: var(--font-display);
-  font-size: 16px;
+.wii-empty-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16.5px;
   font-weight: 800;
-  color: var(--text-pure);
+  color: #0f172a;
+  margin: 0 0 6px 0;
 }
 
-.aero-empty-desc {
+.wii-empty-desc {
   font-size: 13px;
-  color: var(--text-muted);
-  max-width: 440px;
-  line-height: 1.55;
+  color: #64748b;
+  max-width: 420px;
+  line-height: 1.5;
+  margin: 0;
 }
 
-/* ========================================================
-   8. PESTAÑA AMIGOS
-   ======================================================== */
-.aero-friend-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.aero-input-capsule {
-  flex: 1;
-  min-width: 260px;
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1.5px solid rgba(0, 162, 237, 0.25);
-  border-radius: var(--radius-pill);
-  padding: 5px 16px;
-  box-shadow: inset 0 2px 4px rgba(0, 100, 160, 0.05);
-  transition: all 0.2s ease;
-}
-.aero-input-capsule:focus-within {
-  border-color: var(--wii-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.18);
-}
-
-.aero-sw-prefix {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 13.5px;
-  color: #0284c7;
-  margin-right: 6px;
-}
-
-.aero-input-clean {
-  width: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-pure);
-  padding: 6px 0;
-}
-
-.aero-friends-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 14px;
-}
-
-.aero-friend-card {
-  background: var(--aero-glass-subtle);
-  border: 1.5px solid var(--aero-border-white);
-  border-radius: 18px;
-  padding: 14px 16px;
-  box-shadow: var(--aero-shadow-sm);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* ========================================================
-   9. PESTAÑA PERSONALIZAR PERFIL (STUDIO UNIFICADO)
-   ======================================================== */
+/* Estudio de Personalización */
 .aero-studio-grid {
-  width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 26px;
-}
-
-.aero-subpanel {
-  background: var(--aero-glass-subtle);
-  border: 1.5px solid var(--aero-border-white);
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: var(--aero-shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
 .aero-field-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 14px;
 }
 
-.aero-label {
-  font-size: 12.5px;
+.aero-field-label {
+  font-size: 11px;
   font-weight: 800;
-  color: var(--text-pure);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #64748b;
 }
 
-.aero-input {
+.aero-input,
+.aero-textarea,
+.aero-select {
   width: 100%;
-  background: #ffffff;
-  border: 1.5px solid rgba(0, 162, 237, 0.22);
-  color: var(--text-pure);
-  padding: 10px 14px;
-  border-radius: 14px;
+  padding: 11px 14px;
+  border-radius: 13px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  font-family: 'Outfit', sans-serif;
   font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
   outline: none;
-  box-shadow: inset 0 1.5px 3px rgba(0, 100, 160, 0.04);
   transition: all 0.2s ease;
 }
-.aero-input:focus {
-  border-color: var(--wii-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.16);
+
+.aero-input:focus,
+.aero-textarea:focus,
+.aero-select:focus {
+  background: #ffffff;
+  border-color: #00a2ed;
+  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.15);
 }
+
 .aero-textarea {
-  min-height: 92px;
+  min-height: 86px;
   resize: vertical;
 }
 
-/* Selector de Auras */
-.aero-aura-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.aero-aura-orb {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid #ffffff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15), inset 0 2px 3px rgba(255, 255, 255, 0.7);
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.aero-aura-orb:hover {
-  transform: scale(1.14);
-}
-.aero-aura-orb.active {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 3px #0284c7, 0 5px 16px currentColor;
-}
-
-/* Selector de Avatar & Banner */
-.aero-Segmented-pills {
-  display: flex;
-  background: rgba(0, 162, 237, 0.08);
-  padding: 4px;
-  border-radius: var(--radius-pill);
-  gap: 4px;
-}
-.aero-seg-btn {
-  flex: 1;
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 11.5px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.aero-seg-btn.active {
-  background: #ffffff;
-  color: #0284c7;
-  box-shadow: 0 2px 6px rgba(0, 120, 190, 0.1);
-}
-
-.aero-avatar-grid {
+.aero-stock-thumbs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 10px;
-  max-height: 185px;
-  overflow-y: auto;
-  padding: 4px;
-}
-.aero-avatar-choice {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 2px solid rgba(0, 162, 237, 0.16);
-  overflow: hidden;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-.aero-avatar-choice:hover {
-  border-color: var(--wii-cyan);
-  transform: scale(1.06);
-}
-.aero-avatar-choice.active {
-  border-color: var(--wii-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.22);
-}
-.aero-avatar-choice img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.aero-banner-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
   gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
-.aero-banner-choice {
-  height: 54px;
+
+.aero-thumb-item {
+  aspect-ratio: 1;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid rgba(0, 162, 237, 0.16);
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  background: #ffffff;
+  transition: all 0.18s ease;
 }
-.aero-banner-choice:hover {
-  border-color: var(--wii-cyan);
-  transform: scale(1.03);
+
+.aero-thumb-item:hover {
+  transform: scale(1.06);
+  border-color: rgba(0, 162, 237, 0.5);
 }
-.aero-banner-choice.active {
-  border-color: var(--wii-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 162, 237, 0.25);
+
+.aero-thumb-item.selected {
+  border-color: #00a2ed;
+  box-shadow: 0 0 0 2px rgba(0, 162, 237, 0.2);
 }
-.aero-banner-choice img {
+
+.aero-thumb-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-/* ========================================================
-   10. MODAL QR Y NOTIFICACIONES TOAST
-   ======================================================== */
-.aero-modal-backdrop {
+.aero-banner-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.aero-banner-thumb {
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.18s ease;
+}
+
+.aero-banner-thumb.selected {
+  border-color: #00a2ed;
+}
+
+.aero-banner-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Modal QR */
+.aero-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.42);
-  backdrop-filter: blur(10px);
-  z-index: 1200;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
 
-.aero-modal-box {
-  background: var(--aero-glass-surface);
-  backdrop-filter: blur(28px);
-  border: 2px solid #ffffff;
-  border-radius: 28px;
-  padding: 32px;
+.aero-qr-dialog {
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 24px 60px rgba(0, 80, 140, 0.25), inset 0 2px 3px #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 380px;
+  border-radius: 26px;
+  padding: 26px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
   text-align: center;
-  position: relative;
 }
 
-.aero-modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 162, 237, 0.2);
-  background: #ffffff;
-  color: var(--text-pure);
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.aero-qr-frame {
-  margin: 18px 0;
-  padding: 16px;
-  background: #ffffff;
-  border-radius: 20px;
-  border: 1.5px solid rgba(0, 162, 237, 0.2);
-  box-shadow: 0 8px 24px rgba(0, 120, 190, 0.08);
-}
-
-.aero-toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(14px);
-  color: #ffffff;
-  padding: 10px 22px;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-  z-index: 1500;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-@media (max-width: 960px) {
-  .aero-profile-stage {
-    padding: 0 14px;
+@media (max-width: 980px) {
+  .aero-bento-grid,
+  .aero-studio-grid {
+    grid-template-columns: 1fr;
   }
   .aero-channel-dock {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .aero-overview-grid,
-  .aero-studio-grid {
-    grid-template-columns: 1fr;
   }
 }

@@ -1,341 +1,425 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RetroHub • Perfil de Usuario</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetroHub • Mi Perfil de Jugador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Tipografías Oficiales de RetroHub -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Barra de Herramientas Común + Menú Lateral de Chat (Amigos y Grupos) -->
+  <link rel="stylesheet" href="retrohub_toolbar.css" />
+  <!-- Estilos del Perfil (Consistentes con index.html, Cero Saltos, Cero Emojis) -->
+  <link rel="stylesheet" href="IisuProfile.css" />
 
-  <!-- Barra de Herramientas Común de RetroHub + Estilos Wii / Frutiger Aero -->
-  <link rel="stylesheet" href="retrohub_toolbar.css">
-  <link rel="stylesheet" href="IisuProfile.css">
-
-  <!-- React 18 y Babel Standalone -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="iisu_cursor.js"></script>
 </head>
 <body class="profile-body">
-  <!-- BARRA DE HERRAMIENTAS COMÚN DE LA WEB (Logo a la izquierda, Navegación al centro, Perfil a la derecha) -->
-  <div id="retrohubGlobalToolbar"></div>
-  <script src="retrohub_toolbar.js"></script>
 
-  <!-- CONTENEDOR RAÍZ DEL PERFIL -->
+  <!-- BARRA SUPERIOR COMÚN DE RETROHUB (Logo a la Izquierda • Navegación • Chat Lateral + Perfil a la Derecha) -->
+  <div id="retrohubGlobalToolbar"></div>
+
+  <!-- ESCENARIO PRINCIPAL DEL PERFIL (Ancho fijo 1280px, sin movimiento al cambiar pestañas) -->
   <div id="profileRoot"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+  <script src="retrohub_toolbar.js"></script>
 
-    // PALETAS DE AURA FRUTIGER AERO & WII
-    const AURA_PALETTES = {
-      electric: { id: 'electric', name: 'Aqua Aero Cyan', color: '#00a2ed', glow: 'rgba(0, 162, 237, 0.42)' },
-      mint: { id: 'mint', name: 'Frutiger Mint', color: '#00d2be', glow: 'rgba(0, 210, 190, 0.42)' },
-      scarlet: { id: 'scarlet', name: 'Coral Red', color: '#ff3c28', glow: 'rgba(255, 60, 40, 0.42)' },
-      neon: { id: 'neon', name: 'Crystal Violet', color: '#818cf8', glow: 'rgba(129, 140, 248, 0.42)' },
-      gold: { id: 'gold', name: 'Solar Gold', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.42)' }
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    /* ========================================================================
+       1. LIBRERÍA DE ICONOS VECTORIALES SVG COLORIDOS (CERO EMOJIS)
+       ======================================================================== */
+    function SvgIcon({ name, size = 18 }) {
+      switch (name) {
+        case 'gamepad':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="6"></rect>
+              <line x1="6" y1="12" x2="10" y2="12"></line>
+              <line x1="8" y1="10" x2="8" y2="14"></line>
+              <circle cx="15.5" cy="13.5" r="1.2" fill="currentColor"></circle>
+              <circle cx="18.5" cy="10.5" r="1.2" fill="currentColor"></circle>
+            </svg>
+          );
+        case 'users':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          );
+        case 'userPlus':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+          );
+        case 'trophy':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+              <path d="M4 22h16"></path>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+            </svg>
+          );
+        case 'sparkles':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+              <path d="M5 3v4"></path>
+              <path d="M19 17v4"></path>
+              <path d="M3 5h4"></path>
+              <path d="M17 19h4"></path>
+            </svg>
+          );
+        case 'crown':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+            </svg>
+          );
+        case 'passport':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+              <circle cx="9" cy="10" r="2"></circle>
+              <path d="M15 8h2"></path>
+              <path d="M15 12h2"></path>
+              <path d="M7 16h10"></path>
+            </svg>
+          );
+        case 'tv':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="15" rx="3" ry="3"></rect>
+              <polyline points="17 2 12 7 7 2"></polyline>
+            </svg>
+          );
+        case 'disc':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          );
+        case 'chat':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          );
+        case 'copy':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          );
+        case 'qr':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          );
+        case 'check':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          );
+        case 'palette':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+            </svg>
+          );
+        case 'image':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          );
+        case 'link':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          );
+        case 'plus':
+          return (
+            <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          );
+        default:
+          return null;
+      }
+    }
+
+    // Limpia cualquier emoji heredado de textos guardados en BD o localStorage
+    function stripEmojis(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '')
+        .trim();
+    }
+
+    const AURA_THEMES = {
+      aqua: { id: 'aqua', name: 'Aqua Aero', color: '#00a2ed', glow: 'rgba(0, 162, 237, 0.25)' },
+      scarlet: { id: 'scarlet', name: 'Rojo Switch', color: '#e60012', glow: 'rgba(230, 0, 18, 0.25)' },
+      emerald: { id: 'emerald', name: 'Menta Cristal', color: '#00d2be', glow: 'rgba(0, 210, 190, 0.25)' },
+      violet: { id: 'violet', name: 'Cielo Violeta', color: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.25)' },
+      gold: { id: 'gold', name: 'Sol Dorado', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.25)' }
     };
 
     const CONSOLE_NAMES = {
       n64: 'Nintendo 64',
-      snes: 'Super Nintendo (SNES)',
+      snes: 'Super Nintendo',
       gba: 'Game Boy Advance',
       ps1: 'PlayStation 1',
+      nds: 'Nintendo DS',
       genesis: 'Sega Mega Drive',
-      nes: 'Nintendo NES',
-      arcade: 'Arcade MAME'
+      nes: 'Nintendo NES'
     };
 
-    // AVATARES REALES DE STOCK
-    const STOCK_AVATARS = [
-      { id: 'av_paper', name: 'Paper Mario', url: 'ROMS/covers/papermario.png', type: 'covers' },
-      { id: 'av_3weeks', name: '3 Weeks in Paradise', url: 'ROMS/covers/3weeksinparadise.jpg', type: 'covers' },
-      { id: 'av_anguna', name: 'Anguna', url: 'ROMS/covers/anguna_box.png', type: 'covers' },
-      { id: 'av_31in1', name: '31-in-1 Real Game', url: 'ROMS/covers/31in1.png', type: 'covers' },
-      { id: 'av_3in1', name: '3-in-1 2-P-Pak', url: 'ROMS/covers/3in1.png', type: 'covers' },
-      { id: 'av_n64', name: 'Nintendo 64', url: 'assets/consoles_hires/n64.png', type: 'consoles' },
-      { id: 'av_gba', name: 'Game Boy Advance', url: 'assets/consoles_hires/gba.png', type: 'consoles' },
-      { id: 'av_nes', name: 'NES', url: 'assets/consoles/nes.png', type: 'consoles' },
-      { id: 'av_snes', name: 'Super Nintendo', url: 'assets/consoles_hires/snes.png', type: 'consoles' },
-      { id: 'av_ps1', name: 'PlayStation 1', url: 'assets/consoles_hires/ps1.png', type: 'consoles' },
-      { id: 'av_bot_himawari', name: 'Himawari Bot', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraHimawari', type: 'characters' },
-      { id: 'av_bot_retro', name: 'Retro Gamer', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraRetro', type: 'characters' },
-      { id: 'av_bot_pixel', name: 'Pixel Hero', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=RetroHubHero', type: 'characters' }
+    const HONOR_TITLES = [
+      'Maestro de los 64-Bits',
+      'Coleccionista de Cajas Originales',
+      'Leyenda de la Plaza RetroHub',
+      'Campeón Speedrun Retro',
+      'Arquitecto del Multiverso'
     ];
 
-    // BANNERS PANORÁMICOS
-    const STOCK_BANNERS = [
-      { id: 'bn_paper', name: 'Paper Mario Kingdom (N64)', url: 'assets/game_wallpapers/n64/papermario.png' },
-      { id: 'bn_sm64', name: 'Super Mario 64 Castle (N64)', url: 'assets/game_wallpapers/n64/sm64.png' },
-      { id: 'bn_oot', name: 'Zelda Ocarina of Time (N64)', url: 'assets/game_wallpapers/n64/oot.png' },
-      { id: 'bn_smw', name: 'Super Mario World (SNES)', url: 'assets/game_wallpapers/snes/smw.png' },
-      { id: 'bn_emerald', name: 'Pokémon Esmeralda (GBA)', url: 'assets/game_wallpapers/gba/pokemon_emerald.png' },
-      { id: 'bn_n64_art', name: 'Nintendo 64 Matrix', url: 'assets/wallpapers/n64.svg' },
-      { id: 'bn_gba_art', name: 'Game Boy Advance Indigo', url: 'assets/wallpapers/gba.svg' }
-    ];
+    function generateFriendCode(seed) {
+      let hash = 0;
+      const str = String(seed || 'himawari');
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      const abs = Math.abs(hash);
+      const p1 = String((abs % 9000) + 1000);
+      const p2 = String(((abs * 7) % 9000) + 1000);
+      const p3 = String(((abs * 13) % 9000) + 1000);
+      return `SW-${p1}-${p2}-${p3}`;
+    }
 
-    function RetroHubAeroProfile() {
-      const [activeTab, setActiveTab] = useState(() => {
-        const p = new URLSearchParams(window.location.search);
-        return p.get('tab') || 'perfil';
-      });
+    function formatMinutes(mins) {
+      const m = Number(mins) || 0;
+      if (m < 60) return `${m} min jugados`;
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return rem > 0 ? `${h} h ${rem} min` : `${h} horas`;
+    }
 
+    function RetroHubProfileApp() {
+      const [activeTab, setActiveTab] = useState('overview');
       const [profile, setProfile] = useState({
-        id: null,
+        id: 8,
         username: localStorage.getItem('retrohub_user_name') || 'himawari',
         displayName: localStorage.getItem('retrohub_display_name') || localStorage.getItem('retrohub_user_name') || 'himawari',
-        bio: localStorage.getItem('retrohub_user_bio') || '',
-        avatarUrl: localStorage.getItem('retrohub_user_avatar') || 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraHimawari',
-        bannerUrl: localStorage.getItem('retrohub_user_banner') || 'assets/game_wallpapers/n64/papermario.png',
-        titleHonor: localStorage.getItem('retrohub_honor_title') || '🎮 Maestro de los 64-Bits',
-        systemAura: localStorage.getItem('retrohub_aura_id') || 'electric',
-        favoriteSystem: localStorage.getItem('retrohub_fav_system') || 'n64',
-        friendCode: '',
-        socialLinks: [
-          { id: 'l1', platform: 'discord', title: 'Comunidad Discord', url: 'https://discord.gg/retrohub', icon: '💬' }
-        ],
-        presence: { status: 'online', game: null }
+        bio: 'Coleccionista de joyas en caja original y entusiasta de los 60 FPS.',
+        avatarUrl: localStorage.getItem('retrohub_user_avatar') || 'https://api.dicebear.com/7.x/bottts/svg?seed=himawari',
+        bannerUrl: 'assets/game_wallpapers/n64/sm64.png',
+        titleHonor: 'Maestro de los 64-Bits',
+        systemAura: 'aqua',
+        favoriteSystem: 'n64',
+        presence: { status: 'online', emulator: null, game: null }
       });
 
       const [playActivity, setPlayActivity] = useState([]);
       const [friends, setFriends] = useState([]);
-      const [addFriendInput, setAddFriendInput] = useState('');
+      const [groups, setGroups] = useState([]);
+      const [stockAssets, setStockAssets] = useState({ avatars: [], banners: [] });
+      const [copiedCode, setCopiedCode] = useState(false);
       const [showQrModal, setShowQrModal] = useState(false);
-      const [toast, setToast] = useState(null);
-      const [avatarTabFilter, setAvatarTabFilter] = useState('covers');
+
+      // Estado del Estudio de Personalización
+      const [editDisplayName, setEditDisplayName] = useState('');
+      const [editUsername, setEditUsername] = useState('');
+      const [editBio, setEditBio] = useState('');
+      const [editTitleHonor, setEditTitleHonor] = useState('');
+      const [editFavSystem, setEditFavSystem] = useState('n64');
+      const [editAura, setEditAura] = useState('aqua');
+      const [editAvatar, setEditAvatar] = useState('');
+      const [editBanner, setEditBanner] = useState('');
+      const [saveBannerMsg, setSaveBannerMsg] = useState(null);
       const [isSaving, setIsSaving] = useState(false);
-      const [isOwner, setIsOwner] = useState(true);
 
-      const [usernameInput, setUsernameInput] = useState(profile.username);
-      const [usernameValidation, setUsernameValidation] = useState({ status: 'available', message: '✓ Nombre de usuario activo' });
+      const friendCode = useMemo(() => generateFriendCode(profile.username), [profile.username]);
 
-      const debounceTimerRef = useRef(null);
-      const fileInputRef = useRef(null);
-      const broadcastRef = useRef(null);
-
+      // Cargar perfil autenticado real, amigos y grupos desde SQLite
       useEffect(() => {
-        // 1. Cargar actividad de juego real
-        try {
-          const storedAct = localStorage.getItem('retrohub_play_activity');
-          if (storedAct) {
-            const parsed = JSON.parse(storedAct);
-            if (Array.isArray(parsed)) setPlayActivity(parsed);
-          }
-        } catch (e) {
-          setPlayActivity([]);
-        }
-
-        // 2. Determinar usuario (parámetro ?user= o sesión JWT)
-        const params = new URLSearchParams(window.location.search);
-        const targetUser = params.get('user') || params.get('username');
         const token = localStorage.getItem('retrohub_jwt_token');
+        const storedUser = localStorage.getItem('retrohub_user_name');
+        const headers = {};
+        let url = '/api/users/profile';
 
-        let fetchUrl = '/api/users/profile';
-        const fetchHeaders = {};
-        if (token) fetchHeaders['Authorization'] = `Bearer ${token}`;
-
-        if (targetUser) {
-          fetchUrl = `/api/users/profile/${encodeURIComponent(targetUser.trim().toLowerCase())}`;
-          const currentLogged = localStorage.getItem('retrohub_user_name');
-          if (currentLogged && currentLogged.toLowerCase() !== targetUser.trim().toLowerCase()) {
-            setIsOwner(false);
-          }
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else if (storedUser) {
+          url = `/api/users/profile/${encodeURIComponent(storedUser.trim().toLowerCase())}`;
         }
 
-        // 3. Consultar perfil real al servidor
-        fetch(fetchUrl, { headers: fetchHeaders })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success && data.user) {
+        fetch(url, { headers })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data && data.success && data.user) {
               const u = data.user;
-              const userId = u.id;
-
-              let fcKey = `retrohub_friend_code_${userId}`;
-              let fc = localStorage.getItem(fcKey) || localStorage.getItem('retrohub_friend_code');
-              if (!fc || !fc.startsWith('SW-')) {
-                const p1 = Math.floor(1000 + Math.random() * 9000);
-                const p2 = Math.floor(1000 + Math.random() * 9000);
-                const p3 = Math.floor(1000 + Math.random() * 9000);
-                fc = `SW-${p1}-${p2}-${p3}`;
-                localStorage.setItem(fcKey, fc);
-                localStorage.setItem('retrohub_friend_code', fc);
-              }
-
-              const newAura = AURA_PALETTES[u.systemAura] ? u.systemAura : 'electric';
-              const updatedProfile = {
-                id: userId,
+              const cleanHonor = stripEmojis(u.titleHonor) || 'Maestro de los 64-Bits';
+              const nextProfile = {
+                id: u.id,
                 username: u.username || 'himawari',
                 displayName: u.displayName || u.username || 'himawari',
-                bio: u.bio !== undefined ? u.bio : '',
-                avatarUrl: u.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraHimawari',
-                bannerUrl: u.bannerUrl || 'assets/game_wallpapers/n64/papermario.png',
-                titleHonor: u.titleHonor || '🎮 Maestro de los 64-Bits',
-                systemAura: newAura,
+                bio: stripEmojis(u.bio) || 'Explorador del multiverso retro en RetroHub.',
+                avatarUrl: u.avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.username}`,
+                bannerUrl: u.bannerUrl || 'assets/game_wallpapers/n64/sm64.png',
+                titleHonor: cleanHonor,
+                systemAura: u.systemAura || 'aqua',
                 favoriteSystem: u.favoriteSystem || 'n64',
-                socialLinks: u.socialLinks && u.socialLinks.length ? u.socialLinks : [
-                  { id: 'l1', platform: 'discord', title: 'Comunidad Discord', url: 'https://discord.gg/retrohub', icon: '💬' }
-                ],
-                friendCode: fc,
-                presence: u.presence || { status: 'online', game: null }
+                presence: u.presence || { status: 'online' }
               };
+              setProfile(nextProfile);
+              setEditDisplayName(nextProfile.displayName);
+              setEditUsername(nextProfile.username);
+              setEditBio(nextProfile.bio);
+              setEditTitleHonor(nextProfile.titleHonor);
+              setEditFavSystem(nextProfile.favoriteSystem);
+              setEditAura(nextProfile.systemAura in AURA_THEMES ? nextProfile.systemAura : 'aqua');
+              setEditAvatar(nextProfile.avatarUrl);
+              setEditBanner(nextProfile.bannerUrl);
 
-              setProfile(updatedProfile);
-              setUsernameInput(updatedProfile.username);
-
-              const aura = AURA_PALETTES[newAura] || AURA_PALETTES.electric;
-              document.documentElement.style.setProperty('--system-aura-color', aura.color);
-              document.documentElement.style.setProperty('--system-aura-glow', aura.glow);
-
-              if (!targetUser || targetUser.toLowerCase() === updatedProfile.username.toLowerCase()) {
-                localStorage.setItem('retrohub_user_name', updatedProfile.username);
-                localStorage.setItem('retrohub_display_name', updatedProfile.displayName);
-                localStorage.setItem('retrohub_user_avatar', updatedProfile.avatarUrl);
-                localStorage.setItem('retrohub_user_banner', updatedProfile.bannerUrl);
-                localStorage.setItem('retrohub_user_bio', updatedProfile.bio);
-                localStorage.setItem('retrohub_honor_title', updatedProfile.titleHonor);
-                localStorage.setItem('retrohub_aura_id', newAura);
-                localStorage.setItem('retrohub_fav_system', updatedProfile.favoriteSystem);
-                if (window.RetroHubToolbar) {
-                  window.RetroHubToolbar.updateUser(updatedProfile);
-                }
+              localStorage.setItem('retrohub_user_name', nextProfile.username);
+              localStorage.setItem('retrohub_display_name', nextProfile.displayName);
+              localStorage.setItem('retrohub_user_avatar', nextProfile.avatarUrl);
+              if (window.RetroHubToolbar) {
+                window.RetroHubToolbar.updateUser(nextProfile);
               }
             }
           })
-          .catch(() => {
-            let fc = localStorage.getItem('retrohub_friend_code') || 'SW-4829-1092-4821';
-            setProfile(p => ({ ...p, friendCode: fc }));
-          });
+          .catch(() => {});
 
-        if (typeof BroadcastChannel !== 'undefined') {
-          broadcastRef.current = new BroadcastChannel('retrohub_profile_sync');
-          broadcastRef.current.onmessage = (event) => {
-            if (event.data && event.data.type === 'PLAY_ACTIVITY_UPDATED') {
-              setPlayActivity(event.data.activity);
+        // Cargar amigos y grupos reales desde /api/chat/overview
+        fetch('/api/chat/overview', { headers })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data && data.success) {
+              setFriends(data.friends || []);
+              setGroups(data.groups || []);
             }
-          };
-        }
+          })
+          .catch(() => {});
 
-        return () => {
-          if (broadcastRef.current) broadcastRef.current.close();
+        window.onRetroHubChatSync = (chatState) => {
+          if (chatState) {
+            setFriends([...(chatState.friends || [])]);
+            setGroups([...(chatState.groups || [])]);
+          }
         };
+
+        // Cargar galería de avatares y banners
+        fetch('/api/assets/stock-images')
+          .then((r) => r.json())
+          .then((data) => {
+            if (data && data.success) {
+              setStockAssets({
+                avatars: data.avatars || [],
+                banners: data.banners || []
+              });
+            }
+          })
+          .catch(() => {});
+
+        // Cargar actividad de juego real
+        try {
+          const rawAct = JSON.parse(localStorage.getItem('retrohub_play_activity') || '[]');
+          if (Array.isArray(rawAct)) setPlayActivity(rawAct);
+        } catch (e) {
+          setPlayActivity([]);
+        }
       }, []);
 
-      const showToast = (type, message) => {
-        setToast({ type, message });
-        setTimeout(() => setToast(null), 3500);
-      };
+      // Aplicar color de aura
+      useEffect(() => {
+        const theme = AURA_THEMES[profile.systemAura] || AURA_THEMES.aqua;
+        document.documentElement.style.setProperty('--system-accent', theme.color);
+        document.documentElement.style.setProperty('--system-glow', theme.glow);
+      }, [profile.systemAura]);
 
-      const handleSelectAura = (auraKey) => {
-        const aura = AURA_PALETTES[auraKey];
-        if (!aura) return;
-        setProfile(p => ({ ...p, systemAura: auraKey }));
-        document.documentElement.style.setProperty('--system-aura-color', aura.color);
-        document.documentElement.style.setProperty('--system-aura-glow', aura.glow);
-        localStorage.setItem('retrohub_aura_id', auraKey);
-        showToast('info', `Aura cambiada a ${aura.name}.`);
-      };
+      function handleCopyFriendCode() {
+        navigator.clipboard.writeText(friendCode).then(() => {
+          setCopiedCode(true);
+          setTimeout(() => setCopiedCode(false), 2200);
+        });
+      }
 
-      const handleSelectAvatar = (url) => {
-        setProfile(p => ({ ...p, avatarUrl: url }));
-        localStorage.setItem('retrohub_user_avatar', url);
-        if (window.RetroHubToolbar) window.RetroHubToolbar.updateUser({ avatarUrl: url });
-        if (broadcastRef.current) {
-          broadcastRef.current.postMessage({ type: 'PROFILE_UPDATED', avatarUrl: url });
-        }
-        showToast('success', 'Foto de perfil seleccionada.');
-      };
-
-      const handleSelectBanner = (url) => {
-        setProfile(p => ({ ...p, bannerUrl: url }));
-        localStorage.setItem('retrohub_user_banner', url);
-        showToast('success', 'Banner panorámico actualizado.');
-      };
-
-      const handleFileUpload = (e) => {
+      function handleFileUpload(e, type) {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => {
-          const base64 = reader.result;
-          setProfile(p => ({ ...p, avatarUrl: base64 }));
-          localStorage.setItem('retrohub_user_avatar', base64);
-          if (window.RetroHubToolbar) window.RetroHubToolbar.updateUser({ avatarUrl: base64 });
-          if (broadcastRef.current) {
-            broadcastRef.current.postMessage({ type: 'PROFILE_UPDATED', avatarUrl: base64 });
+        reader.onload = async (ev) => {
+          const base64 = ev.target.result;
+          try {
+            const res = await fetch('/api/users/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: base64, type: type === 'avatar' ? 'pfp' : 'banner' })
+            });
+            const data = await res.json();
+            const finalUrl = data && data.success && data.url ? data.url : base64;
+            if (type === 'avatar') setEditAvatar(finalUrl);
+            else setEditBanner(finalUrl);
+          } catch {
+            if (type === 'avatar') setEditAvatar(base64);
+            else setEditBanner(base64);
           }
-          showToast('success', 'Imagen personalizada cargada.');
         };
         reader.readAsDataURL(file);
-      };
+      }
 
-      const handleCopyFriendCode = () => {
-        if (!profile.friendCode) return;
-        navigator.clipboard.writeText(profile.friendCode).then(() => {
-          showToast('success', `✓ Clave ${profile.friendCode} copiada al portapapeles`);
-        }).catch(() => {
-          showToast('info', `Tu clave: ${profile.friendCode}`);
-        });
-      };
-
-      const handleUsernameChange = (e) => {
-        const val = e.target.value;
-        setUsernameInput(val);
-
-        if (!val.trim() || val.length < 3 || val.length > 24) {
-          setUsernameValidation({ status: 'invalid', message: '⚠ Debe tener entre 3 y 24 caracteres.' });
-          return;
-        }
-
-        setUsernameValidation({ status: 'checking', message: '⟳ Comprobando disponibilidad...' });
-        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = setTimeout(async () => {
-          try {
-            const res = await fetch(`/api/users/check-username/${encodeURIComponent(val.trim())}?excludeUserId=${profile.id || 0}`);
-            const data = await res.json();
-            if (data.available) {
-              setUsernameValidation({ status: 'available', message: `✓ @${val.trim()} está disponible` });
-            } else {
-              setUsernameValidation({ status: 'taken', message: '✗ Este nombre ya está en uso' });
-            }
-          } catch {
-            setUsernameValidation({ status: 'available', message: '✓ Formato válido' });
-          }
-        }, 300);
-      };
-
-      const handleAddFriendByCode = (e) => {
-        e.preventDefault();
-        const code = addFriendInput.trim().toUpperCase();
-        if (!code || !code.startsWith('SW-') || code.length < 14) {
-          showToast('error', 'Introduce una clave válida (ej: SW-1234-5678-9012).');
-          return;
-        }
-        setAddFriendInput('');
-        showToast('success', `✓ Solicitud de amistad enviada a ${code}`);
-      };
-
-      const handleSaveProfile = async () => {
+      async function handleSaveCustomization(e) {
+        if (e) e.preventDefault();
         setIsSaving(true);
-        const token = localStorage.getItem('retrohub_jwt_token');
-        const payload = {
-          userId: profile.id,
-          username: usernameInput.trim() || profile.username,
-          displayName: profile.displayName.trim() || profile.username,
-          bio: profile.bio,
-          avatarUrl: profile.avatarUrl,
-          bannerUrl: profile.bannerUrl,
-          titleHonor: profile.titleHonor,
-          systemAura: profile.systemAura,
-          favoriteSystem: profile.favoriteSystem,
-          socialLinks: profile.socialLinks
-        };
+        setSaveBannerMsg(null);
 
+        const token = localStorage.getItem('retrohub_jwt_token');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const payload = {
+          userId: profile.id,
+          username: editUsername.trim() || profile.username,
+          displayName: editDisplayName.trim() || profile.displayName,
+          bio: stripEmojis(editBio),
+          titleHonor: stripEmojis(editTitleHonor),
+          favoriteSystem: editFavSystem,
+          systemAura: editAura,
+          avatarUrl: editAvatar,
+          bannerUrl: editBanner
+        };
 
         try {
           const res = await fetch('/api/users/profile', {
@@ -344,630 +428,819 @@
             body: JSON.stringify(payload)
           });
           const data = await res.json();
-          if (res.ok && data.success) {
-            setProfile(p => ({
-              ...p,
-              username: payload.username,
-              displayName: payload.displayName
-            }));
-            localStorage.setItem('retrohub_user_name', payload.username);
-            localStorage.setItem('retrohub_display_name', payload.displayName);
-            localStorage.setItem('retrohub_user_bio', payload.bio || '');
-            localStorage.setItem('retrohub_user_avatar', payload.avatarUrl);
-            localStorage.setItem('retrohub_user_banner', payload.bannerUrl);
-            localStorage.setItem('retrohub_honor_title', payload.titleHonor);
-            localStorage.setItem('retrohub_fav_system', payload.favoriteSystem);
-
-            if (window.RetroHubToolbar) {
-              window.RetroHubToolbar.updateUser({
-                username: payload.username,
-                displayName: payload.displayName,
-                avatarUrl: payload.avatarUrl
-              });
-            }
-            if (broadcastRef.current) {
-              broadcastRef.current.postMessage({
-                type: 'PROFILE_UPDATED',
-                displayName: payload.displayName,
-                username: payload.username,
-                avatarUrl: payload.avatarUrl,
-                systemAura: payload.systemAura
-              });
-            }
-            showToast('success', '✓ Perfil guardado y sincronizado en RetroHub');
-          } else {
-            showToast('error', data.error ? data.error.message : 'No se pudo guardar el perfil.');
+          if (!res.ok || !data.success) {
+            throw new Error((data.error && data.error.message) || 'No se pudo guardar el perfil.');
           }
-        } catch {
-          showToast('error', 'Error de conexión con el servidor local.');
+
+          const updated = {
+            ...profile,
+            username: data.user.username,
+            displayName: data.profile.displayName,
+            bio: stripEmojis(data.profile.bio),
+            titleHonor: stripEmojis(data.profile.titleHonor),
+            favoriteSystem: data.profile.favoriteSystem,
+            systemAura: data.profile.systemAura,
+            avatarUrl: data.profile.avatarUrl,
+            bannerUrl: data.profile.bannerUrl
+          };
+          setProfile(updated);
+
+          localStorage.setItem('retrohub_user_name', updated.username);
+          localStorage.setItem('retrohub_display_name', updated.displayName);
+          localStorage.setItem('retrohub_user_avatar', updated.avatarUrl);
+
+          const auraObj = AURA_THEMES[updated.systemAura] || AURA_THEMES.aqua;
+          localStorage.setItem('retrohub_aura_color', auraObj.color);
+          localStorage.setItem('retrohub_aura_glow', auraObj.glow);
+
+          if (window.RetroHubToolbar) {
+            window.RetroHubToolbar.updateUser(updated);
+          }
+
+          if (typeof BroadcastChannel !== 'undefined') {
+            const ch = new BroadcastChannel('retrohub_profile_sync');
+            ch.postMessage({
+              type: 'PROFILE_UPDATED',
+              username: updated.username,
+              displayName: updated.displayName,
+              avatarUrl: updated.avatarUrl,
+              systemAuraColor: auraObj.color,
+              systemAuraGlow: auraObj.glow
+            });
+          }
+
+          setSaveBannerMsg({ type: 'success', text: 'Cambios guardados y sincronizados en RetroHub.' });
+        } catch (err) {
+          setSaveBannerMsg({ type: 'error', text: err.message });
         } finally {
           setIsSaving(false);
         }
-      };
+      }
 
-      const formatPlayTime = (minutes) => {
-        if (!minutes || minutes < 60) return 'Jugado recientemente';
-        const hours = Math.floor(minutes / 60);
-        return `${hours} h registradas`;
-      };
-
-      const activeAuraData = AURA_PALETTES[profile.systemAura] || AURA_PALETTES.electric;
+      const unlockedAchievements = useMemo(() => {
+        const list = [];
+        if (playActivity.length >= 1) {
+          list.push({
+            id: 'first_boot',
+            title: 'Primer Encendido Retro',
+            desc: 'Has iniciado tu primera partida en el emulador de RetroHub.',
+            color: 'scarlet'
+          });
+        }
+        const totalMins = playActivity.reduce((acc, g) => acc + (Number(g.minutesPlayed) || 0), 0);
+        if (totalMins >= 60) {
+          list.push({
+            id: 'hour_hero',
+            title: 'Maratón de 60 Minutos',
+            desc: 'Has superado una hora acumulada de juego real.',
+            color: 'gold'
+          });
+        }
+        if (friends.length >= 1) {
+          list.push({
+            id: 'social_link',
+            title: 'Alianza Multijugador',
+            desc: 'Has conectado con al menos un amigo en la red de RetroHub.',
+            color: 'teal'
+          });
+        }
+        return list;
+      }, [playActivity, friends]);
 
       return (
-        <>
-          <input
-            type="file"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            accept="image/*"
-            onChange={handleFileUpload}
-          />
+        <main className="aero-profile-stage">
+          {/* 1. TARJETA HERO DE IDENTIDAD (Texto 100% sobre fondo blanco limpio, sin chocar con el banner) */}
+          <section className="aero-hero-card">
+            <div
+              className="aero-hero-banner"
+              style={{ backgroundImage: `url('${profile.bannerUrl}')` }}
+            />
 
-          {/* Orbes Acuáticos Luminosos Frutiger Aero */}
-          <div className="aero-ambient-orb aero-orb-1" />
-          <div className="aero-ambient-orb aero-orb-2" />
-          <div className="aero-ambient-orb aero-orb-3" />
+            <div className="aero-hero-deck">
+              <div className="aero-identity-cluster">
+                <div className="aero-avatar-pedestal">
+                  <img
+                    src={profile.avatarUrl}
+                    alt={profile.displayName}
+                    onError={(e) => {
+                      e.target.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${profile.username}`;
+                    }}
+                  />
+                  <span className="aero-presence-gem" title="En línea en RetroHub" />
+                </div>
 
-          {/* Notificación Flotante */}
-          {toast && (
-            <div className="aero-toast">
-              <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '⚠' : 'ℹ'}</span>
-              <span>{toast.message}</span>
-            </div>
-          )}
+                <div className="aero-identity-text">
+                  <div className="aero-name-row">
+                    <h1 className="aero-display-name">{profile.displayName}</h1>
+                    <span className="aero-handle-pill">@{profile.username}</span>
+                  </div>
 
-          {/* ESCENARIO DE ANCHO FIJO (1280px): CERO DESPLAZAMIENTOS AL CAMBIAR DE PESTAÑA */}
-          <main className="aero-profile-stage">
+                  <div className="aero-badges-row">
+                    <span className="aero-gel-tag honor">
+                      <span className="aero-gel-tag-icon">
+                        <SvgIcon name="crown" size={13} />
+                      </span>
+                      <span>{stripEmojis(profile.titleHonor) || 'Maestro de los 64-Bits'}</span>
+                    </span>
 
-            {/* 1. TARJETA HERO DE IDENTIDAD (ÚNICA Y SIN ELEMENTOS DUPLICADOS) */}
-            <section className="aero-hero-card">
-              <div
-                className="aero-banner-frame"
-                onClick={() => isOwner && setActiveTab('ajustes')}
-                title={isOwner ? 'Haz clic para personalizar el banner' : ''}
-              >
-                <img
-                  src={profile.bannerUrl}
-                  className="aero-banner-img"
-                  alt="Banner del perfil"
-                  onError={(e) => { e.target.src = 'assets/game_wallpapers/n64/papermario.png'; }}
-                />
-                <div className="aero-banner-gloss" />
-                {isOwner && <span className="aero-banner-hint">✨ Cambiar Banner</span>}
+                    <span className="aero-gel-tag console">
+                      <span className="aero-gel-tag-icon">
+                        <SvgIcon name="gamepad" size={13} />
+                      </span>
+                      <span>{CONSOLE_NAMES[profile.favoriteSystem] || 'Nintendo 64'}</span>
+                    </span>
+
+                    <span className="aero-gel-tag online">
+                      <span className="aero-gel-tag-icon">
+                        <SvgIcon name="check" size={13} />
+                      </span>
+                      <span>
+                        {profile.presence && profile.presence.game
+                          ? `Jugando a ${profile.presence.game}`
+                          : 'En línea'}
+                      </span>
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="aero-hero-body">
-                <div className="aero-identity-left">
-                  <div
-                    className="aero-avatar-bubble"
-                    onClick={() => isOwner && setActiveTab('ajustes')}
-                    title={isOwner ? 'Haz clic para cambiar tu avatar' : ''}
+              {/* Cápsula Unificada de Clave de Amigo + Acceso al Chat Lateral */}
+              <div className="aero-friendcode-capsule">
+                <div className="aero-fc-icon">
+                  <SvgIcon name="gamepad" size={20} />
+                </div>
+                <div className="aero-fc-info">
+                  <span className="aero-fc-label">Clave de Amigo</span>
+                  <span className="aero-fc-value">{friendCode}</span>
+                </div>
+                <div className="aero-fc-actions">
+                  <button
+                    className="aero-gel-btn"
+                    type="button"
+                    onClick={handleCopyFriendCode}
+                    title="Copiar clave de amigo"
                   >
-                    <img
-                      src={profile.avatarUrl}
-                      className="aero-avatar-img"
-                      alt={profile.displayName}
-                      onError={(e) => { e.target.src = 'https://api.dicebear.com/7.x/bottts/svg?seed=SaraHimawari'; }}
-                    />
-                    <span className="aero-online-orb" />
-                  </div>
-
-                  <div className="aero-identity-meta">
-                    <div className="aero-name-row">
-                      <h1 className="aero-display-name">{profile.displayName}</h1>
-                      <span className="aero-handle-tag">@{profile.username}</span>
-                    </div>
-
-                    <div className="aero-badges-row">
-                      <span className="aero-pill-badge honor">{profile.titleHonor}</span>
-                      <span className="aero-pill-badge">
-                        🕹️ {CONSOLE_NAMES[profile.favoriteSystem] || profile.favoriteSystem.toUpperCase()}
-                      </span>
-                      {profile.presence && profile.presence.status === 'playing' && profile.presence.game ? (
-                        <span className="aero-pill-badge status-playing">
-                          🎮 Jugando a {profile.presence.game}
-                        </span>
-                      ) : (
-                        <span className="aero-pill-badge status-online">
-                          🟢 En línea
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cápsula Única de Clave de Amigo */}
-                <div className="aero-friendcode-capsule">
-                  <div className="aero-fc-icon">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="6" width="20" height="12" rx="6"></rect>
-                      <line x1="6" y1="12" x2="10" y2="12"></line>
-                      <line x1="8" y1="10" x2="8" y2="14"></line>
-                      <circle cx="15.5" cy="13.5" r="1.2" fill="currentColor"></circle>
-                      <circle cx="18.5" cy="10.5" r="1.2" fill="currentColor"></circle>
-                    </svg>
-                  </div>
-                  <div className="aero-fc-info">
-                    <span className="aero-fc-label">Clave de Amigo</span>
-                    <span className="aero-fc-code">{profile.friendCode || 'SW-0000-0000-0000'}</span>
-                  </div>
-                  <div className="aero-fc-actions">
-                    <button className="btn-wii-porcelain" onClick={handleCopyFriendCode} title="Copiar clave al portapapeles">
-                      Copiar
-                    </button>
-                    <button className="btn-wii-porcelain" onClick={() => setShowQrModal(true)} title="Mostrar tarjeta QR">
-                      QR
-                    </button>
-                  </div>
+                    <SvgIcon name={copiedCode ? 'check' : 'copy'} size={14} />
+                    <span>{copiedCode ? 'Copiado' : 'Copiar'}</span>
+                  </button>
+                  <button
+                    className="aero-gel-btn"
+                    type="button"
+                    onClick={() => setShowQrModal(true)}
+                    title="Mostrar tarjeta QR"
+                  >
+                    <SvgIcon name="qr" size={14} />
+                    <span>QR</span>
+                  </button>
+                  <button
+                    className="aero-gel-btn primary"
+                    type="button"
+                    onClick={() => window.RetroHubChat && window.RetroHubChat.open()}
+                    title="Abrir menú lateral de Chat y Grupos"
+                  >
+                    <SvgIcon name="chat" size={14} />
+                    <span>Abrir Chat</span>
+                  </button>
                 </div>
               </div>
-            </section>
+            </div>
+          </section>
 
-            {/* 2. DOCK DE CANALES WII / FRUTIGER AERO (NAVEGACIÓN DE SECCIONES DEL PERFIL) */}
-            <nav className="aero-channel-dock" aria-label="Secciones del perfil">
-              <button
-                className={`aero-tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
-                onClick={() => setActiveTab('perfil')}
-              >
-                <span>🕹️</span>
-                <span>Resumen y Actividad</span>
-              </button>
+          {/* 2. DOCK DE CANALES (4 PESTAÑAS CON ICONOS VECTORIALES COLORIDOS ESTILO INDEX.HTML) */}
+          <nav className="aero-channel-dock" aria-label="Secciones del perfil">
+            <button
+              type="button"
+              className={`aero-channel-tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <span className="aero-tab-icon-badge scarlet">
+                <SvgIcon name="gamepad" size={17} />
+              </span>
+              <span>Resumen y Actividad</span>
+            </button>
 
-              <button
-                className={`aero-tab-btn ${activeTab === 'amigos' ? 'active' : ''}`}
-                onClick={() => setActiveTab('amigos')}
-              >
-                <span>🤝</span>
-                <span>Amigos</span>
-                <span className="aero-tab-count">{friends.length}</span>
-              </button>
+            <button
+              type="button"
+              className={`aero-channel-tab ${activeTab === 'friends' ? 'active' : ''}`}
+              onClick={() => setActiveTab('friends')}
+            >
+              <span className="aero-tab-icon-badge teal">
+                <SvgIcon name="users" size={17} />
+              </span>
+              <span>Amigos y Grupos</span>
+              <span className="aero-tab-counter">{friends.length + groups.length}</span>
+            </button>
 
-              <button
-                className={`aero-tab-btn ${activeTab === 'logros' ? 'active' : ''}`}
-                onClick={() => setActiveTab('logros')}
-              >
-                <span>🏆</span>
-                <span>Logros</span>
-                <span className="aero-tab-count">0</span>
-              </button>
+            <button
+              type="button"
+              className={`aero-channel-tab ${activeTab === 'achievements' ? 'active' : ''}`}
+              onClick={() => setActiveTab('achievements')}
+            >
+              <span className="aero-tab-icon-badge gold">
+                <SvgIcon name="trophy" size={17} />
+              </span>
+              <span>Logros</span>
+              <span className="aero-tab-counter">{unlockedAchievements.length}</span>
+            </button>
 
-              {isOwner && (
-                <button
-                  className={`aero-tab-btn ${activeTab === 'ajustes' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('ajustes')}
-                >
-                  <span>✨</span>
-                  <span>Personalizar Perfil</span>
-                </button>
-              )}
-            </nav>
+            <button
+              type="button"
+              className={`aero-channel-tab ${activeTab === 'customize' ? 'active' : ''}`}
+              onClick={() => setActiveTab('customize')}
+            >
+              <span className="aero-tab-icon-badge sky">
+                <SvgIcon name="sparkles" size={17} />
+              </span>
+              <span>Personalizar Perfil</span>
+            </button>
+          </nav>
 
-            {/* 3. VIEWPORT DE CONTENIDO (DIMENSIONES BLOQUEADAS) */}
-            <div className="aero-tab-viewport">
-
-              {/* ========================================================
-                  PESTAÑA 1: RESUMEN Y ACTIVIDAD DE JUEGO
-                  ======================================================== */}
-              {activeTab === 'perfil' && (
-                <div className="aero-overview-grid">
-                  {/* Columna Izquierda: Carta de Presentación & Redes */}
-                  <div className="aero-glass-card">
-                    <div className="aero-card-header">
-                      <div className="aero-card-title-group">
-                        <div className="aero-icon-orb">💬</div>
-                        <div>
-                          <h2 className="aero-card-title">Pasaporte de Jugador</h2>
-                          <p className="aero-card-subtitle">Biografía y enlaces de comunidad</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="aero-bio-box">
-                      {profile.bio || 'Sin descripción personal todavía. Puedes personalizar tu biografía desde la pestaña "Personalizar Perfil".'}
-                    </div>
-
-                    <div>
-                      <span className="aero-label" style={{ display: 'block', marginBottom: '8px' }}>
-                        Canales y Redes Vinculadas
-                      </span>
-                      <div className="aero-social-list">
-                        {profile.socialLinks && profile.socialLinks.map(link => (
-                          <a
-                            key={link.id}
-                            href={link.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn-wii-porcelain"
-                          >
-                            <span>{link.icon || '🔗'}</span>
-                            <span>{link.title}</span>
-                            <span style={{ color: '#0284c7', fontSize: '11px' }}>↗</span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Columna Derecha: Canales de Actividad de Juego (Estilo Wii Menu) */}
-                  <div className="aero-glass-card">
-                    <div className="aero-card-header">
-                      <div className="aero-card-title-group">
-                        <div className="aero-icon-orb">📺</div>
-                        <div>
-                          <h2 className="aero-card-title">Canales de Actividad Reciente</h2>
-                          <p className="aero-card-subtitle">Títulos iniciados y registro de sesiones en consola</p>
-                        </div>
-                      </div>
-                      <span className="aero-pill-badge">
-                        {playActivity.length} {playActivity.length === 1 ? 'título' : 'títulos'}
-                      </span>
-                    </div>
-
-                    {playActivity && playActivity.length > 0 ? (
-                      <div className="wii-channels-grid">
-                        {playActivity.map(game => (
-                          <div
-                            key={game.id || game.title}
-                            className="wii-channel-tile"
-                            onClick={() => window.location.href = `index.html?launch=${game.id || ''}`}
-                            title={`Continuar jugando a ${game.title}`}
-                          >
-                            <div className="wii-channel-screen">
-                              <div className="wii-channel-ambient" style={{ backgroundImage: `url(${game.cover})` }} />
-                              <img
-                                src={game.cover}
-                                className="wii-channel-art"
-                                alt={game.title}
-                                onError={(e) => { e.target.src = 'assets/consoles_hires/n64.png'; }}
-                              />
-                              <span className="wii-channel-sys-tag">{(game.system || 'RETRO').toUpperCase()}</span>
-                            </div>
-                            <div className="wii-channel-meta">
-                              <div className="wii-channel-title">{game.title}</div>
-                              <div className="wii-channel-time">{formatPlayTime(game.minutesPlayed)}</div>
-                              <div className="wii-channel-date">{game.lastPlayed || 'Sesión guardada'}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="aero-empty-channel">
-                        <div className="aero-empty-orb">💿</div>
-                        <div className="aero-empty-title">Sin actividad de juego registrada</div>
-                        <div className="aero-empty-desc">
-                          Cuando inicies una ROM desde la sección de Consolas en la barra superior, tus canales jugados y horas aparecerán aquí automáticamente.
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ========================================================
-                  PESTAÑA 2: LISTA DE AMIGOS
-                  ======================================================== */}
-              {activeTab === 'amigos' && (
+          {/* 3. CONTENEDOR ESTABLE DE VISTAS */}
+          <div className="aero-tab-viewport">
+            {activeTab === 'overview' && (
+              <div className="aero-bento-grid">
+                {/* Columna Izquierda: Pasaporte y Resumen */}
                 <div className="aero-glass-card">
                   <div className="aero-card-header">
                     <div className="aero-card-title-group">
-                      <div className="aero-icon-orb">🤝</div>
+                      <div className="aero-card-icon sky">
+                        <SvgIcon name="passport" size={20} />
+                      </div>
                       <div>
-                        <h2 className="aero-card-title">Agenda de Amigos de RetroHub</h2>
-                        <p className="aero-card-subtitle">Registra claves de amigo para jugar en red local o P2P</p>
+                        <h2 className="aero-card-title">Pasaporte de Jugador</h2>
+                        <p className="aero-card-subtitle">Biografía y resumen de cuenta</p>
                       </div>
                     </div>
-                    <span className="aero-pill-badge status-online">
-                      ● {friends.filter(f => f.online).length} en línea
-                    </span>
                   </div>
 
-                  <form className="aero-friend-bar" onSubmit={handleAddFriendByCode}>
-                    <div className="aero-input-capsule">
-                      <span className="aero-sw-prefix">SW-</span>
-                      <input
-                        type="text"
-                        className="aero-input-clean"
-                        placeholder="1234-5678-9012 (Introduce la clave de tu amigo)"
-                        value={addFriendInput}
-                        onChange={(e) => setAddFriendInput(e.target.value)}
-                        maxLength={18}
-                      />
-                    </div>
-                    <button type="submit" className="btn-aero-gel">
-                      <span>＋ Registrar Amigo</span>
-                    </button>
-                  </form>
+                  <div className="aero-bio-well">
+                    {profile.bio || 'Sin biografía definida todavía.'}
+                  </div>
 
-                  {friends && friends.length > 0 ? (
-                    <div className="aero-friends-grid">
-                      {friends.map(f => (
-                        <div key={f.id} className="aero-friend-card">
-                          <img src={f.avatar} style={{ width: '44px', height: '44px', borderRadius: '50%' }} alt={f.name} />
-                          <div>
-                            <div style={{ fontWeight: 800, fontSize: '14px' }}>{f.name}</div>
-                            <div style={{ fontSize: '12px', color: '#0284c7' }}>@{f.username}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '14px',
+                        background: '#f8fafc',
+                        border: '1.5px solid #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}
+                    >
+                      <div className="aero-card-icon teal" style={{ width: '34px', height: '34px', borderRadius: '10px' }}>
+                        <SvgIcon name="users" size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: 'Space Grotesk', fontSize: '16px', fontWeight: 800 }}>
+                          {friends.length}
+                        </div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Amigos</div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '14px',
+                        background: '#f8fafc',
+                        border: '1.5px solid #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}
+                    >
+                      <div className="aero-card-icon violet" style={{ width: '34px', height: '34px', borderRadius: '10px' }}>
+                        <SvgIcon name="chat" size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: 'Space Grotesk', fontSize: '16px', fontWeight: 800 }}>
+                          {groups.length}
+                        </div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Grupos</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Columna Derecha: Canales de Actividad de Juego */}
+                <div className="aero-glass-card">
+                  <div className="aero-card-header">
+                    <div className="aero-card-title-group">
+                      <div className="aero-card-icon scarlet">
+                        <SvgIcon name="tv" size={20} />
+                      </div>
+                      <div>
+                        <h2 className="aero-card-title">Canales de Actividad Reciente</h2>
+                        <p className="aero-card-subtitle">Títulos iniciados y registro de sesiones en consola</p>
+                      </div>
+                    </div>
+                    <span className="aero-gel-tag">{playActivity.length} títulos</span>
+                  </div>
+
+                  {playActivity.length === 0 ? (
+                    <div className="wii-empty-plaza">
+                      <div className="wii-empty-orb">
+                        <SvgIcon name="disc" size={28} />
+                      </div>
+                      <h3 className="wii-empty-title">Sin actividad de juego registrada</h3>
+                      <p className="wii-empty-desc">
+                        Cuando inicies una ROM desde la sección de Consolas en la barra superior, tus canales jugados y horas aparecerán aquí automáticamente.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="wii-channel-grid">
+                      {playActivity.map((item, idx) => (
+                        <div className="wii-channel-tile" key={item.id || idx}>
+                          <div
+                            className="wii-channel-screen"
+                            style={{
+                              backgroundImage: `url('${item.cover || 'assets/consoles/n64.png'}')`
+                            }}
+                          >
+                            <span className="wii-channel-badge">
+                              {item.systemName || item.system || 'RETRO'}
+                            </span>
+                          </div>
+                          <div className="wii-channel-footer">
+                            <div className="wii-channel-name" title={item.title}>
+                              {item.title}
+                            </div>
+                            <div className="wii-channel-time">
+                              <span>{formatMinutes(item.minutesPlayed)}</span>
+                              <span style={{ color: '#64748b' }}>{item.lastPlayed || 'Reciente'}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="aero-empty-channel">
-                      <div className="aero-empty-orb">🌐</div>
-                      <div className="aero-empty-title">Tu agenda de amigos está vacía</div>
-                      <div className="aero-empty-desc">
-                        Comparte tu clave personal ({profile.friendCode}) o registra la clave de otro jugador en la barra superior para conectar.
-                      </div>
-                    </div>
                   )}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* ========================================================
-                  PESTAÑA 3: LOGROS Y MEDALLAS
-                  ======================================================== */}
-              {activeTab === 'logros' && (
+            {activeTab === 'friends' && (
+              <div className="aero-studio-grid">
+                {/* Columna 1: Amigos Conectados y Mensajes Directos */}
                 <div className="aero-glass-card">
                   <div className="aero-card-header">
                     <div className="aero-card-title-group">
-                      <div className="aero-icon-orb">🏆</div>
+                      <div className="aero-card-icon teal">
+                        <SvgIcon name="users" size={20} />
+                      </div>
                       <div>
-                        <h2 className="aero-card-title">Vitrina de Logros & Trofeos</h2>
-                        <p className="aero-card-subtitle">Medallas obtenidas en emuladores compatibles con RetroAchievements</p>
+                        <h2 className="aero-card-title">Mis Amigos ({friends.length})</h2>
+                        <p className="aero-card-subtitle">Haz clic en un amigo para abrir el chat lateral directo</p>
                       </div>
                     </div>
-                    <span className="aero-pill-badge honor">⭐ 0 Desbloqueados</span>
-                  </div>
-
-                  <div className="aero-empty-channel">
-                    <div className="aero-empty-orb">🏅</div>
-                    <div className="aero-empty-title">Aún no hay trofeos desbloqueados</div>
-                    <div className="aero-empty-desc">
-                      Completa desafíos y objetivos en tus partidas retro para llenar tu vitrina cristalina de insignias.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ========================================================
-                  PESTAÑA 4: PERSONALIZAR PERFIL (ESTUDIO UNIFICADO)
-                  ======================================================== */}
-              {activeTab === 'ajustes' && isOwner && (
-                <div className="aero-glass-card">
-                  <div className="aero-card-header">
-                    <div className="aero-card-title-group">
-                      <div className="aero-icon-orb">✨</div>
-                      <div>
-                        <h2 className="aero-card-title">Estudio de Personalización Aero</h2>
-                        <p className="aero-card-subtitle">Configura tu identidad, apariencia cristalina y datos públicos</p>
-                      </div>
-                    </div>
-
                     <button
-                      className="btn-aero-gel"
-                      onClick={handleSaveProfile}
-                      disabled={isSaving}
+                      type="button"
+                      className="aero-gel-btn primary"
+                      onClick={() => {
+                        if (window.RetroHubChat) {
+                          window.RetroHubChat.open();
+                          window.RetroHubChat.switchTab('friends');
+                        }
+                      }}
                     >
-                      <span>{isSaving ? 'Guardando...' : '✓ Guardar Cambios'}</span>
+                      <SvgIcon name="userPlus" size={14} />
+                      <span>Añadir Amigo</span>
                     </button>
                   </div>
 
-                  <div className="aero-studio-grid">
-                    {/* Columna Izquierda: Apariencia Visual (Aura, Avatar, Banner) */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                      {/* Selector de Aura */}
-                      <div className="aero-subpanel">
-                        <label className="aero-label">Color de Aura & Cristal ({activeAuraData.name})</label>
-                        <div className="aero-aura-row">
-                          {Object.values(AURA_PALETTES).map(aura => (
-                            <div
-                              key={aura.id}
-                              className={`aero-aura-orb ${profile.systemAura === aura.id ? 'active' : ''}`}
-                              style={{ background: aura.color, color: aura.color }}
-                              onClick={() => handleSelectAura(aura.id)}
-                              title={aura.name}
-                            />
-                          ))}
-                        </div>
+                  {friends.length === 0 ? (
+                    <div className="wii-empty-plaza">
+                      <div className="wii-empty-orb">
+                        <SvgIcon name="users" size={26} />
                       </div>
-
-                      {/* Selector de Avatar */}
-                      <div className="aero-subpanel">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <label className="aero-label">Imagen de Avatar</label>
-                          <button
-                            type="button"
-                            className="btn-wii-porcelain"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            📁 Subir Foto
-                          </button>
-                        </div>
-
-                        <div className="aero-Segmented-pills">
-                          <button
-                            type="button"
-                            className={`aero-seg-btn ${avatarTabFilter === 'covers' ? 'active' : ''}`}
-                            onClick={() => setAvatarTabFilter('covers')}
-                          >
-                            Juegos
-                          </button>
-                          <button
-                            type="button"
-                            className={`aero-seg-btn ${avatarTabFilter === 'consoles' ? 'active' : ''}`}
-                            onClick={() => setAvatarTabFilter('consoles')}
-                          >
-                            Consolas
-                          </button>
-                          <button
-                            type="button"
-                            className={`aero-seg-btn ${avatarTabFilter === 'characters' ? 'active' : ''}`}
-                            onClick={() => setAvatarTabFilter('characters')}
-                          >
-                            Personajes
-                          </button>
-                        </div>
-
-                        <div className="aero-avatar-grid">
-                          {STOCK_AVATARS.filter(a => a.type === avatarTabFilter).map(item => (
-                            <div
-                              key={item.id}
-                              className={`aero-avatar-choice ${profile.avatarUrl === item.url ? 'active' : ''}`}
-                              onClick={() => handleSelectAvatar(item.url)}
-                              title={item.name}
-                            >
-                              <img src={item.url} alt={item.name} />
+                      <h3 className="wii-empty-title">Aún no tienes amigos en tu lista</h3>
+                      <p className="wii-empty-desc">
+                        Pulsa en "Añadir Amigo" para conectar con otros jugadores del servidor y enviarles mensajes directos.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {friends.map((f) => (
+                        <div
+                          key={f.id}
+                          className="rh-chat-item-card"
+                          onClick={() => window.RetroHubChat && window.RetroHubChat.openDM(f.id)}
+                        >
+                          <div className="rh-chat-item-avatar-wrap">
+                            <img src={f.avatarUrl} className="rh-chat-item-avatar" alt={f.displayName} />
+                            <span className={`rh-chat-item-status ${f.status === 'offline' ? 'offline' : ''}`} />
+                          </div>
+                          <div className="rh-chat-item-info">
+                            <div className="rh-chat-item-name">{f.displayName}</div>
+                            <div className="rh-chat-item-sub">
+                              @{f.username} • {stripEmojis(f.titleHonor) || 'Jugador RetroHub'}
                             </div>
-                          ))}
+                          </div>
+                          <button
+                            type="button"
+                            className="aero-gel-btn primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.RetroHubChat) window.RetroHubChat.openDM(f.id);
+                            }}
+                          >
+                            <SvgIcon name="chat" size={14} />
+                            <span>Chatear</span>
+                          </button>
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Columna 2: Grupos de Chat (Cualquiera puede crear e invitar) */}
+                <div className="aero-glass-card">
+                  <div className="aero-card-header">
+                    <div className="aero-card-title-group">
+                      <div className="aero-card-icon violet">
+                        <SvgIcon name="chat" size={20} />
                       </div>
-
-                      {/* Selector de Banner */}
-                      <div className="aero-subpanel">
-                        <label className="aero-label">Fondo Panorámico del Perfil</label>
-                        <div className="aero-banner-grid">
-                          {STOCK_BANNERS.map(b => (
-                            <div
-                              key={b.id}
-                              className={`aero-banner-choice ${profile.bannerUrl === b.url ? 'active' : ''}`}
-                              onClick={() => handleSelectBanner(b.url)}
-                              title={b.name}
-                            >
-                              <img src={b.url} alt={b.name} />
-                            </div>
-                          ))}
-                        </div>
+                      <div>
+                        <h2 className="aero-card-title">Grupos de Chat ({groups.length})</h2>
+                        <p className="aero-card-subtitle">Crea grupos abiertos donde cualquier miembro puede invitar</p>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      className="aero-gel-btn primary"
+                      onClick={() => {
+                        if (window.RetroHubChat) {
+                          window.RetroHubChat.open();
+                          window.RetroHubChat.switchTab('groups');
+                          window.RetroHubChat.toggleCreateGroup(true);
+                        }
+                      }}
+                    >
+                      <SvgIcon name="plus" size={14} />
+                      <span>Crear Grupo</span>
+                    </button>
+                  </div>
 
-                    {/* Columna Derecha: Datos de la Cuenta */}
-                    <div className="aero-subpanel">
-                      <div className="aero-field-group">
-                        <label className="aero-label">Identificador Único (@usuario)</label>
-                        <input
-                          type="text"
-                          className="aero-input"
-                          value={usernameInput}
-                          maxLength={24}
-                          onChange={handleUsernameChange}
-                        />
-                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: usernameValidation.status === 'taken' || usernameValidation.status === 'invalid' ? '#e11d48' : '#0284c7' }}>
-                          {usernameValidation.message}
-                        </span>
+                  {groups.length === 0 ? (
+                    <div className="wii-empty-plaza">
+                      <div className="wii-empty-orb">
+                        <SvgIcon name="chat" size={26} />
                       </div>
-
-                      <div className="aero-field-group">
-                        <label className="aero-label">Nombre Visible</label>
-                        <input
-                          type="text"
-                          className="aero-input"
-                          value={profile.displayName}
-                          maxLength={32}
-                          onChange={(e) => setProfile(p => ({ ...p, displayName: e.target.value }))}
-                        />
-                      </div>
-
-                      <div className="aero-field-group">
-                        <label className="aero-label">Título Honorífico</label>
-                        <input
-                          type="text"
-                          className="aero-input"
-                          value={profile.titleHonor}
-                          maxLength={40}
-                          onChange={(e) => setProfile(p => ({ ...p, titleHonor: e.target.value }))}
-                        />
-                      </div>
-
-                      <div className="aero-field-group">
-                        <label className="aero-label">Consola Favorita</label>
-                        <select
-                          className="aero-input"
-                          value={profile.favoriteSystem}
-                          onChange={(e) => setProfile(p => ({ ...p, favoriteSystem: e.target.value }))}
+                      <h3 className="wii-empty-title">No hay salas de grupo activas</h3>
+                      <p className="wii-empty-desc">
+                        Crea un grupo para organizar partidas o hablar con varios amigos a la vez. Cualquier miembro puede invitar a más jugadores.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {groups.map((g) => (
+                        <div
+                          key={g.id}
+                          className="rh-chat-item-card"
+                          onClick={() => window.RetroHubChat && window.RetroHubChat.openGroup(g.id)}
                         >
-                          <option value="n64">Nintendo 64</option>
-                          <option value="snes">Super Nintendo (SNES)</option>
-                          <option value="gba">Game Boy Advance</option>
-                          <option value="ps1">PlayStation 1</option>
-                          <option value="genesis">Sega Mega Drive</option>
-                          <option value="nes">Nintendo NES</option>
-                          <option value="arcade">Arcade MAME</option>
-                        </select>
-                      </div>
+                          <div
+                            className="rh-chat-group-avatar"
+                            style={{ background: g.iconColor || '#00a2ed' }}
+                          >
+                            <SvgIcon name="users" size={20} />
+                          </div>
+                          <div className="rh-chat-item-info">
+                            <div className="rh-chat-item-name">{g.name}</div>
+                            <div className="rh-chat-item-sub">
+                              {(g.members || []).length} miembros • Código: {g.inviteCode}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            className="aero-gel-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.RetroHubChat) {
+                                window.RetroHubChat.openGroup(g.id);
+                                setTimeout(() => window.RetroHubChat.toggleInvitePanel(), 150);
+                              }
+                            }}
+                          >
+                            <SvgIcon name="userPlus" size={14} />
+                            <span>Invitar</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-                      <div className="aero-field-group" style={{ marginBottom: 0 }}>
-                        <label className="aero-label">Biografía Personal</label>
-                        <textarea
-                          className="aero-input aero-textarea"
-                          value={profile.bio}
-                          maxLength={350}
-                          placeholder="Escribe sobre tus consolas y juegos favoritos..."
-                          onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))}
-                        />
-                        <span style={{ fontSize: '11px', color: 'var(--text-dim)', textAlign: 'right' }}>
-                          {(profile.bio || '').length} / 350
-                        </span>
+            {activeTab === 'achievements' && (
+              <div className="aero-glass-card" style={{ minHeight: '460px' }}>
+                <div className="aero-card-header">
+                  <div className="aero-card-title-group">
+                    <div className="aero-card-icon gold">
+                      <SvgIcon name="trophy" size={20} />
+                    </div>
+                    <div>
+                      <h2 className="aero-card-title">Vitrina de Logros y Trofeos</h2>
+                      <p className="aero-card-subtitle">Hitos desbloqueados mediante actividad real en RetroHub</p>
+                    </div>
+                  </div>
+                  <span className="aero-gel-tag honor">{unlockedAchievements.length} desbloqueados</span>
+                </div>
+
+                {unlockedAchievements.length === 0 ? (
+                  <div className="wii-empty-plaza">
+                    <div className="wii-empty-orb">
+                      <SvgIcon name="trophy" size={28} />
+                    </div>
+                    <h3 className="wii-empty-title">Vitrina de trofeos lista para estrenar</h3>
+                    <p className="wii-empty-desc">
+                      Juega a tus títulos favoritos en el catálogo de consolas para desbloquear trofeos reales en tu cuenta.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="wii-channel-grid">
+                    {unlockedAchievements.map((ach) => (
+                      <div className="wii-channel-tile" key={ach.id} style={{ padding: '18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div className={`aero-card-icon ${ach.color || 'gold'}`}>
+                            <SvgIcon name="trophy" size={20} />
+                          </div>
+                          <div>
+                            <div className="wii-channel-name">{ach.title}</div>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
+                              {ach.desc}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'customize' && (
+              <form className="aero-studio-grid" onSubmit={handleSaveCustomization}>
+                {/* Columna 1: Datos de Identidad */}
+                <div className="aero-glass-card">
+                  <div className="aero-card-header">
+                    <div className="aero-card-title-group">
+                      <div className="aero-card-icon sky">
+                        <SvgIcon name="palette" size={20} />
+                      </div>
+                      <div>
+                        <h2 className="aero-card-title">Identidad y Estilo</h2>
+                        <p className="aero-card-subtitle">Configura tus datos públicos en el servidor</p>
                       </div>
                     </div>
                   </div>
+
+                  <div className="aero-field-group">
+                    <label className="aero-field-label">Nombre Visible</label>
+                    <input
+                      type="text"
+                      className="aero-input"
+                      value={editDisplayName}
+                      onChange={(e) => setEditDisplayName(e.target.value)}
+                      maxLength={32}
+                      required
+                    />
+                  </div>
+
+                  <div className="aero-field-group">
+                    <label className="aero-field-label">Identificador Único (@usuario)</label>
+                    <input
+                      type="text"
+                      className="aero-input"
+                      value={editUsername}
+                      onChange={(e) => setEditUsername(e.target.value)}
+                      maxLength={24}
+                      required
+                    />
+                  </div>
+
+                  <div className="aero-field-group">
+                    <label className="aero-field-label">Biografía de Jugador</label>
+                    <textarea
+                      className="aero-textarea"
+                      value={editBio}
+                      onChange={(e) => setEditBio(e.target.value)}
+                      maxLength={240}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="aero-field-group">
+                      <label className="aero-field-label">Título Honorífico</label>
+                      <select
+                        className="aero-select"
+                        value={editTitleHonor}
+                        onChange={(e) => setEditTitleHonor(e.target.value)}
+                      >
+                        {HONOR_TITLES.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="aero-field-group">
+                      <label className="aero-field-label">Consola Favorita</label>
+                      <select
+                        className="aero-select"
+                        value={editFavSystem}
+                        onChange={(e) => setEditFavSystem(e.target.value)}
+                      >
+                        {Object.entries(CONSOLE_NAMES).map(([id, label]) => (
+                          <option key={id} value={id}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="aero-field-group">
+                    <label className="aero-field-label">Color de Acento del Sistema</label>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {Object.values(AURA_THEMES).map((aura) => (
+                        <button
+                          key={aura.id}
+                          type="button"
+                          className={`aero-gel-btn ${editAura === aura.id ? 'primary' : ''}`}
+                          onClick={() => setEditAura(aura.id)}
+                        >
+                          <span
+                            style={{
+                              width: '10px',
+                              height: '10px',
+                              borderRadius: '50%',
+                              background: aura.color,
+                              border: '1.5px solid #fff'
+                            }}
+                          />
+                          <span>{aura.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              )}
 
-            </div>
-          </main>
+                {/* Columna 2: Avatar y Banner */}
+                <div className="aero-glass-card">
+                  <div className="aero-card-header">
+                    <div className="aero-card-title-group">
+                      <div className="aero-card-icon scarlet">
+                        <SvgIcon name="image" size={20} />
+                      </div>
+                      <div>
+                        <h2 className="aero-card-title">Avatar y Fondo de Cabecera</h2>
+                        <p className="aero-card-subtitle">Elige de la colección oficial o sube tu propia imagen</p>
+                      </div>
+                    </div>
+                    <label className="aero-gel-btn" style={{ cursor: 'pointer' }}>
+                      <SvgIcon name="plus" size={14} />
+                      <span>Subir Avatar</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleFileUpload(e, 'avatar')}
+                      />
+                    </label>
+                  </div>
 
-          {/* MODAL TARJETA QR */}
+                  <div className="aero-field-group">
+                    <label className="aero-field-label">Avatares de Colección RetroHub</label>
+                    <div className="aero-stock-thumbs">
+                      {stockAssets.avatars.map((av) => (
+                        <div
+                          key={av.id}
+                          className={`aero-thumb-item ${editAvatar === av.url ? 'selected' : ''}`}
+                          onClick={() => setEditAvatar(av.url)}
+                          title={av.name}
+                        >
+                          <img src={av.url} alt={av.name} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="aero-field-group">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <label className="aero-field-label">Fondos Panorámicos (Banners)</label>
+                      <label className="aero-gel-btn" style={{ cursor: 'pointer', padding: '4px 10px', fontSize: '11px' }}>
+                        <SvgIcon name="plus" size={12} />
+                        <span>Subir Banner</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={(e) => handleFileUpload(e, 'banner')}
+                        />
+                      </label>
+                    </div>
+                    <div className="aero-banner-thumbs">
+                      {stockAssets.banners.map((bn) => (
+                        <div
+                          key={bn.id}
+                          className={`aero-banner-thumb ${editBanner === bn.url ? 'selected' : ''}`}
+                          onClick={() => setEditBanner(bn.url)}
+                          title={bn.name}
+                        >
+                          <img src={bn.url} alt={bn.name} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {saveBannerMsg && (
+                    <div
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        background:
+                          saveBannerMsg.type === 'success'
+                            ? 'rgba(16, 185, 129, 0.14)'
+                            : 'rgba(239, 68, 68, 0.14)',
+                        color: saveBannerMsg.type === 'success' ? '#047857' : '#b91c1c',
+                        border: `1px solid ${
+                          saveBannerMsg.type === 'success'
+                            ? 'rgba(16, 185, 129, 0.35)'
+                            : 'rgba(239, 68, 68, 0.35)'
+                        }`
+                      }}
+                    >
+                      {saveBannerMsg.text}
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <button type="submit" className="aero-gel-btn primary" disabled={isSaving}>
+                      <SvgIcon name="check" size={15} />
+                      <span>{isSaving ? 'Guardando...' : 'Guardar Cambios en RetroHub'}</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Modal QR de Tarjeta de Amigo */}
           {showQrModal && (
-            <div className="aero-modal-backdrop" onClick={() => setShowQrModal(false)}>
-              <div className="aero-modal-box" onClick={(e) => e.stopPropagation()}>
-                <button className="aero-modal-close" onClick={() => setShowQrModal(false)}>✕</button>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 800, color: 'var(--text-pure)' }}>
-                  Tarjeta QR de Jugador
+            <div className="aero-modal-overlay" onClick={() => setShowQrModal(false)}>
+              <div className="aero-qr-dialog" onClick={(e) => e.stopPropagation()}>
+                <h3 style={{ margin: '0 0 6px 0', fontFamily: 'Space Grotesk', fontSize: '20px', color: '#0f172a' }}>
+                  Tarjeta QR de {profile.displayName}
                 </h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Comparte este código para añadir a @{profile.username} en RetroHub
+                <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: '#64748b' }}>
+                  Comparte tu clave con otros jugadores de RetroHub
                 </p>
-
-                <div className="aero-qr-frame">
-                  <svg width="175" height="175" viewBox="0 0 29 29" fill="#0f172a">
-                    <rect x="2" y="2" width="7" height="7" rx="1" fill="#0f172a" />
-                    <rect x="3" y="3" width="5" height="5" fill="#ffffff" />
-                    <rect x="4" y="4" width="3" height="3" fill="#00a2ed" />
-                    <rect x="20" y="2" width="7" height="7" rx="1" fill="#0f172a" />
-                    <rect x="21" y="3" width="5" height="5" fill="#ffffff" />
-                    <rect x="22" y="4" width="3" height="3" fill="#00a2ed" />
-                    <rect x="2" y="20" width="7" height="7" rx="1" fill="#0f172a" />
-                    <rect x="3" y="21" width="5" height="5" fill="#ffffff" />
-                    <rect x="4" y="22" width="3" height="3" fill="#00a2ed" />
-                    <rect x="10" y="3" width="2" height="2" />
-                    <rect x="14" y="3" width="3" height="2" />
-                    <rect x="10" y="7" width="3" height="2" />
-                    <rect x="15" y="7" width="2" height="2" />
-                    <rect x="11" y="11" width="7" height="2" />
-                    <rect x="11" y="15" width="2" height="4" />
-                    <rect x="15" y="15" width="3" height="3" />
-                    <rect x="19" y="12" width="3" height="2" />
-                    <rect x="23" y="12" width="4" height="2" />
-                    <rect x="19" y="16" width="2" height="4" />
-                    <rect x="23" y="16" width="3" height="2" />
-                    <rect x="22" y="20" width="4" height="2" />
-                    <rect x="10" y="22" width="4" height="2" />
-                    <rect x="16" y="23" width="3" height="2" />
-                  </svg>
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    padding: '16px',
+                    borderRadius: '18px',
+                    display: 'inline-block',
+                    border: '1.5px solid #e2e8f0'
+                  }}
+                >
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                      `retrohub://friend/${profile.username}/${friendCode}`
+                    )}`}
+                    alt="Código QR"
+                    width="180"
+                    height="180"
+                    style={{ display: 'block', borderRadius: '10px' }}
+                  />
                 </div>
-
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '16px', color: '#0284c7' }}>
-                  {profile.friendCode}
+                <div
+                  style={{
+                    marginTop: '14px',
+                    fontFamily: 'Space Grotesk, monospace',
+                    fontSize: '16px',
+                    fontWeight: 800,
+                    color: '#0284c7'
+                  }}
+                >
+                  {friendCode}
+                </div>
+                <div style={{ marginTop: '18px' }}>
+                  <button type="button" className="aero-gel-btn primary" onClick={() => setShowQrModal(false)}>
+                    Cerrar ventana
+                  </button>
                 </div>
               </div>
             </div>
           )}
-        </>
+        </main>
       );
     }
 
     const root = ReactDOM.createRoot(document.getElementById('profileRoot'));
-    root.render(<RetroHubAeroProfile />);
+    root.render(<RetroHubProfileApp />);
   </script>
 </body>
 </html>

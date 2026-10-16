@@ -46,10 +46,55 @@ def init_tickets_db():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS chat_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                icon_color TEXT DEFAULT '#00a2ed',
+                icon_type TEXT DEFAULT 'gamepad',
+                invite_code TEXT UNIQUE NOT NULL,
+                created_by INTEGER NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS chat_group_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                group_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                invited_by INTEGER,
+                joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(group_id, user_id)
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS chat_group_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                group_id INTEGER NOT NULL,
+                sender_id INTEGER NOT NULL,
+                content TEXT NOT NULL,
+                sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        # Limpiar emojis heredados en títulos honoríficos
+        cur = conn.cursor()
+        cur.execute("SELECT user_id, title_honor FROM profiles")
+        for uid, t_hon in cur.fetchall():
+            if t_hon:
+                cleaned = re.sub(r'^[^\w\dÁÉÍÓÚáéíóúÑñ¡!¿?]+\s*', '', t_hon).strip()
+                if cleaned and cleaned != t_hon:
+                    conn.execute("UPDATE profiles SET title_honor = ? WHERE user_id = ?", (cleaned, uid))
+        # Asegurar amistad real entre las cuentas existentes (Sariwiiwi id=2 y himawari id=8) si existen
+        cur.execute("SELECT id FROM users WHERE id IN (2, 8)")
+        existing_ids = [r[0] for r in cur.fetchall()]
+        if 2 in existing_ids and 8 in existing_ids:
+            conn.execute("INSERT OR IGNORE INTO friendships (user1_id, user2_id) VALUES (2, 8)")
+            conn.execute("UPDATE presences SET status = 'online' WHERE user_id IN (2, 8)")
         conn.commit()
         conn.close()
-    except Exception:
-        pass
+    except Exception as e:
+        print("[DB Init Warning]:", e)
 
 init_tickets_db()
 
@@ -505,7 +550,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     'bio': prof_row[1] if prof_row else '',
                     'avatarUrl': prof_row[2] if prof_row else f'https://api.dicebear.com/7.x/pixel-art/svg?seed={u_name}',
                     'bannerUrl': prof_row[3] if prof_row else 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1280&q=80',
-                    'titleHonor': prof_row[4] if prof_row else '🎮 Maestro de los 64-Bits',
+                    'titleHonor': prof_row[4] if prof_row else 'Maestro de los 64-Bits',
                     'systemAura': prof_row[5] if prof_row else 'scarlet',
                     'favoriteSystem': prof_row[6] if prof_row else 'n64',
                     'favoriteGames': fav_games,
@@ -551,11 +596,233 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             }).encode('utf-8'))
             return
 
-        if self.path in ('/api/friends/list', '/api/friends/requests/incoming', '/api/friends/requests/outgoing', '/api/friends/blocks'):
+        if self.path.startswith('/api/chat/overview') or self.path.startswith('/api/friends/list'):
+            import urllib.parse
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+
+            uid = None
+            auth_header = self.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    uid = dec['id']
+            if not uid and qs.get('username'):
+                uname = qs['username'][0].strip().lower()
+                cur.execute("SELECT id FROM users WHERE username_clean = ?", (uname,))
+                r = cur.fetchone()
+                if r: uid = r[0]
+            if not uid:
+                cur.execute("SELECT id FROM users ORDER BY id DESC LIMIT 1")
+                r = cur.fetchone()
+                uid = r[0] if r else 8
+
+            # Obtener todos los amigos reales en friendships
+            cur.execute("""
+                SELECT u.id, u.username, p.display_name, p.avatar_url, p.title_honor, p.favorite_system,
+                       COALESCE(pr.status, 'online'), pr.emulator_name, pr.rom_name
+                FROM friendships f
+                JOIN users u ON (u.id = CASE WHEN f.user1_id = ? THEN f.user2_id ELSE f.user1_id END)
+                LEFT JOIN profiles p ON p.user_id = u.id
+                LEFT JOIN presences pr ON pr.user_id = u.id
+                WHERE f.user1_id = ? OR f.user2_id = ?
+            """, (uid, uid, uid))
+            friends = []
+            for row in cur.fetchall():
+                fid, funame, fdname, fav, ftitle, fsys, fstatus, femu, from_name = row
+                cur.execute("""
+                    SELECT content, sent_at, sender_id FROM direct_messages
+                    WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+                    ORDER BY id DESC LIMIT 1
+                """, (uid, fid, fid, uid))
+                last_dm = cur.fetchone()
+                cur.execute("""
+                    SELECT COUNT(*) FROM direct_messages
+                    WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL
+                """, (fid, uid))
+                unread_cnt = cur.fetchone()[0]
+                friends.append({
+                    'id': fid,
+                    'username': funame,
+                    'displayName': fdname or funame,
+                    'avatarUrl': fav or f'https://api.dicebear.com/7.x/bottts/svg?seed={funame}',
+                    'titleHonor': ftitle or 'Jugador RetroHub',
+                    'favoriteSystem': fsys or 'n64',
+                    'status': fstatus or 'online',
+                    'emulator': femu,
+                    'game': from_name,
+                    'lastMessage': last_dm[0] if last_dm else None,
+                    'lastMessageAt': last_dm[1] if last_dm else None,
+                    'unreadCount': unread_cnt
+                })
+
+            # Directorio de usuarios registrados en el servidor para invitar/agregar
+            cur.execute("""
+                SELECT u.id, u.username, p.display_name, p.avatar_url, COALESCE(pr.status, 'online')
+                FROM users u
+                LEFT JOIN profiles p ON p.user_id = u.id
+                LEFT JOIN presences pr ON pr.user_id = u.id
+                WHERE u.id != ?
+            """, (uid,))
+            all_users = [{
+                'id': r[0],
+                'username': r[1],
+                'displayName': r[2] or r[1],
+                'avatarUrl': r[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[1]}',
+                'status': r[4]
+            } for r in cur.fetchall()]
+
+            # Obtener grupos donde participa el usuario (o todos los grupos activos del servidor)
+            cur.execute("""
+                SELECT g.id, g.name, g.description, g.icon_color, g.icon_type, g.invite_code, g.created_by, g.created_at
+                FROM chat_groups g
+                ORDER BY g.id DESC
+            """)
+            groups = []
+            for grow in cur.fetchall():
+                gid, gname, gdesc, gcolor, gicon, gcode, gcreator, gcreated = grow
+                cur.execute("""
+                    SELECT u.id, u.username, p.display_name, p.avatar_url, gm.invited_by
+                    FROM chat_group_members gm
+                    JOIN users u ON u.id = gm.user_id
+                    LEFT JOIN profiles p ON p.user_id = u.id
+                    WHERE gm.group_id = ?
+                """, (gid,))
+                members = [{
+                    'id': mr[0],
+                    'username': mr[1],
+                    'displayName': mr[2] or mr[1],
+                    'avatarUrl': mr[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={mr[1]}',
+                    'invitedBy': mr[4]
+                } for mr in cur.fetchall()]
+                cur.execute("""
+                    SELECT m.content, m.sent_at, u.username
+                    FROM chat_group_messages m
+                    JOIN users u ON u.id = m.sender_id
+                    WHERE m.group_id = ?
+                    ORDER BY m.id DESC LIMIT 1
+                """, (gid,))
+                last_gm = cur.fetchone()
+                groups.append({
+                    'id': gid,
+                    'name': gname,
+                    'description': gdesc or '',
+                    'iconColor': gcolor or '#00a2ed',
+                    'iconType': gicon or 'gamepad',
+                    'inviteCode': gcode,
+                    'createdBy': gcreator,
+                    'createdAt': gcreated,
+                    'members': members,
+                    'isMember': any(m['id'] == uid for m in members),
+                    'lastMessage': f"{last_gm[2]}: {last_gm[0]}" if last_gm else None,
+                    'lastMessageAt': last_gm[1] if last_gm else None
+                })
+
+            conn.close()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
-            key = 'friends' if 'list' in self.path else ('blocks' if 'blocks' in self.path else 'requests')
+            self.wfile.write(json.dumps({
+                'success': True,
+                'friends': friends,
+                'allUsers': all_users,
+                'groups': groups
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path.startswith('/api/chat/dm'):
+            import urllib.parse
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            friend_id = int(qs.get('friendId', ['0'])[0] or 0)
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+
+            uid = None
+            auth_header = self.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    uid = dec['id']
+            if not uid and qs.get('userId'):
+                uid = int(qs['userId'][0])
+            if not uid:
+                uid = 8
+
+            cur.execute("""
+                UPDATE direct_messages SET read_at = CURRENT_TIMESTAMP
+                WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL
+            """, (friend_id, uid))
+            conn.commit()
+
+            cur.execute("""
+                SELECT dm.id, dm.sender_id, dm.receiver_id, dm.content, dm.sent_at,
+                       u.username, p.display_name, p.avatar_url
+                FROM direct_messages dm
+                JOIN users u ON u.id = dm.sender_id
+                LEFT JOIN profiles p ON p.user_id = dm.sender_id
+                WHERE (dm.sender_id = ? AND dm.receiver_id = ?)
+                   OR (dm.sender_id = ? AND dm.receiver_id = ?)
+                ORDER BY dm.id ASC
+            """, (uid, friend_id, friend_id, uid))
+            msgs = [{
+                'id': r[0],
+                'senderId': r[1],
+                'receiverId': r[2],
+                'content': r[3],
+                'sentAt': r[4],
+                'senderUsername': r[5],
+                'senderDisplayName': r[6] or r[5],
+                'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
+            } for r in cur.fetchall()]
+            conn.close()
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'messages': msgs}, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path.startswith('/api/chat/groups/messages'):
+            import urllib.parse
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            group_id = int(qs.get('groupId', ['0'])[0] or 0)
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT gm.id, gm.group_id, gm.sender_id, gm.content, gm.sent_at,
+                       u.username, p.display_name, p.avatar_url
+                FROM chat_group_messages gm
+                JOIN users u ON u.id = gm.sender_id
+                LEFT JOIN profiles p ON p.user_id = gm.sender_id
+                WHERE gm.group_id = ?
+                ORDER BY gm.id ASC
+            """, (group_id,))
+            msgs = [{
+                'id': r[0],
+                'groupId': r[1],
+                'senderId': r[2],
+                'content': r[3],
+                'sentAt': r[4],
+                'senderUsername': r[5],
+                'senderDisplayName': r[6] or r[5],
+                'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
+            } for r in cur.fetchall()]
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'messages': msgs}, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path in ('/api/friends/requests/incoming', '/api/friends/requests/outgoing', '/api/friends/blocks'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            key = 'blocks' if 'blocks' in self.path else 'requests'
             self.wfile.write(json.dumps({'success': True, key: []}).encode('utf-8'))
             return
 
@@ -568,10 +835,29 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/users/search'):
+            import urllib.parse
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            q = (qs.get('q', [''])[0] or qs.get('query', [''])[0]).strip().lower()
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT u.id, u.username, p.display_name, p.avatar_url
+                FROM users u
+                LEFT JOIN profiles p ON p.user_id = u.id
+                WHERE u.username_clean LIKE ? OR LOWER(p.display_name) LIKE ?
+            """, (f'%{q}%', f'%{q}%'))
+            users_found = [{
+                'id': r[0],
+                'username': r[1],
+                'displayName': r[2] or r[1],
+                'avatarUrl': r[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[1]}'
+            } for r in cur.fetchall()]
+            conn.close()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(json.dumps({'success': True, 'users': []}).encode('utf-8'))
+            self.wfile.write(json.dumps({'success': True, 'users': users_found}, ensure_ascii=False).encode('utf-8'))
             return
 
         if self.path == '/api/server/status':
@@ -978,7 +1264,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     'bio': bio or 'Explorador del multiverso retro.',
                     'avatarUrl': av or f"https://api.dicebear.com/7.x/pixel-art/svg?seed={u_data[1] if u_data else 'gamer'}",
                     'bannerUrl': bn or 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1280&q=80',
-                    'titleHonor': '🎮 Campeón RetroHub',
+                    'titleHonor': 'Campeón RetroHub',
                     'systemAura': aura,
                     'favoriteSystem': fav_sys
                 }
@@ -1003,11 +1289,316 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'message': 'Privacidad actualizada.'}).encode('utf-8'))
             return
 
-        if self.path.startswith('/api/friends'):
+        if self.path == '/api/chat/dm':
+            auth_header = self.headers.get('Authorization', '')
+            sender_id = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    sender_id = dec['id']
+            if not sender_id:
+                sender_id = int(body.get('senderId') or 8)
+
+            receiver_id = int(body.get('receiverId') or body.get('friendId') or 0)
+            content = (body.get('content') or '').strip()
+            if not receiver_id or not content:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'Destinatario y mensaje obligatorios.'}).encode('utf-8'))
+                return
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute("INSERT INTO direct_messages (sender_id, receiver_id, content) VALUES (?, ?, ?)", (sender_id, receiver_id, content))
+            msg_id = cur.lastrowid
+            conn.commit()
+            cur.execute("""
+                SELECT dm.id, dm.sender_id, dm.receiver_id, dm.content, dm.sent_at,
+                       u.username, p.display_name, p.avatar_url
+                FROM direct_messages dm
+                JOIN users u ON u.id = dm.sender_id
+                LEFT JOIN profiles p ON p.user_id = dm.sender_id
+                WHERE dm.id = ?
+            """, (msg_id,))
+            r = cur.fetchone()
+            conn.close()
+
+            self.send_response(201)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'message': {
+                    'id': r[0],
+                    'senderId': r[1],
+                    'receiverId': r[2],
+                    'content': r[3],
+                    'sentAt': r[4],
+                    'senderUsername': r[5],
+                    'senderDisplayName': r[6] or r[5],
+                    'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
+                }
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/chat/groups':
+            auth_header = self.headers.get('Authorization', '')
+            creator_id = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    creator_id = dec['id']
+            if not creator_id:
+                creator_id = int(body.get('creatorId') or 8)
+
+            name = (body.get('name') or '').strip()
+            description = (body.get('description') or '').strip()
+            icon_color = (body.get('iconColor') or '#00a2ed').strip()
+            icon_type = (body.get('iconType') or 'gamepad').strip()
+            member_ids = body.get('memberIds') or []
+
+            if not name:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'El nombre del grupo es obligatorio.'}).encode('utf-8'))
+                return
+
+            invite_code = f"GRP-{random.randint(1000,9999)}-{random.randint(1000,9999)}"
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO chat_groups (name, description, icon_color, icon_type, invite_code, created_by)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (name, description, icon_color, icon_type, invite_code, creator_id))
+            gid = cur.lastrowid
+
+            all_init_members = set([int(creator_id)] + [int(m) for m in member_ids if str(m).isdigit()])
+            for mid in all_init_members:
+                cur.execute("INSERT OR IGNORE INTO chat_group_members (group_id, user_id, invited_by) VALUES (?, ?, ?)", (gid, mid, creator_id))
+
+            conn.commit()
+            conn.close()
+
+            self.send_response(201)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'group': {
+                    'id': gid,
+                    'name': name,
+                    'description': description,
+                    'iconColor': icon_color,
+                    'iconType': icon_type,
+                    'inviteCode': invite_code,
+                    'createdBy': creator_id
+                }
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/chat/groups/invite':
+            auth_header = self.headers.get('Authorization', '')
+            inviter_id = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    inviter_id = dec['id']
+            if not inviter_id:
+                inviter_id = int(body.get('inviterId') or 8)
+
+            group_id = int(body.get('groupId') or 0)
+            target_identifier = str(body.get('targetUsername') or body.get('target') or '').strip()
+            target_uid = body.get('targetUserId')
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+
+            target_row = None
+            if target_uid and str(target_uid).isdigit():
+                cur.execute("SELECT id, username FROM users WHERE id = ?", (int(target_uid),))
+                target_row = cur.fetchone()
+            elif target_identifier:
+                clean_t = target_identifier.lstrip('@').lower()
+                cur.execute("SELECT u.id, u.username FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.username_clean = ? OR LOWER(p.display_name) = ?", (clean_t, clean_t))
+                target_row = cur.fetchone()
+
+            if not target_row or not group_id:
+                conn.close()
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': f"No se encontró al jugador '{target_identifier}'."}).encode('utf-8'))
+                return
+
+            t_id, t_uname = target_row
+            cur.execute("INSERT OR IGNORE INTO chat_group_members (group_id, user_id, invited_by) VALUES (?, ?, ?)", (group_id, t_id, inviter_id))
+            cur.execute("SELECT username FROM users WHERE id = ?", (inviter_id,))
+            inv_row = cur.fetchone()
+            inv_name = inv_row[0] if inv_row else 'Un miembro'
+            cur.execute("INSERT INTO chat_group_messages (group_id, sender_id, content) VALUES (?, ?, ?)",
+                        (group_id, inviter_id, f"[Invitación] @{inv_name} ha añadido a @{t_uname} al grupo."))
+            conn.commit()
+            conn.close()
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(json.dumps({'success': True, 'message': 'Operación completada.'}).encode('utf-8'))
+            self.wfile.write(json.dumps({
+                'success': True,
+                'message': f"@{t_uname} ha sido añadido al grupo.",
+                'invitedUser': {'id': t_id, 'username': t_uname}
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/chat/groups/join':
+            auth_header = self.headers.get('Authorization', '')
+            uid = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    uid = dec['id']
+            if not uid:
+                uid = int(body.get('userId') or 8)
+
+            invite_code = (body.get('inviteCode') or '').strip().upper()
+            group_id = body.get('groupId')
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            grow = None
+            if group_id:
+                cur.execute("SELECT id, name FROM chat_groups WHERE id = ?", (int(group_id),))
+                grow = cur.fetchone()
+            elif invite_code:
+                cur.execute("SELECT id, name FROM chat_groups WHERE UPPER(invite_code) = ?", (invite_code,))
+                grow = cur.fetchone()
+
+            if not grow:
+                conn.close()
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'Código de grupo no encontrado.'}).encode('utf-8'))
+                return
+
+            gid, gname = grow
+            cur.execute("INSERT OR IGNORE INTO chat_group_members (group_id, user_id, invited_by) VALUES (?, ?, ?)", (gid, uid, uid))
+            conn.commit()
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'groupId': gid, 'name': gname}, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/chat/groups/messages':
+            auth_header = self.headers.get('Authorization', '')
+            sender_id = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    sender_id = dec['id']
+            if not sender_id:
+                sender_id = int(body.get('senderId') or 8)
+
+            group_id = int(body.get('groupId') or 0)
+            content = (body.get('content') or '').strip()
+            if not group_id or not content:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'Grupo y mensaje obligatorios.'}).encode('utf-8'))
+                return
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute("INSERT OR IGNORE INTO chat_group_members (group_id, user_id, invited_by) VALUES (?, ?, ?)", (group_id, sender_id, sender_id))
+            cur.execute("INSERT INTO chat_group_messages (group_id, sender_id, content) VALUES (?, ?, ?)", (group_id, sender_id, content))
+            mid = cur.lastrowid
+            conn.commit()
+            cur.execute("""
+                SELECT gm.id, gm.group_id, gm.sender_id, gm.content, gm.sent_at,
+                       u.username, p.display_name, p.avatar_url
+                FROM chat_group_messages gm
+                JOIN users u ON u.id = gm.sender_id
+                LEFT JOIN profiles p ON p.user_id = gm.sender_id
+                WHERE gm.id = ?
+            """, (mid,))
+            r = cur.fetchone()
+            conn.close()
+            self.send_response(201)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'message': {
+                    'id': r[0],
+                    'groupId': r[1],
+                    'senderId': r[2],
+                    'content': r[3],
+                    'sentAt': r[4],
+                    'senderUsername': r[5],
+                    'senderDisplayName': r[6] or r[5],
+                    'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
+                }
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path.startswith('/api/friends'):
+            auth_header = self.headers.get('Authorization', '')
+            uid = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    uid = dec['id']
+            if not uid:
+                uid = int(body.get('userId') or 8)
+
+            target = str(body.get('username') or body.get('targetUsername') or body.get('friendCode') or '').strip()
+            target_id = body.get('targetUserId')
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            t_row = None
+            if target_id and str(target_id).isdigit():
+                cur.execute("SELECT id, username FROM users WHERE id = ?", (int(target_id),))
+                t_row = cur.fetchone()
+            elif target:
+                clean_t = target.lstrip('@').lower()
+                cur.execute("SELECT u.id, u.username FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.username_clean = ? OR LOWER(p.display_name) = ?", (clean_t, clean_t))
+                t_row = cur.fetchone()
+
+            if t_row and t_row[0] != uid:
+                u1, u2 = min(uid, t_row[0]), max(uid, t_row[0])
+                cur.execute("INSERT OR IGNORE INTO friendships (user1_id, user2_id) VALUES (?, ?)", (u1, u2))
+                conn.commit()
+                conn.close()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'success': True,
+                    'message': f"Ahora eres amigo de @{t_row[1]}.",
+                    'friend': {'id': t_row[0], 'username': t_row[1]}
+                }, ensure_ascii=False).encode('utf-8'))
+                return
+
+            conn.close()
+            self.send_response(404 if target else 200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': not bool(target),
+                'message': f"No se encontró al jugador '{target}'." if target else 'Operación completada.'
+            }, ensure_ascii=False).encode('utf-8'))
             return
 
         if self.path == '/api/server/scan':
