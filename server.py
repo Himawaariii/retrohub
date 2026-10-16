@@ -121,6 +121,18 @@ def init_tickets_db():
                 sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS user_custom_nicknames (
+                user_id INTEGER NOT NULL,
+                target_user_id INTEGER NOT NULL,
+                nickname TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, target_user_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        ''')
         # Limpiar emojis heredados en títulos honoríficos
         cur.execute("SELECT user_id, title_honor FROM profiles")
         for uid, t_hon in cur.fetchall():
@@ -164,6 +176,132 @@ def decode_token(token):
     except Exception:
         pass
     return None
+
+# ============================================================================
+# ESTADO EN MEMORIA PARA INDICADORES DE "ESCRIBIENDO..." (TYPING INDICATOR)
+# ============================================================================
+TYPING_LOCK = threading.Lock()
+TYPING_STATUSES = {}
+
+def update_typing_status(conv_type, target_id, sender_id, username, display_name, avatar_url, is_typing):
+    if conv_type == 'dm':
+        try:
+            s_id = int(sender_id)
+            t_id = int(target_id)
+            pair = f"{min(s_id, t_id)}_{max(s_id, t_id)}"
+            key = f"dm:{pair}:{s_id}"
+            actual_target = pair
+        except Exception:
+            key = f"dm:{target_id}:{sender_id}"
+            actual_target = str(target_id)
+    else:
+        key = f"group:{target_id}:{sender_id}"
+        actual_target = str(target_id)
+
+    with TYPING_LOCK:
+        now = time.time()
+        expired = [k for k, v in TYPING_STATUSES.items() if now - v.get('ts', 0) > 4.5]
+        for k in expired:
+            TYPING_STATUSES.pop(k, None)
+        if is_typing:
+            TYPING_STATUSES[key] = {
+                'senderId': int(sender_id),
+                'username': username,
+                'displayName': display_name,
+                'avatarUrl': avatar_url or f'https://api.dicebear.com/7.x/bottts/svg?seed={username}',
+                'ts': now,
+                'convType': conv_type,
+                'target': actual_target
+            }
+        else:
+            TYPING_STATUSES.pop(key, None)
+
+def get_typing_users(conv_type, target_id, current_user_id):
+    if conv_type == 'dm':
+        try:
+            c_id = int(current_user_id)
+            t_id = int(target_id)
+            actual_target = f"{min(c_id, t_id)}_{max(c_id, t_id)}"
+        except Exception:
+            actual_target = str(target_id)
+    else:
+        actual_target = str(target_id)
+
+    with TYPING_LOCK:
+        now = time.time()
+        expired = [k for k, v in TYPING_STATUSES.items() if now - v.get('ts', 0) > 4.5]
+        for k in expired:
+            TYPING_STATUSES.pop(k, None)
+        users = []
+        for k, v in TYPING_STATUSES.items():
+            if v.get('convType') == conv_type and v.get('target') == actual_target and v.get('senderId') != int(current_user_id or 0):
+                users.append({
+                    'senderId': v['senderId'],
+                    'username': v['username'],
+                    'displayName': v['displayName'],
+                    'avatarUrl': v['avatarUrl']
+                })
+        return users
+
+def get_user_from_request(headers, qs=None, body=None):
+    auth_header = headers.get('Authorization', '') if headers else ''
+    if auth_header.startswith('Bearer '):
+        dec = decode_token(auth_header.split(' ', 1)[1])
+        if dec and 'id' in dec:
+            return dec['id'], dec.get('username')
+    x_uid = headers.get('X-User-Id') if headers else None
+    if x_uid:
+        try:
+            uid = int(x_uid)
+            conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+            r = conn.execute("SELECT id, username FROM users WHERE id = ?", (uid,)).fetchone()
+            conn.close()
+            if r:
+                return r[0], r[1]
+        except Exception:
+            pass
+    if qs:
+        if qs.get('userId'):
+            try:
+                uid = int(qs['userId'][0])
+                conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+                r = conn.execute("SELECT id, username FROM users WHERE id = ?", (uid,)).fetchone()
+                conn.close()
+                if r:
+                    return r[0], r[1]
+            except Exception:
+                pass
+        if qs.get('senderId'):
+            try:
+                uid = int(qs['senderId'][0])
+                conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+                r = conn.execute("SELECT id, username FROM users WHERE id = ?", (uid,)).fetchone()
+                conn.close()
+                if r:
+                    return r[0], r[1]
+            except Exception:
+                pass
+        if qs.get('username'):
+            uname = qs['username'][0].strip().lower()
+            conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+            r = conn.execute("SELECT id, username FROM users WHERE username_clean = ?", (uname,)).fetchone()
+            conn.close()
+            if r:
+                return r[0], r[1]
+    if body:
+        if body.get('userId'):
+            try:
+                uid = int(body['userId'])
+                conn = sqlite3.connect(os.path.join(DIRECTORY, 'retrohub_master.sqlite'))
+                r = conn.execute("SELECT id, username FROM users WHERE id = ?", (uid,)).fetchone()
+                conn.close()
+                if r:
+                    return r[0], r[1]
+            except Exception:
+                pass
+        if body.get('senderId'):
+            return int(body['senderId']), body.get('username')
+    return 8, 'himawari'
 
 def obtener_ips_locales():
     ips = []
@@ -696,27 +834,44 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             }).encode('utf-8'))
             return
 
+        if self.path.startswith('/api/chat/nicknames'):
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            uid, _ = get_user_from_request(self.headers, qs)
+            cur.execute("SELECT target_user_id, nickname FROM user_custom_nicknames WHERE user_id = ?", (uid,))
+            nicks = {str(r[0]): r[1] for r in cur.fetchall()}
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'nicknames': nicks}, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path.startswith('/api/chat/typing'):
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            conv_type = qs.get('conversationType', ['dm'])[0]
+            target_id = qs.get('targetId', ['0'])[0]
+            uid, _ = get_user_from_request(self.headers, qs)
+            typing_users = get_typing_users(conv_type, target_id, uid)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'typingUsers': typing_users}, ensure_ascii=False).encode('utf-8'))
+            return
+
         if self.path.startswith('/api/chat/overview') or self.path.startswith('/api/friends/list'):
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
             cur = conn.cursor()
 
-            uid = None
-            auth_header = self.headers.get('Authorization', '')
-            if auth_header.startswith('Bearer '):
-                dec = decode_token(auth_header.split(' ', 1)[1])
-                if dec and 'id' in dec:
-                    uid = dec['id']
-            if not uid and qs.get('username'):
-                uname = qs['username'][0].strip().lower()
-                cur.execute("SELECT id FROM users WHERE username_clean = ?", (uname,))
-                r = cur.fetchone()
-                if r: uid = r[0]
-            if not uid:
-                cur.execute("SELECT id FROM users ORDER BY id DESC LIMIT 1")
-                r = cur.fetchone()
-                uid = r[0] if r else 8
+            uid, _ = get_user_from_request(self.headers, qs)
+
+            # Obtener los apodos personalizados que este usuario ha asignado
+            cur.execute("SELECT target_user_id, nickname FROM user_custom_nicknames WHERE user_id = ?", (uid,))
+            my_nicknames = {r[0]: r[1] for r in cur.fetchall()}
 
             # Obtener todos los amigos reales en friendships
             cur.execute("""
@@ -742,10 +897,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL
                 """, (fid, uid))
                 unread_cnt = cur.fetchone()[0]
+                custom_nick = my_nicknames.get(fid)
                 friends.append({
                     'id': fid,
                     'username': funame,
                     'displayName': fdname or funame,
+                    'customNickname': custom_nick,
+                    'effectiveDisplayName': custom_nick or fdname or funame,
                     'avatarUrl': fav or f'https://api.dicebear.com/7.x/bottts/svg?seed={funame}',
                     'titleHonor': ftitle or 'Jugador RetroHub',
                     'favoriteSystem': fsys or 'n64',
@@ -765,13 +923,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 LEFT JOIN presences pr ON pr.user_id = u.id
                 WHERE u.id != ?
             """, (uid,))
-            all_users = [{
-                'id': r[0],
-                'username': r[1],
-                'displayName': r[2] or r[1],
-                'avatarUrl': r[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[1]}',
-                'status': r[4]
-            } for r in cur.fetchall()]
+            all_users = []
+            for r in cur.fetchall():
+                c_nick = my_nicknames.get(r[0])
+                all_users.append({
+                    'id': r[0],
+                    'username': r[1],
+                    'displayName': r[2] or r[1],
+                    'customNickname': c_nick,
+                    'effectiveDisplayName': c_nick or r[2] or r[1],
+                    'avatarUrl': r[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[1]}',
+                    'status': r[4]
+                })
 
             # Obtener grupos donde participa el usuario (o todos los grupos activos del servidor)
             cur.execute("""
@@ -789,13 +952,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     LEFT JOIN profiles p ON p.user_id = u.id
                     WHERE gm.group_id = ?
                 """, (gid,))
-                members = [{
-                    'id': mr[0],
-                    'username': mr[1],
-                    'displayName': mr[2] or mr[1],
-                    'avatarUrl': mr[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={mr[1]}',
-                    'invitedBy': mr[4]
-                } for mr in cur.fetchall()]
+                members = []
+                for mr in cur.fetchall():
+                    m_nick = my_nicknames.get(mr[0])
+                    members.append({
+                        'id': mr[0],
+                        'username': mr[1],
+                        'displayName': mr[2] or mr[1],
+                        'customNickname': m_nick,
+                        'effectiveDisplayName': m_nick or mr[2] or mr[1],
+                        'avatarUrl': mr[3] or f'https://api.dicebear.com/7.x/bottts/svg?seed={mr[1]}',
+                        'invitedBy': mr[4]
+                    })
                 cur.execute("""
                     SELECT m.content, m.sent_at, u.username
                     FROM chat_group_messages m
@@ -827,7 +995,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 'success': True,
                 'friends': friends,
                 'allUsers': all_users,
-                'groups': groups
+                'groups': groups,
+                'nicknames': {str(k): v for k, v in my_nicknames.items()}
             }, ensure_ascii=False).encode('utf-8'))
             return
 
@@ -838,22 +1007,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             conn = sqlite3.connect(master_db)
             cur = conn.cursor()
 
-            uid = None
-            auth_header = self.headers.get('Authorization', '')
-            if auth_header.startswith('Bearer '):
-                dec = decode_token(auth_header.split(' ', 1)[1])
-                if dec and 'id' in dec:
-                    uid = dec['id']
-            if not uid and qs.get('userId'):
-                uid = int(qs['userId'][0])
-            if not uid:
-                uid = 8
+            uid, _ = get_user_from_request(self.headers, qs)
 
             cur.execute("""
                 UPDATE direct_messages SET read_at = CURRENT_TIMESTAMP
                 WHERE sender_id = ? AND receiver_id = ? AND read_at IS NULL
             """, (friend_id, uid))
             conn.commit()
+
+            # Obtener apodos del usuario autenticado
+            cur.execute("SELECT target_user_id, nickname FROM user_custom_nicknames WHERE user_id = ?", (uid,))
+            my_nicknames = {r[0]: r[1] for r in cur.fetchall()}
 
             cur.execute("""
                 SELECT dm.id, dm.sender_id, dm.receiver_id, dm.content, dm.sent_at,
@@ -865,22 +1029,34 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                    OR (dm.sender_id = ? AND dm.receiver_id = ?)
                 ORDER BY dm.id ASC
             """, (uid, friend_id, friend_id, uid))
-            msgs = [{
-                'id': r[0],
-                'senderId': r[1],
-                'receiverId': r[2],
-                'content': r[3],
-                'sentAt': r[4],
-                'senderUsername': r[5],
-                'senderDisplayName': r[6] or r[5],
-                'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
-            } for r in cur.fetchall()]
+            msgs = []
+            for r in cur.fetchall():
+                s_nick = my_nicknames.get(r[1])
+                msgs.append({
+                    'id': r[0],
+                    'senderId': r[1],
+                    'receiverId': r[2],
+                    'content': r[3],
+                    'sentAt': r[4],
+                    'senderUsername': r[5],
+                    'senderDisplayName': r[6] or r[5],
+                    'senderCustomNickname': s_nick,
+                    'senderEffectiveName': s_nick or r[6] or r[5],
+                    'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
+                })
             conn.close()
+
+            typing_users = get_typing_users('dm', friend_id, uid)
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(json.dumps({'success': True, 'messages': msgs}, ensure_ascii=False).encode('utf-8'))
+            self.wfile.write(json.dumps({
+                'success': True,
+                'messages': msgs,
+                'typingUsers': typing_users,
+                'nicknames': {str(k): v for k, v in my_nicknames.items()}
+            }, ensure_ascii=False).encode('utf-8'))
             return
 
         if self.path.startswith('/api/chat/groups/messages'):
@@ -889,6 +1065,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
             cur = conn.cursor()
+
+            uid, _ = get_user_from_request(self.headers, qs)
+
+            cur.execute("SELECT target_user_id, nickname FROM user_custom_nicknames WHERE user_id = ?", (uid,))
+            my_nicknames = {r[0]: r[1] for r in cur.fetchall()}
+
             cur.execute("""
                 SELECT gm.id, gm.group_id, gm.sender_id, gm.content, gm.sent_at,
                        u.username, p.display_name, p.avatar_url
@@ -898,21 +1080,34 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 WHERE gm.group_id = ?
                 ORDER BY gm.id ASC
             """, (group_id,))
-            msgs = [{
-                'id': r[0],
-                'groupId': r[1],
-                'senderId': r[2],
-                'content': r[3],
-                'sentAt': r[4],
-                'senderUsername': r[5],
-                'senderDisplayName': r[6] or r[5],
-                'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
-            } for r in cur.fetchall()]
+            msgs = []
+            for r in cur.fetchall():
+                s_nick = my_nicknames.get(r[2])
+                msgs.append({
+                    'id': r[0],
+                    'groupId': r[1],
+                    'senderId': r[2],
+                    'content': r[3],
+                    'sentAt': r[4],
+                    'senderUsername': r[5],
+                    'senderDisplayName': r[6] or r[5],
+                    'senderCustomNickname': s_nick,
+                    'senderEffectiveName': s_nick or r[6] or r[5],
+                    'senderAvatar': r[7] or f'https://api.dicebear.com/7.x/bottts/svg?seed={r[5]}'
+                })
             conn.close()
+
+            typing_users = get_typing_users('group', group_id, uid)
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(json.dumps({'success': True, 'messages': msgs}, ensure_ascii=False).encode('utf-8'))
+            self.wfile.write(json.dumps({
+                'success': True,
+                'messages': msgs,
+                'typingUsers': typing_users,
+                'nicknames': {str(k): v for k, v in my_nicknames.items()}
+            }, ensure_ascii=False).encode('utf-8'))
             return
 
         if self.path in ('/api/friends/requests/incoming', '/api/friends/requests/outgoing', '/api/friends/blocks'):
@@ -1499,6 +1694,90 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'message': 'Privacidad actualizada.'}).encode('utf-8'))
             return
 
+        if self.path == '/api/chat/nicknames':
+            auth_header = self.headers.get('Authorization', '')
+            uid = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    uid = dec['id']
+            if not uid:
+                uid = int(body.get('userId') or 8)
+
+            target_uid = int(body.get('targetUserId') or 0)
+            raw_nick = body.get('nickname')
+            nickname = str(raw_nick).strip() if raw_nick is not None else ''
+
+            if not target_uid:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': 'targetUserId es obligatorio.'}).encode('utf-8'))
+                return
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            if nickname:
+                cur.execute("""
+                    INSERT INTO user_custom_nicknames (user_id, target_user_id, nickname, updated_at)
+                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(user_id, target_user_id) DO UPDATE SET nickname = excluded.nickname, updated_at = CURRENT_TIMESTAMP
+                """, (uid, target_uid, nickname))
+            else:
+                cur.execute("DELETE FROM user_custom_nicknames WHERE user_id = ? AND target_user_id = ?", (uid, target_uid))
+            conn.commit()
+            conn.close()
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'targetUserId': target_uid,
+                'nickname': nickname or None,
+                'message': 'Apodo actualizado correctamente.' if nickname else 'Apodo restablecido.'
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/chat/typing':
+            auth_header = self.headers.get('Authorization', '')
+            sender_id = None
+            if auth_header.startswith('Bearer '):
+                dec = decode_token(auth_header.split(' ', 1)[1])
+                if dec and 'id' in dec:
+                    sender_id = dec['id']
+            if not sender_id:
+                sender_id = int(body.get('senderId') or 8)
+
+            conv_type = body.get('conversationType') or 'dm'
+            target_id = body.get('targetId') or 0
+            is_typing = bool(body.get('isTyping', True))
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT u.username, p.display_name, p.avatar_url
+                FROM users u
+                LEFT JOIN profiles p ON p.user_id = u.id
+                WHERE u.id = ?
+            """, (sender_id,))
+            u_row = cur.fetchone()
+            conn.close()
+
+            u_name = u_row[0] if u_row else f'user_{sender_id}'
+            d_name = (u_row[1] if u_row and u_row[1] else u_name)
+            a_url = (u_row[2] if u_row and u_row[2] else f'https://api.dicebear.com/7.x/bottts/svg?seed={u_name}')
+
+            update_typing_status(conv_type, target_id, sender_id, u_name, d_name, a_url, is_typing)
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+            return
+
         if self.path == '/api/chat/dm':
             auth_header = self.headers.get('Authorization', '')
             sender_id = None
@@ -1517,6 +1796,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'success': False, 'error': 'Destinatario y mensaje obligatorios.'}).encode('utf-8'))
                 return
+
+            # Cancelar indicador de typing al enviar mensaje
+            update_typing_status('dm', receiver_id, sender_id, '', '', '', False)
 
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
@@ -1725,6 +2007,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'success': False, 'error': 'Grupo y mensaje obligatorios.'}).encode('utf-8'))
                 return
+
+            # Cancelar indicador de typing en grupo al enviar mensaje
+            update_typing_status('group', group_id, sender_id, '', '', '', False)
 
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)

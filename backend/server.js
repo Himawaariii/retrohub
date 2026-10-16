@@ -266,6 +266,15 @@ try {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS user_custom_nicknames (
+      user_id INTEGER NOT NULL,
+      target_user_id INTEGER NOT NULL,
+      nickname TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, target_user_id)
+    );
   `);
 } catch (e) {
   console.error('[RetroHub DB]: Error en migración de tickets y roles:', e);

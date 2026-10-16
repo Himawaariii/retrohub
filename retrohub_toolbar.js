@@ -21,7 +21,10 @@
     logout: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>`,
     joycons: `<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><path d="M7 2h-1a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm1 7H4v-2h2v2z"/><path d="M17 2h1a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm2 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-1-7h2V6h-2v2z"/></svg>`,
     ticket: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path><path d="M13 5v2"></path><path d="M13 11v2"></path><path d="M13 17v2"></path></svg>`,
-    shieldCheck: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`
+    shieldCheck: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`,
+    editPencil: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+    tag: `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
+    check: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
   };
 
   function getCurrentPageKey() {
@@ -152,7 +155,15 @@
     groups: [],
     messages: [],
     statusBanner: null,
-    pollTimer: null
+    pollTimer: null,
+    // Apodos únicos personales (solo visibles para el usuario que los pone)
+    nicknames: {},
+    editingNicknameUserId: null,
+    // Indicadores de "Escribiendo..." (WhatsApp Bubble + Discord status bar)
+    typingUsers: [],
+    lastTypingSentAt: 0,
+    typingTimeout: null,
+    typingPollTimer: null
   };
 
   function getAuthHeaders() {
@@ -166,14 +177,222 @@
     return (localStorage.getItem('retrohub_user_name') || 'himawari').trim();
   }
 
+  /* ========================================================================
+     GESTIÓN DE APODOS PERSONALIZADOS (ESTRICTAMENTE PRIVADOS AL USUARIO)
+     ======================================================================== */
+  function loadLocalNicknames() {
+    try {
+      const myU = getCurrentUsername().toLowerCase();
+      const raw = localStorage.getItem(`rh_custom_nicknames_${myU}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          CHAT_STATE.nicknames = Object.assign({}, parsed, CHAT_STATE.nicknames);
+        }
+      }
+    } catch (e) {}
+  }
+
+  function saveLocalNicknames() {
+    try {
+      const myU = getCurrentUsername().toLowerCase();
+      localStorage.setItem(`rh_custom_nicknames_${myU}`, JSON.stringify(CHAT_STATE.nicknames));
+    } catch (e) {}
+  }
+
+  function getEffectiveName(userOrId, fallbackUsername, fallbackDisplayName) {
+    if (typeof userOrId === 'object' && userOrId !== null) {
+      const uid = String(userOrId.id || userOrId.senderId || '');
+      if (uid && CHAT_STATE.nicknames[uid]) return CHAT_STATE.nicknames[uid];
+      if (userOrId.customNickname) return userOrId.customNickname;
+      if (userOrId.senderCustomNickname) return userOrId.senderCustomNickname;
+      return userOrId.displayName || userOrId.senderDisplayName || userOrId.username || userOrId.senderUsername || 'Usuario';
+    }
+    const uid = String(userOrId || '');
+    if (uid && CHAT_STATE.nicknames[uid]) return CHAT_STATE.nicknames[uid];
+    return fallbackDisplayName || fallbackUsername || 'Usuario';
+  }
+
+  function hasCustomNickname(userOrId) {
+    if (typeof userOrId === 'object' && userOrId !== null) {
+      const uid = String(userOrId.id || userOrId.senderId || '');
+      return Boolean((uid && CHAT_STATE.nicknames[uid]) || userOrId.customNickname || userOrId.senderCustomNickname);
+    }
+    const uid = String(userOrId || '');
+    return Boolean(uid && CHAT_STATE.nicknames[uid]);
+  }
+
+  async function setCustomNickname(targetUserId, newNickname) {
+    const clean = String(newNickname || '').trim();
+    const uidStr = String(targetUserId);
+    try {
+      const res = await fetch('/api/chat/nicknames', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          targetUserId: Number(targetUserId),
+          nickname: clean
+        })
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        if (clean) {
+          CHAT_STATE.nicknames[uidStr] = clean;
+        } else {
+          delete CHAT_STATE.nicknames[uidStr];
+        }
+        saveLocalNicknames();
+        CHAT_STATE.editingNicknameUserId = null;
+        CHAT_STATE.statusBanner = {
+          type: 'success',
+          text: clean ? `Apodo guardado: "${clean}" (solo tú lo verás).` : 'Apodo restablecido correctamente.'
+        };
+        await fetchChatOverview();
+        if (CHAT_STATE.activeDM) {
+          await loadDirectMessages(CHAT_STATE.activeDM.id);
+        } else {
+          renderChatSidebarBody();
+        }
+      }
+    } catch (e) {
+      CHAT_STATE.statusBanner = { type: 'error', text: 'Error al actualizar el apodo.' };
+      renderChatSidebarBody();
+    }
+  }
+
+  /* ========================================================================
+     GESTIÓN DEL ESTADO "ESCRIBIENDO..." (TYPING INDICATOR)
+     ======================================================================== */
+  function handleComposerInput() {
+    const input = document.getElementById('rhChatComposerInput');
+    if (!input) return;
+    const text = input.value;
+    const now = Date.now();
+
+    if (text.length > 0) {
+      if (now - (CHAT_STATE.lastTypingSentAt || 0) > 1800) {
+        sendTypingSignal(true);
+        CHAT_STATE.lastTypingSentAt = now;
+      }
+      if (CHAT_STATE.typingTimeout) clearTimeout(CHAT_STATE.typingTimeout);
+      CHAT_STATE.typingTimeout = setTimeout(() => {
+        sendTypingSignal(false);
+      }, 3500);
+    } else {
+      if (CHAT_STATE.typingTimeout) clearTimeout(CHAT_STATE.typingTimeout);
+      sendTypingSignal(false);
+    }
+  }
+
+  function sendTypingSignal(isTyping) {
+    let convType = null;
+    let targetId = null;
+    if (CHAT_STATE.activeDM) {
+      convType = 'dm';
+      targetId = CHAT_STATE.activeDM.id;
+    } else if (CHAT_STATE.activeGroup) {
+      convType = 'group';
+      targetId = CHAT_STATE.activeGroup.id;
+    }
+    if (!convType || !targetId) return;
+
+    fetch('/api/chat/typing', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        conversationType: convType,
+        targetId: targetId,
+        isTyping: Boolean(isTyping)
+      })
+    }).catch(() => {});
+  }
+
+  async function pollTypingStatus() {
+    if (!CHAT_STATE.isOpen) return;
+    let convType = null;
+    let targetId = null;
+    if (CHAT_STATE.activeDM) {
+      convType = 'dm';
+      targetId = CHAT_STATE.activeDM.id;
+    } else if (CHAT_STATE.activeGroup) {
+      convType = 'group';
+      targetId = CHAT_STATE.activeGroup.id;
+    }
+    if (!convType || !targetId) return;
+
+    try {
+      const res = await fetch(`/api/chat/typing?conversationType=${convType}&targetId=${encodeURIComponent(targetId)}`, {
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        const newTyping = data.typingUsers || [];
+        const changed = JSON.stringify(newTyping) !== JSON.stringify(CHAT_STATE.typingUsers);
+        CHAT_STATE.typingUsers = newTyping;
+        if (changed) {
+          updateTypingUI();
+        }
+      }
+    } catch (e) {}
+  }
+
+  function updateTypingUI() {
+    const typingBar = document.getElementById('rhChatTypingBar');
+    const typingText = document.getElementById('rhChatTypingText');
+    const messagesBox = document.getElementById('rhChatMessagesBox');
+
+    // 1. Barra estilo Discord sobre el compositor
+    if (typingBar && typingText) {
+      if (CHAT_STATE.typingUsers.length > 0) {
+        const names = CHAT_STATE.typingUsers.map((u) => getEffectiveName(u, u.username, u.displayName)).join(', ');
+        typingText.innerHTML = `<strong>${escapeHtml(names)}</strong> está escribiendo...`;
+        typingBar.classList.add('visible');
+      } else {
+        typingBar.classList.remove('visible');
+        typingText.textContent = '';
+      }
+    }
+
+    // 2. Burbuja de escritura estilo WhatsApp en el flujo de mensajes
+    if (messagesBox) {
+      const existingBubble = document.getElementById('rhChatTypingBubbleRow');
+      if (CHAT_STATE.typingUsers.length > 0) {
+        const firstU = CHAT_STATE.typingUsers[0];
+        const avatarUrl = firstU.avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(firstU.username)}`;
+        if (!existingBubble) {
+          const row = document.createElement('div');
+          row.id = 'rhChatTypingBubbleRow';
+          row.className = 'rh-msg-row-typing';
+          row.innerHTML = `
+            <img src="${escapeHtml(avatarUrl)}" class="rh-msg-avatar" alt="" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'" />
+            <div class="rh-typing-bubble" title="${escapeHtml(getEffectiveName(firstU, firstU.username, firstU.displayName))} está escribiendo...">
+              <span class="rh-typing-dot"></span>
+              <span class="rh-typing-dot"></span>
+              <span class="rh-typing-dot"></span>
+            </div>
+          `;
+          messagesBox.appendChild(row);
+          messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+      } else if (existingBubble) {
+        existingBubble.remove();
+      }
+    }
+  }
+
   async function fetchChatOverview() {
     try {
+      loadLocalNicknames();
       const uname = encodeURIComponent(getCurrentUsername());
       const res = await fetch(`/api/chat/overview?username=${uname}`, {
         headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data && data.success) {
+        if (data.nicknames && typeof data.nicknames === 'object') {
+          CHAT_STATE.nicknames = Object.assign({}, CHAT_STATE.nicknames, data.nicknames);
+          saveLocalNicknames();
+        }
         CHAT_STATE.friends = data.friends || [];
         CHAT_STATE.allUsers = data.allUsers || [];
         CHAT_STATE.groups = data.groups || [];
@@ -291,6 +510,8 @@
 
   function closeChatSidebar() {
     CHAT_STATE.isOpen = false;
+    if (CHAT_STATE.typingTimeout) clearTimeout(CHAT_STATE.typingTimeout);
+    sendTypingSignal(false);
     const sb = document.getElementById('rhChatSidebar');
     const bd = document.getElementById('rhChatBackdrop');
     if (sb) sb.classList.remove('open');
@@ -367,8 +588,16 @@
       });
       const data = await res.json();
       if (data && data.success) {
+        if (data.nicknames && typeof data.nicknames === 'object') {
+          CHAT_STATE.nicknames = Object.assign({}, CHAT_STATE.nicknames, data.nicknames);
+          saveLocalNicknames();
+        }
+        if (data.typingUsers) {
+          CHAT_STATE.typingUsers = data.typingUsers;
+        }
         CHAT_STATE.messages = data.messages || [];
         renderChatSidebarBody();
+        updateTypingUI();
         scrollToBottomMessages();
       }
     } catch (e) {}
@@ -380,6 +609,8 @@
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
+    if (CHAT_STATE.typingTimeout) clearTimeout(CHAT_STATE.typingTimeout);
+    sendTypingSignal(false);
     try {
       const res = await fetch('/api/chat/dm', {
         method: 'POST',
@@ -485,8 +716,16 @@
       });
       const data = await res.json();
       if (data && data.success) {
+        if (data.nicknames && typeof data.nicknames === 'object') {
+          CHAT_STATE.nicknames = Object.assign({}, CHAT_STATE.nicknames, data.nicknames);
+          saveLocalNicknames();
+        }
+        if (data.typingUsers) {
+          CHAT_STATE.typingUsers = data.typingUsers;
+        }
         CHAT_STATE.messages = data.messages || [];
         renderChatSidebarBody();
+        updateTypingUI();
         scrollToBottomMessages();
       }
     } catch (e) {}
@@ -498,6 +737,8 @@
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
+    if (CHAT_STATE.typingTimeout) clearTimeout(CHAT_STATE.typingTimeout);
+    sendTypingSignal(false);
     try {
       const res = await fetch('/api/chat/groups/messages', {
         method: 'POST',
@@ -584,13 +825,38 @@
     // 4A. VISTA DE CONVERSACIÓN DIRECTA (1 A 1 CON AMIGO)
     if (CHAT_STATE.activeDM) {
       const f = CHAT_STATE.activeDM;
+      const effectiveFriendName = getEffectiveName(f);
+      const isCustomNick = hasCustomNickname(f);
+      const currentNick = CHAT_STATE.nicknames[String(f.id)] || f.customNickname || '';
+
+      const nicknameEditorHtml = CHAT_STATE.editingNicknameUserId === f.id
+        ? `<div class="rh-nickname-card">
+             <div class="rh-nickname-card-header">
+               ${ICONS.tag}
+               <span>Apodo Personal para @${escapeHtml(f.username)}</span>
+             </div>
+             <div class="rh-nickname-card-sub">
+               Este nombre solo lo verás tú en tu cuenta. Nadie más sabrá qué apodo le pusiste.
+             </div>
+             <input type="text" id="rhNicknameInput" class="rh-chat-input" placeholder="Escribe un apodo único..." value="${escapeHtml(currentNick)}" maxlength="32" />
+             <div style="display: flex; justify-content: flex-end; gap: 8px;">
+               ${currentNick ? `<button type="button" class="rh-chat-btn-secondary danger" onclick="window.RetroHubChat.saveNickname(${f.id}, '')">Quitar apodo</button>` : ''}
+               <button type="button" class="rh-chat-btn-secondary" onclick="window.RetroHubChat.closeNicknameEditor()">Cancelar</button>
+               <button type="button" class="rh-chat-btn-primary" onclick="const v=document.getElementById('rhNicknameInput'); if(v) window.RetroHubChat.saveNickname(${f.id}, v.value);">
+                 ${ICONS.check}
+                 <span>Guardar apodo</span>
+               </button>
+             </div>
+           </div>`
+        : '';
+
       const msgsHtml =
         CHAT_STATE.messages.length === 0
           ? `<div style="text-align: center; padding: 36px 16px; color: #64748b; font-size: 12.5px;">
                <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(0,162,237,0.1); color: #0284c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto;">
                  ${ICONS.chat}
                </div>
-               <div style="font-weight: 800; color: #0f172a; margin-bottom: 4px;">Conversación con ${escapeHtml(f.displayName)}</div>
+               <div style="font-weight: 800; color: #0f172a; margin-bottom: 4px;">Conversación con ${escapeHtml(effectiveFriendName)}</div>
                <div>Envía el primer mensaje directo para hablar o quedar a jugar.</div>
              </div>`
           : CHAT_STATE.messages
@@ -608,27 +874,48 @@
               })
               .join('');
 
+      const typingNames = CHAT_STATE.typingUsers.map((u) => getEffectiveName(u, u.username, u.displayName)).join(', ');
+
       bodyEl.innerHTML = `
         <div class="rh-chat-conversation">
           <div class="rh-chat-conv-header">
-            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
               <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 6px 9px;">
                 ${ICONS.back}
               </button>
               <img src="${escapeHtml(f.avatarUrl)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #10b981;" alt="" />
-              <div style="min-width: 0;">
-                <div class="rh-chat-item-name">${escapeHtml(f.displayName)}</div>
-                <div style="font-size: 11px; font-weight: 700; color: #10b981;">@${escapeHtml(f.username)} • En línea</div>
+              <div style="min-width: 0; flex: 1;">
+                <div class="rh-chat-item-name-wrap">
+                  <span class="rh-chat-item-name">${escapeHtml(effectiveFriendName)}</span>
+                  ${isCustomNick ? `<span class="rh-custom-nick-pill" title="Apodo personal asignado por ti (solo tú lo ves)">${ICONS.tag} Apodo</span>` : ''}
+                  <button class="rh-btn-edit-nick" type="button" onclick="window.RetroHubChat.toggleNicknameEditor(${f.id})" title="Poner o editar apodo personal (solo tú lo verás)">
+                    ${ICONS.editPencil}
+                  </button>
+                </div>
+                <div style="font-size: 11px; font-weight: 700; color: #64748b;">
+                  ${isCustomNick ? `<span style="color: #334155;">${escapeHtml(f.displayName)} • </span>` : ''}
+                  <span style="color: #0284c7;">@${escapeHtml(f.username)}</span> • <span style="color: #10b981;">En línea</span>
+                </div>
               </div>
             </div>
           </div>
+
+          ${bannerHtml}
+          ${nicknameEditorHtml}
 
           <div class="rh-chat-messages-box" id="rhChatMessagesBox">
             ${msgsHtml}
           </div>
 
+          <div class="rh-chat-typing-discord-bar ${CHAT_STATE.typingUsers.length > 0 ? 'visible' : ''}" id="rhChatTypingBar">
+            <span class="rh-discord-dots"><span></span><span></span><span></span></span>
+            <span class="rh-discord-typing-text" id="rhChatTypingText">
+              ${CHAT_STATE.typingUsers.length > 0 ? `<strong>${escapeHtml(typingNames)}</strong> está escribiendo...` : ''}
+            </span>
+          </div>
+
           <div class="rh-chat-composer">
-            <input type="text" id="rhChatComposerInput" class="rh-chat-input" placeholder="Escribe un mensaje a ${escapeHtml(f.displayName)}..." />
+            <input type="text" id="rhChatComposerInput" class="rh-chat-input" placeholder="Escribe un mensaje a ${escapeHtml(effectiveFriendName)}..." />
             <button type="button" class="rh-chat-btn-primary" id="rhChatSendBtn">
               ${ICONS.send}
             </button>
@@ -636,10 +923,16 @@
         </div>
       `;
 
+      updateTypingUI();
+
       const inp = document.getElementById('rhChatComposerInput');
       const sendBtn = document.getElementById('rhChatSendBtn');
       if (inp) {
-        inp.focus();
+        if (!CHAT_STATE.editingNicknameUserId) inp.focus();
+        inp.addEventListener('input', handleComposerInput);
+        inp.addEventListener('blur', () => {
+          if (!inp.value.trim()) sendTypingSignal(false);
+        });
         inp.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') sendDirectMessage();
         });
@@ -679,7 +972,7 @@
                           (u) => `
                         <button type="button" class="rh-chat-btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="window.RetroHubChat.inviteToGroup(${u.id})">
                           ${ICONS.plus}
-                          <span>Invitar a @${escapeHtml(u.username)}</span>
+                          <span>Invitar a ${escapeHtml(getEffectiveName(u))} (@${escapeHtml(u.username)})</span>
                         </button>`
                         )
                         .join('')}
@@ -701,11 +994,19 @@
           : CHAT_STATE.messages
               .map((m) => {
                 const isMine = (m.senderUsername || '').toLowerCase() === myUsername;
+                const senderName = getEffectiveName(m, m.senderUsername, m.senderDisplayName);
+                const isCustom = hasCustomNickname(m);
                 return `
                   <div class="rh-msg-row ${isMine ? 'mine' : ''}">
                     <img src="${escapeHtml(m.senderAvatar)}" class="rh-msg-avatar" alt="" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'" />
                     <div class="rh-msg-bubble-wrap">
-                      ${!isMine ? `<span class="rh-msg-sender">@${escapeHtml(m.senderUsername)}</span>` : ''}
+                      ${
+                        !isMine
+                          ? `<span class="rh-msg-sender"><strong>${escapeHtml(senderName)}</strong> ${
+                              isCustom ? `<span class="rh-custom-nick-pill" style="font-size: 8.5px; padding: 1px 4px;">${ICONS.tag}</span>` : ''
+                            } <span style="font-weight: 500; opacity: 0.75;">@${escapeHtml(m.senderUsername)}</span></span>`
+                          : ''
+                      }
                       <div class="rh-msg-bubble">${escapeHtml(m.content)}</div>
                       <span class="rh-msg-time">${formatMsgTime(m.sentAt)}</span>
                     </div>
@@ -713,6 +1014,8 @@
                 `;
               })
               .join('');
+
+      const groupTypingNames = CHAT_STATE.typingUsers.map((u) => getEffectiveName(u, u.username, u.displayName)).join(', ');
 
       bodyEl.innerHTML = `
         <div class="rh-chat-conversation">
@@ -745,6 +1048,13 @@
             ${msgsHtml}
           </div>
 
+          <div class="rh-chat-typing-discord-bar ${CHAT_STATE.typingUsers.length > 0 ? 'visible' : ''}" id="rhChatTypingBar">
+            <span class="rh-discord-dots"><span></span><span></span><span></span></span>
+            <span class="rh-discord-typing-text" id="rhChatTypingText">
+              ${CHAT_STATE.typingUsers.length > 0 ? `<strong>${escapeHtml(groupTypingNames)}</strong> está escribiendo...` : ''}
+            </span>
+          </div>
+
           <div class="rh-chat-composer">
             <input type="text" id="rhChatComposerInput" class="rh-chat-input" placeholder="Mensaje para el grupo ${escapeHtml(g.name)}..." />
             <button type="button" class="rh-chat-btn-primary" id="rhChatSendBtn">
@@ -754,10 +1064,16 @@
         </div>
       `;
 
+      updateTypingUI();
+
       const inp = document.getElementById('rhChatComposerInput');
       const sendBtn = document.getElementById('rhChatSendBtn');
       if (inp) {
         inp.focus();
+        inp.addEventListener('input', handleComposerInput);
+        inp.addEventListener('blur', () => {
+          if (!inp.value.trim()) sendTypingSignal(false);
+        });
         inp.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') sendGroupMessage();
         });
@@ -782,34 +1098,46 @@
              </div>`
           : CHAT_STATE.friends
               .map(
-                (f) => `
-              <div class="rh-chat-item-card" onclick="window.RetroHubChat.openDM(${f.id})">
-                <div class="rh-chat-item-avatar-wrap">
-                  <img src="${escapeHtml(f.avatarUrl)}" class="rh-chat-item-avatar" alt="${escapeHtml(f.displayName)}" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'" />
-                  <span class="rh-chat-item-status ${f.status === 'offline' ? 'offline' : ''}"></span>
-                </div>
-                <div class="rh-chat-item-info">
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                    <span class="rh-chat-item-name">${escapeHtml(f.displayName)}</span>
-                    <span style="font-size: 10.5px; font-weight: 700; color: #0284c7;">@${escapeHtml(f.username)}</span>
+                (f) => {
+                  const effName = getEffectiveName(f);
+                  const isCust = hasCustomNickname(f);
+                  return `
+                <div class="rh-chat-item-card" onclick="window.RetroHubChat.openDM(${f.id})">
+                  <div class="rh-chat-item-avatar-wrap">
+                    <img src="${escapeHtml(f.avatarUrl)}" class="rh-chat-item-avatar" alt="${escapeHtml(effName)}" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=user'" />
+                    <span class="rh-chat-item-status ${f.status === 'offline' ? 'offline' : ''}"></span>
                   </div>
-                  <div class="rh-chat-item-sub">
-                    ${
-                      f.lastMessage
-                        ? escapeHtml(f.lastMessage)
-                        : f.game
-                        ? `Jugando a ${escapeHtml(f.game)}`
-                        : 'Haz clic para enviar un mensaje directo'
-                    }
+                  <div class="rh-chat-item-info">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                      <div class="rh-chat-item-name-wrap">
+                        <span class="rh-chat-item-name">${escapeHtml(effName)}</span>
+                        ${isCust ? `<span class="rh-custom-nick-pill" title="Apodo personal asignado por ti">${ICONS.tag} Apodo</span>` : ''}
+                      </div>
+                      <span style="font-size: 10.5px; font-weight: 700; color: #0284c7;">@${escapeHtml(f.username)}</span>
+                    </div>
+                    <div class="rh-chat-item-sub">
+                      ${
+                        f.lastMessage
+                          ? escapeHtml(f.lastMessage)
+                          : f.game
+                          ? `Jugando a ${escapeHtml(f.game)}`
+                          : isCust
+                          ? `Nombre real: ${escapeHtml(f.displayName)}`
+                          : 'Haz clic para enviar un mensaje directo'
+                      }
+                    </div>
                   </div>
+                  <button type="button" class="rh-btn-edit-nick" onclick="event.stopPropagation(); window.RetroHubChat.openDM(${f.id}); setTimeout(() => window.RetroHubChat.openNicknameEditor(${f.id}), 120);" title="Poner o editar apodo personal">
+                    ${ICONS.editPencil}
+                  </button>
+                  ${
+                    f.unreadCount > 0
+                      ? `<span class="rh-chat-unread-badge">${f.unreadCount}</span>`
+                      : `<span style="color: #0284c7; display: flex;">${ICONS.chat}</span>`
+                  }
                 </div>
-                ${
-                  f.unreadCount > 0
-                    ? `<span class="rh-chat-unread-badge">${f.unreadCount}</span>`
-                    : `<span style="color: #0284c7; display: flex;">${ICONS.chat}</span>`
+              `;
                 }
-              </div>
-            `
               )
               .join('');
 
@@ -1102,6 +1430,13 @@
       }
     }, 4000);
 
+    // Polling rápido para indicadores en tiempo real de "Escribiendo..."
+    setInterval(() => {
+      if (CHAT_STATE.isOpen && (CHAT_STATE.activeDM || CHAT_STATE.activeGroup)) {
+        pollTypingStatus();
+      }
+    }, 1800);
+
     if (typeof BroadcastChannel !== 'undefined') {
       const ch = new BroadcastChannel('retrohub_profile_sync');
       ch.onmessage = (event) => {
@@ -1139,6 +1474,8 @@
       CHAT_STATE.activeDM = null;
       CHAT_STATE.activeGroup = null;
       CHAT_STATE.statusBanner = null;
+      CHAT_STATE.editingNicknameUserId = null;
+      sendTypingSignal(false);
       fetchChatOverview().then(renderChatSidebarBody);
     },
     toggleCreateGroup: (force) => {
@@ -1166,6 +1503,38 @@
       CHAT_STATE.statusBanner = null;
       renderChatSidebarBody();
     },
+    // Métodos para apodos personalizados (estrictamente privados)
+    openNicknameEditor: (userId) => {
+      CHAT_STATE.editingNicknameUserId = userId;
+      renderChatSidebarBody();
+      setTimeout(() => {
+        const inp = document.getElementById('rhNicknameInput');
+        if (inp) {
+          inp.focus();
+          inp.select();
+        }
+      }, 50);
+    },
+    closeNicknameEditor: () => {
+      CHAT_STATE.editingNicknameUserId = null;
+      renderChatSidebarBody();
+    },
+    toggleNicknameEditor: (userId) => {
+      CHAT_STATE.editingNicknameUserId = (CHAT_STATE.editingNicknameUserId === userId) ? null : userId;
+      renderChatSidebarBody();
+      if (CHAT_STATE.editingNicknameUserId) {
+        setTimeout(() => {
+          const inp = document.getElementById('rhNicknameInput');
+          if (inp) {
+            inp.focus();
+            inp.select();
+          }
+        }, 50);
+      }
+    },
+    saveNickname: setCustomNickname,
+    getEffectiveName: getEffectiveName,
+    hasCustomNickname: hasCustomNickname,
     getState: () => CHAT_STATE,
     refresh: fetchChatOverview
   };
