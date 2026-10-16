@@ -275,6 +275,15 @@ try {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (user_id, target_user_id)
     );
+
+    CREATE TABLE IF NOT EXISTS user_chat_themes (
+      user_id INTEGER NOT NULL,
+      target_key TEXT NOT NULL,
+      theme_json TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, target_key)
+    );
   `);
 } catch (e) {
   console.error('[RetroHub DB]: Error en migración de tickets y roles:', e);

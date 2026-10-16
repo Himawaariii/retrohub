@@ -133,6 +133,17 @@ def init_tickets_db():
                 FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS user_chat_themes (
+                user_id INTEGER NOT NULL,
+                target_key TEXT NOT NULL,
+                theme_json TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, target_key),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        ''')
         # Limpiar emojis heredados en títulos honoríficos
         cur.execute("SELECT user_id, title_honor FROM profiles")
         for uid, t_hon in cur.fetchall():
@@ -876,6 +887,26 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'nicknames': nicks}, ensure_ascii=False).encode('utf-8'))
             return
 
+        if self.path.startswith('/api/chat/themes'):
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+            uid, _ = get_user_from_request(self.headers, qs)
+            cur.execute("SELECT target_key, theme_json FROM user_chat_themes WHERE user_id = ?", (uid,))
+            themes = {}
+            for r in cur.fetchall():
+                try:
+                    themes[r[0]] = json.loads(r[1])
+                except Exception:
+                    pass
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'themes': themes}, ensure_ascii=False).encode('utf-8'))
+            return
+
         if self.path.startswith('/api/chat/typing'):
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             conv_type = qs.get('conversationType', ['dm'])[0]
@@ -899,6 +930,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             # Obtener los apodos personalizados que este usuario ha asignado
             cur.execute("SELECT target_user_id, nickname FROM user_custom_nicknames WHERE user_id = ?", (uid,))
             my_nicknames = {r[0]: r[1] for r in cur.fetchall()}
+
+            # Obtener los temas personalizados de chat del usuario
+            cur.execute("SELECT target_key, theme_json FROM user_chat_themes WHERE user_id = ?", (uid,))
+            my_themes = {}
+            for r in cur.fetchall():
+                try:
+                    my_themes[r[0]] = json.loads(r[1])
+                except Exception:
+                    pass
 
             # Obtener todos los amigos reales en friendships
             cur.execute("""
@@ -1023,7 +1063,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 'friends': friends,
                 'allUsers': all_users,
                 'groups': groups,
-                'nicknames': {str(k): v for k, v in my_nicknames.items()}
+                'nicknames': {str(k): v for k, v in my_nicknames.items()},
+                'themes': my_themes
             }, ensure_ascii=False).encode('utf-8'))
             return
 
@@ -1761,6 +1802,47 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 'nickname': nickname or None,
                 'nicknames': all_my_nicks,
                 'message': 'Apodo actualizado correctamente.' if nickname else 'Apodo restablecido.'
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        if self.path == '/api/chat/themes':
+            uid, _ = get_user_from_request(self.headers, None, body)
+            target_key = str(body.get('targetKey') or 'global').strip()
+            theme_obj = body.get('theme')
+
+            master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
+            conn = sqlite3.connect(master_db)
+            cur = conn.cursor()
+
+            if theme_obj and isinstance(theme_obj, dict):
+                theme_str = json.dumps(theme_obj, ensure_ascii=False)
+                cur.execute("""
+                    INSERT INTO user_chat_themes (user_id, target_key, theme_json, updated_at)
+                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(user_id, target_key) DO UPDATE SET theme_json = excluded.theme_json, updated_at = CURRENT_TIMESTAMP
+                """, (uid, target_key, theme_str))
+            else:
+                cur.execute("DELETE FROM user_chat_themes WHERE user_id = ? AND target_key = ?", (uid, target_key))
+            conn.commit()
+
+            cur.execute("SELECT target_key, theme_json FROM user_chat_themes WHERE user_id = ?", (uid,))
+            all_my_themes = {}
+            for r in cur.fetchall():
+                try:
+                    all_my_themes[r[0]] = json.loads(r[1])
+                except Exception:
+                    pass
+            conn.close()
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'targetKey': target_key,
+                'theme': theme_obj if theme_obj else None,
+                'themes': all_my_themes,
+                'message': 'Tema de chat guardado correctamente.' if theme_obj else 'Tema restablecido al predeterminado.'
             }, ensure_ascii=False).encode('utf-8'))
             return
 

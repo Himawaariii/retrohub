@@ -1368,6 +1368,707 @@
   }
 }
 
+/* ==========================================================================
+   TEMAS PERSONALIZADOS DE CHAT, FONDOS, PATRONES Y FORMATOS DE BURBUJA
+   ========================================================================== */
+
+/* Botón táctil de Tema en el Header de Conversación */
+.rh-btn-chat-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0284c7;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.rh-btn-chat-theme:hover {
+  border-color: #00d2be;
+  background: #f0fdfa;
+  color: #0d9488;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(0, 210, 190, 0.2);
+}
+
+.rh-btn-chat-theme svg {
+  color: #00d2be;
+  transition: transform 0.3s ease;
+}
+
+.rh-btn-chat-theme:hover svg {
+  transform: rotate(20deg) scale(1.1);
+}
+
+/* Variables dinámicas por Tema en Conversación & Live Preview */
+.rh-chat-conversation,
+.rh-theme-preview-box {
+  --rh-theme-bg: #ffffff;
+  --rh-theme-text: #0f172a;
+  --rh-theme-subtext: #64748b;
+  --rh-theme-border: #e2e8f0;
+  --rh-theme-received-bg: #f1f5f9;
+  --rh-theme-received-text: #0f172a;
+  --rh-theme-received-border: rgba(226, 232, 240, 0.8);
+  --rh-theme-input-bg: #ffffff;
+  --rh-theme-input-text: #0f172a;
+  --rh-theme-input-border: #cbd5e1;
+  background: var(--rh-theme-bg);
+  color: var(--rh-theme-text);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* 1. Paletas de Fondo (Wallpapers / Ambientes) */
+.rh-chat-conversation.rh-theme-porcelain,
+.rh-theme-preview-box.rh-theme-porcelain {
+  --rh-theme-bg: #ffffff;
+  --rh-theme-text: #0f172a;
+  --rh-theme-subtext: #64748b;
+  --rh-theme-border: #e2e8f0;
+  --rh-theme-received-bg: #f1f5f9;
+  --rh-theme-received-text: #0f172a;
+  --rh-theme-received-border: #e2e8f0;
+  --rh-theme-input-bg: #ffffff;
+  --rh-theme-input-text: #0f172a;
+  --rh-theme-input-border: #cbd5e1;
+}
+
+.rh-chat-conversation.rh-theme-gameboy,
+.rh-theme-preview-box.rh-theme-gameboy {
+  --rh-theme-bg: #8bac0f;
+  --rh-theme-text: #0f380f;
+  --rh-theme-subtext: #306230;
+  --rh-theme-border: #306230;
+  --rh-theme-received-bg: #9bbc0f;
+  --rh-theme-received-text: #0f380f;
+  --rh-theme-received-border: #306230;
+  --rh-theme-input-bg: #9bbc0f;
+  --rh-theme-input-text: #0f380f;
+  --rh-theme-input-border: #306230;
+}
+
+.rh-chat-conversation.rh-theme-cyberpunk,
+.rh-theme-preview-box.rh-theme-cyberpunk {
+  --rh-theme-bg: #0b0d19;
+  --rh-theme-text: #f1f5f9;
+  --rh-theme-subtext: #94a3b8;
+  --rh-theme-border: rgba(0, 210, 190, 0.3);
+  --rh-theme-received-bg: #151a2e;
+  --rh-theme-received-text: #f8fafc;
+  --rh-theme-received-border: rgba(0, 210, 190, 0.4);
+  --rh-theme-input-bg: #131728;
+  --rh-theme-input-text: #f8fafc;
+  --rh-theme-input-border: rgba(0, 210, 190, 0.45);
+}
+
+.rh-chat-conversation.rh-theme-famicon,
+.rh-theme-preview-box.rh-theme-famicon {
+  --rh-theme-bg: #16161f;
+  --rh-theme-text: #f8fafc;
+  --rh-theme-subtext: #a1a1aa;
+  --rh-theme-border: #2e2e42;
+  --rh-theme-received-bg: #222230;
+  --rh-theme-received-text: #f4f4f5;
+  --rh-theme-received-border: #3f3f56;
+  --rh-theme-input-bg: #1e1e2b;
+  --rh-theme-input-text: #f8fafc;
+  --rh-theme-input-border: #e60012;
+}
+
+.rh-chat-conversation.rh-theme-playstation,
+.rh-theme-preview-box.rh-theme-playstation {
+  --rh-theme-bg: #070d1e;
+  --rh-theme-text: #ffffff;
+  --rh-theme-subtext: #93c5fd;
+  --rh-theme-border: rgba(2, 132, 199, 0.35);
+  --rh-theme-received-bg: #0f1c3f;
+  --rh-theme-received-text: #f0f9ff;
+  --rh-theme-received-border: rgba(56, 189, 248, 0.35);
+  --rh-theme-input-bg: #0c1634;
+  --rh-theme-input-text: #ffffff;
+  --rh-theme-input-border: rgba(56, 189, 248, 0.45);
+}
+
+.rh-chat-conversation.rh-theme-sakura,
+.rh-theme-preview-box.rh-theme-sakura {
+  --rh-theme-bg: #fff1f5;
+  --rh-theme-text: #4c0519;
+  --rh-theme-subtext: #9f1239;
+  --rh-theme-border: #fecdd3;
+  --rh-theme-received-bg: #ffffff;
+  --rh-theme-received-text: #881337;
+  --rh-theme-received-border: #fda4af;
+  --rh-theme-input-bg: #ffffff;
+  --rh-theme-input-text: #4c0519;
+  --rh-theme-input-border: #f43f5e;
+}
+
+.rh-chat-conversation.rh-theme-arcade,
+.rh-theme-preview-box.rh-theme-arcade {
+  --rh-theme-bg: #130f08;
+  --rh-theme-text: #fef3c7;
+  --rh-theme-subtext: #d97706;
+  --rh-theme-border: rgba(245, 158, 11, 0.35);
+  --rh-theme-received-bg: #221b0e;
+  --rh-theme-received-text: #fde68a;
+  --rh-theme-received-border: rgba(245, 158, 11, 0.45);
+  --rh-theme-input-bg: #1d160b;
+  --rh-theme-input-text: #fef3c7;
+  --rh-theme-input-border: #f59e0b;
+}
+
+.rh-chat-conversation.rh-theme-midnight,
+.rh-theme-preview-box.rh-theme-midnight {
+  --rh-theme-bg: #000000;
+  --rh-theme-text: #f8fafc;
+  --rh-theme-subtext: #94a3b8;
+  --rh-theme-border: #27272a;
+  --rh-theme-received-bg: #18181b;
+  --rh-theme-received-text: #fafafa;
+  --rh-theme-received-border: #3f3f46;
+  --rh-theme-input-bg: #09090b;
+  --rh-theme-input-text: #ffffff;
+  --rh-theme-input-border: #3f3f46;
+}
+
+/* Aplicación de bordes, header e inputs según tema */
+.rh-chat-conversation .rh-chat-conv-header {
+  border-bottom-color: var(--rh-theme-border);
+}
+
+.rh-chat-conversation .rh-chat-item-name {
+  color: var(--rh-theme-text);
+}
+
+.rh-chat-conversation .rh-chat-conv-header .rh-chat-btn-secondary {
+  background: var(--rh-theme-received-bg);
+  color: var(--rh-theme-text);
+  border-color: var(--rh-theme-border);
+}
+
+.rh-chat-conversation .rh-msg-row:not(.mine) .rh-msg-bubble {
+  background: var(--rh-theme-received-bg);
+  color: var(--rh-theme-received-text);
+  border: 1px solid var(--rh-theme-received-border);
+}
+
+.rh-chat-conversation .rh-chat-composer {
+  border-top-color: var(--rh-theme-border);
+}
+
+.rh-chat-conversation .rh-chat-composer .rh-chat-input {
+  background: var(--rh-theme-input-bg);
+  color: var(--rh-theme-input-text);
+  border-color: var(--rh-theme-input-border);
+}
+
+/* 2. Texturas / Patrones de Fondo */
+.rh-chat-conversation.rh-pattern-dots .rh-chat-messages-box,
+.rh-theme-preview-box.rh-pattern-dots {
+  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.22) 1.2px, transparent 1.2px);
+  background-size: 15px 15px;
+}
+
+.rh-chat-conversation.rh-pattern-grid .rh-chat-messages-box,
+.rh-theme-preview-box.rh-pattern-grid {
+  background-image: linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.rh-chat-conversation.rh-pattern-scanlines .rh-chat-messages-box,
+.rh-theme-preview-box.rh-pattern-scanlines {
+  background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0px, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px);
+}
+
+.rh-chat-conversation.rh-pattern-circuits .rh-chat-messages-box,
+.rh-theme-preview-box.rh-pattern-circuits {
+  background-image: radial-gradient(circle, rgba(0, 210, 190, 0.22) 1.5px, transparent 1.5px),
+                    linear-gradient(to right, rgba(0, 210, 190, 0.1) 1px, transparent 1px);
+  background-size: 22px 22px, 44px 44px;
+}
+
+/* 3. Formatos de Burbuja (Shapes & Styles) */
+/* Moderno Porcelana */
+.rh-bubble-modern .rh-msg-bubble {
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+.rh-bubble-modern .rh-msg-row.mine .rh-msg-bubble {
+  border-radius: 16px 16px 4px 16px;
+}
+
+/* Retro Pixel 8-Bit */
+.rh-bubble-pixel .rh-msg-bubble {
+  border-radius: 2px !important;
+  border: 2px solid #0f172a !important;
+  box-shadow: 3px 3px 0px rgba(15, 23, 42, 0.9) !important;
+  font-family: 'Space Grotesk', monospace !important;
+  font-size: 12.5px !important;
+  letter-spacing: -0.2px;
+}
+
+/* Cápsula Flotante Sleek */
+.rh-bubble-sleek .rh-msg-bubble {
+  border-radius: 22px !important;
+  padding: 10px 18px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Neón Cyberpunk Glow */
+.rh-bubble-neon .rh-msg-bubble {
+  border-radius: 14px !important;
+  border: 1.5px solid currentColor !important;
+  box-shadow: 0 0 14px rgba(0, 210, 190, 0.35) !important;
+  backdrop-filter: blur(6px);
+}
+
+/* Manga Cómic Ink */
+.rh-bubble-comic .rh-msg-bubble {
+  border-radius: 14px 14px 14px 3px !important;
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+  font-weight: 700 !important;
+}
+.rh-bubble-comic .rh-msg-row.mine .rh-msg-bubble {
+  border-radius: 14px 14px 3px 14px !important;
+}
+
+/* Minimal Plano */
+.rh-bubble-minimal .rh-msg-bubble {
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 8px 12px !important;
+}
+
+/* 4. Colores de Acento para Burbujas Propias (Mine) */
+.rh-color-sky .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #00a2ed 0%, #0284c7 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(2, 132, 199, 0.32) !important;
+}
+
+.rh-color-teal .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #00d2be 0%, #0d9488 100%) !important;
+  color: #042f2e !important;
+  font-weight: 700;
+  box-shadow: 0 3px 12px rgba(0, 210, 190, 0.32) !important;
+}
+
+.rh-color-scarlet .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #ff3b30 0%, #e60012 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(230, 0, 18, 0.32) !important;
+}
+
+.rh-color-emerald .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.32) !important;
+}
+
+.rh-color-amber .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(245, 158, 11, 0.32) !important;
+}
+
+.rh-color-violet .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(139, 92, 246, 0.32) !important;
+}
+
+.rh-color-rose .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(244, 63, 94, 0.32) !important;
+}
+
+.rh-color-olive .rh-msg-row.mine .rh-msg-bubble {
+  background: linear-gradient(135deg, #306230 0%, #0f380f 100%) !important;
+  color: #9bbc0f !important;
+  box-shadow: 0 3px 12px rgba(15, 56, 15, 0.45) !important;
+}
+
+/* Preservar bordes rígidos en Pixel y Cómic incluso con colores de gradiente */
+.rh-bubble-pixel .rh-msg-row.mine .rh-msg-bubble {
+  border: 2px solid #0f172a !important;
+  box-shadow: 3px 3px 0px rgba(15, 23, 42, 0.9) !important;
+}
+.rh-bubble-comic .rh-msg-row.mine .rh-msg-bubble {
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+}
+
+/* ==========================================================================
+   MODAL DE PERSONALIZACIÓN DE TEMAS (#rhThemeModalBackdrop)
+   ========================================================================== */
+.rh-theme-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100010;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  animation: rhFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rh-theme-modal-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(0, 210, 190, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  width: 100%;
+  max-width: 620px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: rhModalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rh-theme-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  flex-shrink: 0;
+}
+
+.rh-theme-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rh-theme-modal-title .rh-theme-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(0, 210, 190, 0.2), rgba(2, 132, 199, 0.2));
+  color: #00a2ed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rh-theme-modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Caja de Previsualización Interactiva en Vivo */
+.rh-theme-preview-box {
+  border-radius: 18px;
+  border: 1.5px solid var(--rh-theme-border);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.rh-theme-preview-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--rh-theme-subtext);
+  margin-bottom: 2px;
+}
+
+.rh-theme-section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.rh-theme-section-title svg {
+  color: #00d2be;
+}
+
+/* Grilla de Presets Rápidos (1 clic) */
+.rh-theme-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.rh-theme-preset-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  text-align: left;
+}
+
+.rh-theme-preset-card:hover {
+  background: #ffffff;
+  border-color: #00d2be;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 10px rgba(0, 210, 190, 0.15);
+}
+
+.rh-theme-preset-card.active {
+  background: #f0fdfa;
+  border-color: #00d2be;
+  color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(0, 210, 190, 0.25);
+}
+
+.rh-theme-preset-orb {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Selector de Formatos de Burbuja */
+.rh-bubble-style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rh-bubble-style-card {
+  padding: 10px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  text-align: center;
+}
+
+.rh-bubble-style-card:hover {
+  background: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-1.5px);
+}
+
+.rh-bubble-style-card.active {
+  background: #f0f9ff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+}
+
+.rh-bubble-style-sample {
+  padding: 4px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+.rh-bubble-style-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* Selector de Colores de Acento (mine) */
+.rh-color-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rh-color-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 0 0 1.5px #cbd5e1;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.rh-color-chip:hover {
+  transform: scale(1.15);
+}
+
+.rh-color-chip.active {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px #0f172a, 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Selector de Fondos de Conversación */
+.rh-bg-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.rh-bg-theme-card {
+  padding: 9px 8px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  text-align: center;
+}
+
+.rh-bg-theme-card:hover {
+  border-color: #00d2be;
+  transform: translateY(-1.5px);
+}
+
+.rh-bg-theme-card.active {
+  border-color: #00d2be;
+  box-shadow: 0 0 0 2px rgba(0, 210, 190, 0.3);
+}
+
+.rh-bg-theme-swatch {
+  width: 100%;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.rh-bg-theme-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+/* Selector de Texturas / Patrones */
+.rh-pattern-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.rh-pattern-chip {
+  padding: 6px 12px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.rh-pattern-chip:hover {
+  background: #ffffff;
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+.rh-pattern-chip.active {
+  background: #f0f9ff;
+  border-color: #0284c7;
+  color: #0284c7;
+  box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.2);
+}
+
+/* Ámbito de Aplicación (Radio Segmentado) */
+.rh-scope-toggle {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.rh-scope-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.rh-scope-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+/* Footer de Acciones del Modal */
+.rh-theme-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 820px) {
   .rh-common-toolbar {
     height: auto;
@@ -1382,4 +2083,11 @@
   .rh-status-clock-pill {
     display: none;
   }
+  .rh-bubble-style-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rh-bg-theme-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
+

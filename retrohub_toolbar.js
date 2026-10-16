@@ -25,7 +25,10 @@
     editPencil: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
     tag: `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
     check: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-    trash: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`
+    trash: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+    palette: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C21.437 6.426 17.202 2 12 2z"></path></svg>`,
+    sparkles: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>`,
+    layers: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`
   };
 
   function getCurrentPageKey() {
@@ -164,7 +167,10 @@
     typingUsers: [],
     lastTypingSentAt: 0,
     typingTimeout: null,
-    typingPollTimer: null
+    typingPollTimer: null,
+    // Temas personalizados de chat, fondos y formatos de burbuja
+    themes: {},
+    themeModalDraft: null
   };
 
   function getAuthHeaders() {
@@ -420,6 +426,435 @@
   }
 
   /* ========================================================================
+     GESTIÓN DE TEMAS, FONDOS, PATRONES Y FORMATOS DE BURBUJA
+     ======================================================================== */
+  const CHAT_THEME_PRESETS = [
+    { id: 'porcelain', name: 'RetroHub Porcelana', bgTheme: 'porcelain', bgPattern: 'dots', bubbleStyle: 'modern', bubbleColor: 'sky', color: '#00a2ed' },
+    { id: 'gameboy', name: 'Game Boy 1989', bgTheme: 'gameboy', bgPattern: 'grid', bubbleStyle: 'pixel', bubbleColor: 'olive', color: '#8bac0f' },
+    { id: 'cyberpunk', name: 'Cyberpunk Neón', bgTheme: 'cyberpunk', bgPattern: 'circuits', bubbleStyle: 'neon', bubbleColor: 'teal', color: '#00d2be' },
+    { id: 'famicon', name: 'NES / Famicom', bgTheme: 'famicon', bgPattern: 'grid', bubbleStyle: 'pixel', bubbleColor: 'scarlet', color: '#e60012' },
+    { id: 'playstation', name: 'PlayStation Deep', bgTheme: 'playstation', bgPattern: 'scanlines', bubbleStyle: 'sleek', bubbleColor: 'sky', color: '#0284c7' },
+    { id: 'sakura', name: 'Sakura Dream', bgTheme: 'sakura', bgPattern: 'dots', bubbleStyle: 'sleek', bubbleColor: 'rose', color: '#f43f5e' },
+    { id: 'arcade', name: 'Arcade CRT', bgTheme: 'arcade', bgPattern: 'scanlines', bubbleStyle: 'pixel', bubbleColor: 'amber', color: '#f59e0b' },
+    { id: 'midnight', name: 'Medianoche OLED', bgTheme: 'midnight', bgPattern: 'none', bubbleStyle: 'minimal', bubbleColor: 'teal', color: '#09090b' }
+  ];
+
+  const BUBBLE_STYLES = [
+    { id: 'modern', title: 'Suave Porcelana', desc: 'Bordes suaves y sombra natural' },
+    { id: 'pixel', title: 'Retro 8-Bit Pixel', desc: 'Esquinas cuadradas y sombra sólida' },
+    { id: 'sleek', title: 'Cápsula Flotante', desc: 'Curvatura estilizada profunda' },
+    { id: 'neon', title: 'Neón Cyberpunk', desc: 'Borde luminescente con halo' },
+    { id: 'comic', title: 'Manga Ink Cómic', desc: 'Tinta gruesa y sombra sólida' },
+    { id: 'minimal', title: 'Plano Minimal', desc: 'Limpio y ultracompacto' }
+  ];
+
+  const BUBBLE_COLORS = [
+    { id: 'sky', title: 'Azul Cielo', bg: 'linear-gradient(135deg, #00a2ed 0%, #0284c7 100%)' },
+    { id: 'teal', title: 'Turquesa', bg: 'linear-gradient(135deg, #00d2be 0%, #0d9488 100%)' },
+    { id: 'scarlet', title: 'Rojo Mario', bg: 'linear-gradient(135deg, #ff3b30 0%, #e60012 100%)' },
+    { id: 'emerald', title: 'Esmeralda', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
+    { id: 'amber', title: 'Ámbar Dorado', bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' },
+    { id: 'violet', title: 'Púrpura Real', bg: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)' },
+    { id: 'rose', title: 'Rosa Sakura', bg: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)' },
+    { id: 'olive', title: 'Game Boy', bg: 'linear-gradient(135deg, #306230 0%, #0f380f 100%)' }
+  ];
+
+  const BG_THEMES = [
+    { id: 'porcelain', title: 'Porcelana', swatch: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)' },
+    { id: 'gameboy', title: 'Game Boy 1989', swatch: 'linear-gradient(135deg, #8bac0f 0%, #9bbc0f 100%)' },
+    { id: 'cyberpunk', title: 'Cyberpunk Neón', swatch: 'linear-gradient(135deg, #0b0d19 0%, #151a2e 100%)' },
+    { id: 'famicon', title: 'Famicom 8-Bit', swatch: 'linear-gradient(135deg, #16161f 0%, #222230 100%)' },
+    { id: 'playstation', title: 'PlayStation Deep', swatch: 'linear-gradient(135deg, #070d1e 0%, #0f1c3f 100%)' },
+    { id: 'sakura', title: 'Sakura Pastel', swatch: 'linear-gradient(135deg, #fff1f5 0%, #fecdd3 100%)' },
+    { id: 'arcade', title: 'Arcade Ámbar', swatch: 'linear-gradient(135deg, #130f08 0%, #221b0e 100%)' },
+    { id: 'midnight', title: 'OLED Puro', swatch: 'linear-gradient(135deg, #000000 0%, #18181b 100%)' }
+  ];
+
+  const BG_PATTERNS = [
+    { id: 'none', title: 'Liso' },
+    { id: 'dots', title: 'Puntos' },
+    { id: 'grid', title: 'Cuadrícula' },
+    { id: 'scanlines', title: 'Scanlines CRT' },
+    { id: 'circuits', title: 'Circuitos' }
+  ];
+
+  function loadLocalThemes() {
+    try {
+      const myU = getCurrentUsername().toLowerCase();
+      const raw = localStorage.getItem(`rh_chat_themes_${myU}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          CHAT_STATE.themes = Object.assign({}, parsed);
+        }
+      }
+    } catch (e) {}
+  }
+
+  function saveLocalThemes() {
+    try {
+      const myU = getCurrentUsername().toLowerCase();
+      localStorage.setItem(`rh_chat_themes_${myU}`, JSON.stringify(CHAT_STATE.themes));
+    } catch (e) {}
+  }
+
+  function getCurrentConversationKey() {
+    if (CHAT_STATE.activeDM) return `dm_${CHAT_STATE.activeDM.id}`;
+    if (CHAT_STATE.activeGroup) return `group_${CHAT_STATE.activeGroup.id}`;
+    return 'global';
+  }
+
+  function getEffectiveTheme(convKey) {
+    const key = convKey || getCurrentConversationKey();
+    if (key && CHAT_STATE.themes[key]) {
+      return Object.assign({
+        bgTheme: 'porcelain',
+        bgPattern: 'dots',
+        bubbleStyle: 'modern',
+        bubbleColor: 'sky'
+      }, CHAT_STATE.themes[key]);
+    }
+    if (CHAT_STATE.themes['global']) {
+      return Object.assign({
+        bgTheme: 'porcelain',
+        bgPattern: 'dots',
+        bubbleStyle: 'modern',
+        bubbleColor: 'sky'
+      }, CHAT_STATE.themes['global']);
+    }
+    return {
+      bgTheme: 'porcelain',
+      bgPattern: 'dots',
+      bubbleStyle: 'modern',
+      bubbleColor: 'sky'
+    };
+  }
+
+  function getThemeClassNames(theme) {
+    const t = theme || getEffectiveTheme();
+    return `rh-theme-${t.bgTheme || 'porcelain'} rh-pattern-${t.bgPattern || 'none'} rh-bubble-${t.bubbleStyle || 'modern'} rh-color-${t.bubbleColor || 'sky'}`;
+  }
+
+  function openThemeModal() {
+    const currentKey = getCurrentConversationKey();
+    const isSpecific = currentKey !== 'global';
+    const activeTheme = getEffectiveTheme(currentKey);
+
+    CHAT_STATE.themeModalDraft = {
+      targetKey: isSpecific ? currentKey : 'global',
+      scope: isSpecific ? 'current' : 'global',
+      bgTheme: activeTheme.bgTheme || 'porcelain',
+      bgPattern: activeTheme.bgPattern || 'dots',
+      bubbleStyle: activeTheme.bubbleStyle || 'modern',
+      bubbleColor: activeTheme.bubbleColor || 'sky',
+      presetId: null
+    };
+
+    let modalEl = document.getElementById('rhThemeModalBackdrop');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'rhThemeModalBackdrop';
+      modalEl.className = 'rh-theme-modal-backdrop';
+      document.body.appendChild(modalEl);
+    }
+
+    const d = CHAT_STATE.themeModalDraft;
+    const convName = CHAT_STATE.activeDM 
+      ? getEffectiveName(CHAT_STATE.activeDM) 
+      : (CHAT_STATE.activeGroup ? CHAT_STATE.activeGroup.name : 'Esta conversación');
+
+    modalEl.innerHTML = `
+      <div class="rh-theme-modal-card" role="dialog" aria-modal="true" aria-labelledby="rhThemeModalTitle">
+        <div class="rh-theme-modal-head">
+          <div class="rh-theme-modal-title" id="rhThemeModalTitle">
+            <span class="rh-theme-icon-wrap">${ICONS.palette}</span>
+            <span>Personalizar Tema y Burbujas</span>
+          </div>
+          <button type="button" class="rh-chat-close-btn" onclick="window.RetroHubChat.closeThemeModal()" aria-label="Cerrar">
+            ${ICONS.close}
+          </button>
+        </div>
+
+        <div class="rh-theme-modal-body">
+          <!-- Vista Previa Interactiva en Vivo -->
+          <div>
+            <div class="rh-theme-preview-box ${getThemeClassNames(d)}" id="rhThemeLivePreview">
+              <div class="rh-theme-preview-label">Vista Previa en Vivo</div>
+              <div class="rh-msg-row">
+                <div class="rh-msg-bubble-wrap">
+                  <div class="rh-msg-bubble">¡Hola! ¿Echamos una partida retro hoy?</div>
+                  <span class="rh-msg-time">16:40</span>
+                </div>
+              </div>
+              <div class="rh-msg-row mine">
+                <div class="rh-msg-bubble-wrap">
+                  <div class="rh-msg-bubble">¡Por supuesto! Me encanta este nuevo estilo.</div>
+                  <span class="rh-msg-time">16:41</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Presets Rápidos (1 clic) -->
+          <div>
+            <div class="rh-theme-section-title">
+              ${ICONS.sparkles}
+              <span>Presets Temáticos (1 Clic)</span>
+            </div>
+            <div class="rh-theme-presets-grid">
+              ${CHAT_THEME_PRESETS.map((p) => `
+                <button type="button" class="rh-theme-preset-card ${d.presetId === p.id ? 'active' : ''}" data-preset-id="${p.id}" onclick="window.RetroHubChat.applyPreset('${p.id}')">
+                  <span class="rh-theme-preset-orb" style="background: ${p.color}; color: #ffffff;">${ICONS.gamepad}</span>
+                  <span>${escapeHtml(p.name)}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Formato de Burbuja -->
+          <div>
+            <div class="rh-theme-section-title">
+              ${ICONS.chat}
+              <span>Formato y Estilo de Burbujas</span>
+            </div>
+            <div class="rh-bubble-style-grid">
+              ${BUBBLE_STYLES.map((b) => `
+                <button type="button" class="rh-bubble-style-card ${d.bubbleStyle === b.id ? 'active' : ''}" data-bubble-style="${b.id}" onclick="window.RetroHubChat.setThemeOption('bubbleStyle', '${b.id}')">
+                  <div class="rh-bubble-style-sample rh-bubble-${b.id}">Texto demo</div>
+                  <div class="rh-bubble-style-title">${escapeHtml(b.title)}</div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Color de Acento (Burbujas Propias) -->
+          <div>
+            <div class="rh-theme-section-title">
+              ${ICONS.palette}
+              <span>Color de Burbujas Enviadas (Tus Mensajes)</span>
+            </div>
+            <div class="rh-color-chips-row">
+              ${BUBBLE_COLORS.map((c) => `
+                <button type="button" class="rh-color-chip ${d.bubbleColor === c.id ? 'active' : ''}" data-bubble-color="${c.id}" style="background: ${c.bg};" onclick="window.RetroHubChat.setThemeOption('bubbleColor', '${c.id}')" title="${escapeHtml(c.title)}">
+                  ${d.bubbleColor === c.id ? ICONS.check : ''}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Fondo y Wallpaper -->
+          <div>
+            <div class="rh-theme-section-title">
+              ${ICONS.gamepad}
+              <span>Ambiente y Fondo del Chat</span>
+            </div>
+            <div class="rh-bg-theme-grid">
+              ${BG_THEMES.map((bg) => `
+                <button type="button" class="rh-bg-theme-card ${d.bgTheme === bg.id ? 'active' : ''}" data-bg-theme="${bg.id}" onclick="window.RetroHubChat.setThemeOption('bgTheme', '${bg.id}')">
+                  <div class="rh-bg-theme-swatch" style="background: ${bg.swatch};"></div>
+                  <span class="rh-bg-theme-title">${escapeHtml(bg.title)}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Textura / Patrón -->
+          <div>
+            <div class="rh-theme-section-title">
+              ${ICONS.layers}
+              <span>Textura y Patrón del Fondo</span>
+            </div>
+            <div class="rh-pattern-chips-row">
+              ${BG_PATTERNS.map((pt) => `
+                <button type="button" class="rh-pattern-chip ${d.bgPattern === pt.id ? 'active' : ''}" data-bg-pattern="${pt.id}" onclick="window.RetroHubChat.setThemeOption('bgPattern', '${pt.id}')">
+                  ${escapeHtml(pt.title)}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Ámbito de Aplicación -->
+          ${isSpecific ? `
+            <div>
+              <div class="rh-theme-section-title">
+                ${ICONS.users}
+                <span>Aplicar Configuración a</span>
+              </div>
+              <div class="rh-scope-toggle">
+                <button type="button" class="rh-scope-btn ${d.scope === 'current' ? 'active' : ''}" data-scope="current" onclick="window.RetroHubChat.setThemeScope('current')">
+                  ${ICONS.chat}
+                  <span>Solo para ${escapeHtml(convName)}</span>
+                </button>
+                <button type="button" class="rh-scope-btn ${d.scope === 'global' ? 'active' : ''}" data-scope="global" onclick="window.RetroHubChat.setThemeScope('global')">
+                  ${ICONS.globe}
+                  <span>Todos los chats (Global)</span>
+                </button>
+              </div>
+            </div>
+          ` : `
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600; padding: 4px 2px; display: flex; align-items: center; gap: 6px;">
+              <span style="color: #0284c7;">${ICONS.globe}</span>
+              <span>Este tema se guardará como tema <strong>Global</strong> predeterminado para todas tus conversaciones.</span>
+            </div>
+          `}
+        </div>
+
+        <div class="rh-theme-modal-footer">
+          <div style="margin-right: auto;">
+            <button type="button" class="rh-chat-btn-secondary danger" onclick="window.RetroHubChat.resetThemeModal()">
+              ${ICONS.trash}
+              <span>Restablecer predeterminado</span>
+            </button>
+          </div>
+          <button type="button" class="rh-chat-btn-secondary" onclick="window.RetroHubChat.closeThemeModal()">Cancelar</button>
+          <button type="button" class="rh-chat-btn-primary" onclick="window.RetroHubChat.saveThemeModal()">
+            ${ICONS.check}
+            <span>Guardar Tema</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    modalEl.style.display = 'flex';
+
+    modalEl.onclick = (e) => {
+      if (e.target === modalEl) closeThemeModal();
+    };
+
+    modalEl.onkeydown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeThemeModal();
+      }
+    };
+  }
+
+  function closeThemeModal() {
+    const modalEl = document.getElementById('rhThemeModalBackdrop');
+    if (modalEl) {
+      modalEl.style.display = 'none';
+      modalEl.innerHTML = '';
+    }
+    CHAT_STATE.themeModalDraft = null;
+  }
+
+  function updateThemeModalUI() {
+    const d = CHAT_STATE.themeModalDraft;
+    if (!d) return;
+
+    const previewBox = document.getElementById('rhThemeLivePreview');
+    if (previewBox) {
+      previewBox.className = `rh-theme-preview-box ${getThemeClassNames(d)}`;
+    }
+
+    document.querySelectorAll('.rh-theme-preset-card').forEach((el) => {
+      el.classList.toggle('active', el.dataset.presetId === d.presetId);
+    });
+
+    document.querySelectorAll('.rh-bubble-style-card').forEach((el) => {
+      el.classList.toggle('active', el.dataset.bubbleStyle === d.bubbleStyle);
+    });
+
+    document.querySelectorAll('.rh-color-chip').forEach((el) => {
+      const isAct = el.dataset.bubbleColor === d.bubbleColor;
+      el.classList.toggle('active', isAct);
+      el.innerHTML = isAct ? ICONS.check : '';
+    });
+
+    document.querySelectorAll('.rh-bg-theme-card').forEach((el) => {
+      el.classList.toggle('active', el.dataset.bgTheme === d.bgTheme);
+    });
+
+    document.querySelectorAll('.rh-pattern-chip').forEach((el) => {
+      el.classList.toggle('active', el.dataset.bgPattern === d.bgPattern);
+    });
+
+    document.querySelectorAll('.rh-scope-btn').forEach((el) => {
+      el.classList.toggle('active', el.dataset.scope === d.scope);
+    });
+  }
+
+  function applyThemePreset(presetId) {
+    const p = CHAT_THEME_PRESETS.find((x) => x.id === presetId);
+    if (!p || !CHAT_STATE.themeModalDraft) return;
+    CHAT_STATE.themeModalDraft.presetId = presetId;
+    CHAT_STATE.themeModalDraft.bgTheme = p.bgTheme;
+    CHAT_STATE.themeModalDraft.bgPattern = p.bgPattern;
+    CHAT_STATE.themeModalDraft.bubbleStyle = p.bubbleStyle;
+    CHAT_STATE.themeModalDraft.bubbleColor = p.bubbleColor;
+    updateThemeModalUI();
+  }
+
+  function setThemeOption(key, val) {
+    if (!CHAT_STATE.themeModalDraft) return;
+    CHAT_STATE.themeModalDraft[key] = val;
+    CHAT_STATE.themeModalDraft.presetId = null;
+    updateThemeModalUI();
+  }
+
+  function setThemeScope(scope) {
+    if (!CHAT_STATE.themeModalDraft) return;
+    CHAT_STATE.themeModalDraft.scope = scope;
+    updateThemeModalUI();
+  }
+
+  async function saveThemeModal() {
+    const d = CHAT_STATE.themeModalDraft;
+    if (!d) return;
+
+    const currentKey = getCurrentConversationKey();
+    const targetKey = d.scope === 'global' ? 'global' : currentKey;
+    const themeObj = {
+      bgTheme: d.bgTheme,
+      bgPattern: d.bgPattern,
+      bubbleStyle: d.bubbleStyle,
+      bubbleColor: d.bubbleColor
+    };
+
+    CHAT_STATE.themes[targetKey] = themeObj;
+    saveLocalThemes();
+    closeThemeModal();
+    renderChatSidebarBody();
+
+    try {
+      await fetch('/api/chat/themes', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          targetKey: targetKey,
+          theme: themeObj
+        })
+      });
+    } catch (e) {
+      console.warn('[RetroHub Chat] Error guardando tema:', e);
+    }
+  }
+
+  async function resetThemeModal() {
+    const d = CHAT_STATE.themeModalDraft;
+    const currentKey = getCurrentConversationKey();
+    const targetKey = d && d.scope === 'global' ? 'global' : currentKey;
+
+    delete CHAT_STATE.themes[targetKey];
+    saveLocalThemes();
+    closeThemeModal();
+    renderChatSidebarBody();
+
+    try {
+      await fetch('/api/chat/themes', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          targetKey: targetKey,
+          theme: null
+        })
+      });
+    } catch (e) {
+      console.warn('[RetroHub Chat] Error restableciendo tema:', e);
+    }
+  }
+
+  /* ========================================================================
      GESTIÓN DEL ESTADO "ESCRIBIENDO..." (TYPING INDICATOR)
      ======================================================================== */
   function handleComposerInput() {
@@ -542,6 +977,7 @@
   async function fetchChatOverview() {
     try {
       loadLocalNicknames();
+      loadLocalThemes();
       const uname = encodeURIComponent(getCurrentUsername());
       const res = await fetch(`/api/chat/overview?username=${uname}`, {
         headers: getAuthHeaders()
@@ -551,6 +987,10 @@
         if (data.nicknames && typeof data.nicknames === 'object') {
           CHAT_STATE.nicknames = Object.assign({}, data.nicknames);
           saveLocalNicknames();
+        }
+        if (data.themes && typeof data.themes === 'object') {
+          CHAT_STATE.themes = Object.assign({}, data.themes);
+          saveLocalThemes();
         }
         CHAT_STATE.friends = data.friends || [];
         CHAT_STATE.allUsers = data.allUsers || [];
@@ -620,9 +1060,15 @@
               <div class="rh-chat-subtitle">Mensajes directos y grupos abiertos</div>
             </div>
           </div>
-          <button class="rh-chat-close-btn" id="rhChatCloseBtn" type="button" title="Cerrar chat lateral">
-            ${ICONS.close}
-          </button>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button class="rh-btn-chat-theme" id="rhChatGlobalThemeBtn" type="button" onclick="window.RetroHubChat.openThemeModal()" title="Personalizar temas y burbujas de chat">
+              ${ICONS.palette}
+              <span>Temas</span>
+            </button>
+            <button class="rh-chat-close-btn" id="rhChatCloseBtn" type="button" title="Cerrar chat lateral">
+              ${ICONS.close}
+            </button>
+          </div>
         </div>
 
         <div class="rh-chat-tabs">
@@ -1013,7 +1459,7 @@
           CHAT_STATE.statusBanner.type === 'success' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'
         };">
           <span>${escapeHtml(CHAT_STATE.statusBanner.text)}</span>
-          <button type="button" onclick="window.RetroHubChat.clearBanner()" style="background:none;border:none;cursor:pointer;color:inherit;font-weight:900;">✕</button>
+          <button type="button" onclick="window.RetroHubChat.clearBanner()" style="background:none;border:none;cursor:pointer;color:inherit;display:inline-flex;align-items:center;">${ICONS.close}</button>
         </div>`
       : '';
 
@@ -1049,9 +1495,11 @@
               .join('');
 
       const typingNames = CHAT_STATE.typingUsers.map((u) => getEffectiveName(u, u.username, u.displayName)).join(', ');
+      const dmTheme = getEffectiveTheme(`dm_${f.id}`);
+      const dmThemeClasses = getThemeClassNames(dmTheme);
 
       bodyEl.innerHTML = `
-        <div class="rh-chat-conversation">
+        <div class="rh-chat-conversation ${dmThemeClasses}">
           <div class="rh-chat-conv-header">
             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
               <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 6px 9px;">
@@ -1072,6 +1520,10 @@
                 </div>
               </div>
             </div>
+            <button class="rh-btn-chat-theme" type="button" onclick="window.RetroHubChat.openThemeModal()" title="Personalizar tema de fondo y formato de burbujas">
+              ${ICONS.palette}
+              <span>Tema</span>
+            </button>
           </div>
 
           ${bannerHtml}
@@ -1196,18 +1648,20 @@
               .join('');
 
       const groupTypingNames = CHAT_STATE.typingUsers.map((u) => getEffectiveName(u, u.username, u.displayName)).join(', ');
+      const groupTheme = getEffectiveTheme(`group_${g.id}`);
+      const groupThemeClasses = getThemeClassNames(groupTheme);
 
       bodyEl.innerHTML = `
-        <div class="rh-chat-conversation">
+        <div class="rh-chat-conversation ${groupThemeClasses}">
           <div class="rh-chat-conv-header">
-            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
               <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.backToList()" style="padding: 6px 9px;">
                 ${ICONS.back}
               </button>
               <div class="rh-chat-group-avatar" style="width: 36px; height: 36px; border-radius: 11px; background: ${escapeHtml(g.iconColor)};">
                 ${ICONS.users}
               </div>
-              <div style="min-width: 0;">
+              <div style="min-width: 0; flex: 1;">
                 <div class="rh-chat-item-name">${escapeHtml(g.name)}</div>
                 <div style="font-size: 11px; font-weight: 700; color: #0284c7;">
                   ${(g.members || []).length} miembros • Código: ${escapeHtml(g.inviteCode)}
@@ -1215,10 +1669,16 @@
               </div>
             </div>
 
-            <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.toggleInvitePanel()" title="Cualquier miembro puede invitar jugadores a este grupo">
-              ${ICONS.userPlus}
-              <span>Invitar</span>
-            </button>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button class="rh-btn-chat-theme" type="button" onclick="window.RetroHubChat.openThemeModal()" title="Personalizar tema de fondo y formato de burbujas">
+                ${ICONS.palette}
+                <span>Tema</span>
+              </button>
+              <button class="rh-chat-btn-secondary" type="button" onclick="window.RetroHubChat.toggleInvitePanel()" title="Cualquier miembro puede invitar jugadores a este grupo">
+                ${ICONS.userPlus}
+                <span>Invitar</span>
+              </button>
+            </div>
           </div>
 
           ${bannerHtml}
@@ -1701,6 +2161,15 @@
     },
     getEffectiveName: getEffectiveName,
     hasCustomNickname: hasCustomNickname,
+    // Métodos para temas y formatos de burbuja personalizados
+    openThemeModal: openThemeModal,
+    closeThemeModal: closeThemeModal,
+    saveThemeModal: saveThemeModal,
+    resetThemeModal: resetThemeModal,
+    applyPreset: applyThemePreset,
+    setThemeOption: setThemeOption,
+    setThemeScope: setThemeScope,
+    getEffectiveTheme: getEffectiveTheme,
     getState: () => CHAT_STATE,
     refresh: fetchChatOverview
   };
