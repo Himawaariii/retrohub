@@ -14,8 +14,9 @@ import base64
 import time
 import random
 import re
+import urllib.parse
 
-PORT = 8080
+PORT = 80
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 JWT_SECRET = b'retrohub-nintendo-clean-secret-key-2025'
 
@@ -166,13 +167,31 @@ def decode_token(token):
 
 def obtener_ips_locales():
     ips = []
+    # 1. IP de la interfaz física activa conectada a la red local (Ethernet / Wi-Fi)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        active_ip = s.getsockname()[0]
+        s.close()
+        if active_ip and not active_ip.startswith('127.'):
+            ips.append(active_ip)
+    except Exception:
+        pass
+
+    # 2. Resto de interfaces descartando adaptadores virtuales y loopback
     try:
         _, _, all_ips = socket.gethostbyname_ex(socket.gethostname())
         for ip in all_ips:
-            if not ip.startswith('127.') and not ip.startswith('192.168.56.'):
-                ips.append(ip)
-    except:
+            if ip in ips:
+                continue
+            if ip.startswith('127.') or ip.startswith('169.254.') or ip.startswith('192.168.56.'):
+                continue
+            if (ip.startswith('172.29.') or ip.startswith('172.20.')) and len(ips) > 0:
+                continue
+            ips.append(ip)
+    except Exception:
         pass
+
     return ips or ['127.0.0.1']
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -183,7 +202,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.do_GET()
 
     def do_GET(self):
-        if self.path in ('/', '/home', '/home.html', '/inicio', '/retrohub', '/retrohub.html'):
+        parsed_url = urllib.parse.urlparse(self.path)
+        path_clean = parsed_url.path
+
+        if path_clean in ('/', '/home', '/home.html', '/inicio', '/retrohub', '/retrohub.html'):
             idx_html = os.path.join(DIRECTORY, 'index.html')
             if os.path.exists(idx_html):
                 self.send_response(200)
@@ -193,7 +215,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(f.read())
                 return
 
-        if self.path in ('/login', '/login.html', '/auth'):
+        if path_clean in ('/login', '/login.html', '/auth'):
             l_html = os.path.join(DIRECTORY, 'login.html')
             if os.path.exists(l_html):
                 self.send_response(200)
@@ -203,13 +225,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(f.read())
                 return
 
-        if self.path in ('/network', '/social'):
+        if path_clean in ('/network', '/social', '/iisu_network', '/iisu_network.html'):
             net_html = os.path.join(DIRECTORY, 'iisu_network.html')
             if os.path.exists(net_html):
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/html; charset=utf-8')
                 self.end_headers()
                 with open(net_html, 'rb') as f:
+                    self.wfile.write(f.read())
+                return
+
+        if path_clean in ('/incidencias', '/incidencias.html', '/tickets', '/soporte'):
+            inc_html = os.path.join(DIRECTORY, 'incidencias.html')
+            if os.path.exists(inc_html):
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.end_headers()
+                with open(inc_html, 'rb') as f:
                     self.wfile.write(f.read())
                 return
 
@@ -290,7 +322,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         
         if self.path.startswith('/api/games/search'):
-            import urllib.parse
             query_params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             q = query_params.get('query', [''])[0].strip().lower()
 
@@ -363,7 +394,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 return
 
         if self.path.startswith('/api/users/check-username'):
-            import urllib.parse
             parsed = urllib.parse.urlparse(self.path)
             qs = urllib.parse.parse_qs(parsed.query)
             path_parts = [p for p in parsed.path.split('/') if p]
@@ -417,7 +447,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/users/profile') or self.path.startswith('/api/user/profile'):
-            import urllib.parse
             prefix = None
             if self.path.startswith('/api/users/profile/'):
                 prefix = '/api/users/profile/'
@@ -669,7 +698,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/chat/overview') or self.path.startswith('/api/friends/list'):
-            import urllib.parse
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
             conn = sqlite3.connect(master_db)
@@ -805,7 +833,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/chat/dm'):
-            import urllib.parse
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             friend_id = int(qs.get('friendId', ['0'])[0] or 0)
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
@@ -858,7 +885,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/chat/groups/messages'):
-            import urllib.parse
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             group_id = int(qs.get('groupId', ['0'])[0] or 0)
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
@@ -907,7 +933,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/users/search'):
-            import urllib.parse
             qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             q = (qs.get('q', [''])[0] or qs.get('query', [''])[0]).strip().lower()
             master_db = os.path.join(DIRECTORY, 'retrohub_master.sqlite')
@@ -1988,53 +2013,90 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return 'application/octet-stream'
         return mime
 
-def registrar_mdns(ip, port):
+def registrar_mdns(ips, port):
     try:
         from zeroconf import Zeroconf, ServiceInfo
         zc = Zeroconf()
+        addresses = [socket.inet_aton(ip) for ip in ips if not ip.startswith('127.')]
+        if not addresses:
+            addresses = [socket.inet_aton('127.0.0.1')]
+        
         info = ServiceInfo(
             "_http._tcp.local.",
             "RetroHub._http._tcp.local.",
-            addresses=[socket.inet_aton(ip)],
+            addresses=addresses,
             port=port,
-            properties={"path": "/"},
+            properties={"path": "/", "app": "RetroHub"},
             server="retrohub.local."
         )
         zc.register_service(info)
         return zc, info
-    except Exception:
+    except Exception as e:
+        print(f"  [i] Aviso mDNS: {e}")
         return None, None
 
-def abrir_navegador():
+def abrir_navegador(port):
     import time
     time.sleep(1)
-    webbrowser.open(f'http://localhost:{PORT}/')
+    url = f'http://retrohub.local/' if port == 80 else f'http://127.0.0.1:{port}/'
+    webbrowser.open(url)
 
 if __name__ == '__main__':
     os.chdir(DIRECTORY)
     socketserver.ThreadingTCPServer.allow_reuse_address = True
-    ips = obtener_ips_locales()
-    primary_ip = ips[0] if ips else "127.0.0.1"
-    zc, zc_info = registrar_mdns(primary_ip, PORT)
+    init_tickets_db()
     
-    with socketserver.ThreadingTCPServer(("", PORT), Handler) as httpd:
-        print(f"==================================================")
-        print(f"  RETROHUB - Plataforma de Emulacion Activa")
-        print(f"  Red Local (mDNS): http://retrohub.local:{PORT}/")
-        print(f"  URL Local:        http://localhost:{PORT}/")
-        for ip in ips:
-            print(f"  URL IP Red:       http://{ip}:{PORT}/ (Compartir con amigos)")
-        print(f"  Pulsa Ctrl + C en esta ventana para detenerlo")
-        print(f"==================================================")
-        threading.Thread(target=abrir_navegador, daemon=True).start()
+    # 1. Determinar puerto limpio.
+    # Prioridad: Puerto 80 (HTTP estándar). En el puerto 80 no hay conflicto con Nginx/Docker
+    # y permite que los compañeros de clase escriban directamente http://retrohub.local sin recordar puertos.
+    puertos_a_intentar = [80, 8000, 3000, 8081]
+    httpd = None
+    puerto_elegido = None
+
+    for p in puertos_a_intentar:
         try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nServidor detenido.")
-            if zc and zc_info:
-                try:
-                    zc.unregister_service(zc_info)
-                    zc.close()
-                except Exception:
-                    pass
-            sys.exit(0)
+            httpd = socketserver.ThreadingTCPServer(('0.0.0.0', p), Handler)
+            puerto_elegido = p
+            break
+        except Exception:
+            continue
+
+    if not httpd:
+        puerto_elegido = 8080
+        httpd = socketserver.ThreadingTCPServer(('0.0.0.0', puerto_elegido), Handler)
+
+    PORT = puerto_elegido
+
+    # 2. IPs locales e inicialización mDNS
+    ips = obtener_ips_locales()
+    zc, zc_info = registrar_mdns(ips, PORT)
+
+    url_mdns = "http://retrohub.local/" if PORT == 80 else f"http://retrohub.local:{PORT}/"
+    url_local = "http://127.0.0.1/" if PORT == 80 else f"http://127.0.0.1:{PORT}/"
+
+    print("==================================================")
+    print("  RETROHUB - Plataforma de Emulacion Activa")
+    print("==================================================")
+    print(f"  Red Local (mDNS): {url_mdns}")
+    print(f"  URL Local:        {url_local}")
+    for ip in ips:
+        url_ip = f"http://{ip}/" if PORT == 80 else f"http://{ip}:{PORT}/"
+        print(f"  URL IP Red:       {url_ip} (Compartir con companeros)")
+    print("--------------------------------------------------")
+    print("  Para que tus companeros de clase se conecten:")
+    print(f"  Diles que entren en el navegador a: {url_mdns}")
+    print("  Pulsa Ctrl + C en esta ventana para detenerlo")
+    print("==================================================")
+
+    threading.Thread(target=abrir_navegador, args=(PORT,), daemon=True).start()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServidor detenido.")
+        if zc and zc_info:
+            try:
+                zc.unregister_service(zc_info)
+                zc.close()
+            except Exception:
+                pass
+        sys.exit(0)

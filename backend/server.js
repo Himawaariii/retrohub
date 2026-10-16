@@ -20,7 +20,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DB_PATH = path.join(ROOT_DIR, 'retrohub_master.sqlite');
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 80;
 const JWT_SECRET = process.env.JWT_SECRET || 'retrohub-super-secret-master-token-key-2026';
 
 const app = express();
